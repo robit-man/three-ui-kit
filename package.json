@@ -1,0 +1,35 @@
+{
+  "name": "@hud/uikit",
+  "version": "0.1.0",
+  "description": "Three.js dark-HUD UI kit — camera/object anchored, quaternion-aligned, multi-input",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "check": "tsc --noEmit",
+    "gen-cert": "node scripts/gen-cert.mjs",
+    "secure": "tsc && node scripts/gen-cert.mjs && node scripts/serve-https.mjs",
+    "serve": "tsc && node scripts/serve-https.mjs"
+  },
+  "dependencies": {
+    "three": "0.183.0",
+    "troika-three-text": "^0.52.3"
+  },
+  "devDependencies": {
+    "@types/three": "^0.183.0",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "three": "0.183.x"
+  },
+  "files": ["dist"],
+  "license": "MIT"
+}

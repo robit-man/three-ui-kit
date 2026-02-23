@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>three-ui-kit - examples</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      background: #050607;
+      color: rgba(235,240,245,0.92);
+      font-family: "IBM Plex Mono", "Space Mono", monospace;
+      overflow: hidden;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(184,136,56,0.08), transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(127,214,193,0.05), transparent 35%),
+        #050607;
+    }
+
+    #sidebar {
+      border-right: 1px solid rgba(235,240,245,0.1);
+      background: linear-gradient(180deg, rgba(11,12,13,0.95), rgba(5,6,7,0.95));
+      padding: 20px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    #sidebar h1 {
+      font-size: 16px;
+      letter-spacing: 0.12em;
+      font-weight: 400;
+      color: #B88838;
+    }
+
+    #sidebar .subtle {
+      font-size: 11px;
+      color: rgba(235,240,245,0.5);
+      line-height: 1.5;
+    }
+
+    #example-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #helper-controls {
+      border: 1px solid rgba(235,240,245,0.12);
+      border-radius: 4px;
+      background: rgba(8,9,10,0.9);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #helpers-toggle {
+      width: 100%;
+      text-align: center;
+      padding: 9px 8px;
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: rgba(235,240,245,0.85);
+      background: rgba(11,12,13,0.95);
+      border: 1px solid rgba(184,136,56,0.28);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    #helpers-toggle:hover {
+      border-color: #B88838;
+      color: #B88838;
+    }
+
+    #helpers-toggle.active {
+      border-color: #B88838;
+      color: #B88838;
+      background: rgba(184,136,56,0.1);
+    }
+
+    .helper-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      line-height: 1.25;
+      color: rgba(235,240,245,0.78);
+      user-select: none;
+    }
+
+    .helper-row input {
+      accent-color: #B88838;
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+
+    #debug-panel {
+      border: 1px solid rgba(235,240,245,0.1);
+      border-radius: 4px;
+      background: rgba(8,9,10,0.92);
+      padding: 10px;
+      min-height: 172px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #debug-panel h2 {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      font-weight: 400;
+      color: rgba(184,136,56,0.95);
+    }
+
+    #debug-output {
+      margin: 0;
+      font-family: inherit;
+      font-size: 10px;
+      line-height: 1.45;
+      color: rgba(235,240,245,0.72);
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 128px;
+    }
+
+    .example-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 11px 10px;
+      font-family: inherit;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: rgba(235,240,245,0.85);
+      background: rgba(11,12,13,0.9);
+      border: 1px solid rgba(184,136,56,0.22);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .example-btn:hover {
+      border-color: #B88838;
+      color: #B88838;
+      background: rgba(11,12,13,1);
+    }
+
+    .example-btn.active {
+      border-color: #B88838;
+      color: #B88838;
+      background: rgba(184,136,56,0.08);
+    }
+
+    #status {
+      margin-top: auto;
+      border-top: 1px solid rgba(235,240,245,0.08);
+      padding-top: 10px;
+      min-height: 44px;
+      font-size: 11px;
+      color: rgba(235,240,245,0.45);
+      line-height: 1.5;
+    }
+
+    #viewport-wrap {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    #viewport {
+      position: absolute;
+      inset: 0;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    @media (max-width: 980px) {
+      #app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      #sidebar {
+        border-right: none;
+        border-bottom: 1px solid rgba(235,240,245,0.1);
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <h1>+ THREE-UI-KIT</h1>
+    <p class="subtle">Menu system demos. Switch examples at any time.</p>
+
+    <div id="example-list">
+      <button class="example-btn" data-example="1">1 - Object-Anchored Loadout Panel</button>
+      <button class="example-btn" data-example="2">2 - Camera HUD: Radial Dial + Readouts</button>
+      <button class="example-btn" data-example="3">3 - VR Wrist Menu</button>
+      <button class="example-btn" data-example="4">4 - Phone Touch Overlay</button>
+    </div>
+
+    <section id="helper-controls" aria-label="Helper controls">
+      <button id="helpers-toggle" type="button" aria-pressed="false">Helpers: OFF</button>
+      <label class="helper-row">
+        <input id="toggle-anchor-axes" type="checkbox">
+        <span>Anchor Axes</span>
+      </label>
+      <label class="helper-row">
+        <input id="toggle-element-axes" type="checkbox">
+        <span>Element Axes</span>
+      </label>
+      <label class="helper-row">
+        <input id="toggle-hit-regions" type="checkbox">
+        <span>Hit Regions</span>
+      </label>
+      <label class="helper-row">
+        <input id="toggle-layout-bounds" type="checkbox">
+        <span>Layout Bounds</span>
+      </label>
+    </section>
+
+    <section id="debug-panel" aria-live="polite">
+      <h2>Hover Inspector</h2>
+      <pre id="debug-output">No active example.</pre>
+    </section>
+
+    <div id="status">Select an example.</div>
+  </aside>
+
+  <main id="viewport-wrap">
+    <div id="viewport"></div>
+  </main>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./node_modules/three/build/three.module.js",
+    "three/examples/jsm/": "./node_modules/three/examples/jsm/",
+    "troika-three-text": "./node_modules/troika-three-text/dist/troika-three-text.esm.js",
+    "troika-worker-utils": "./node_modules/troika-worker-utils/dist/troika-worker-utils.esm.js",
+    "troika-three-utils": "./node_modules/troika-three-utils/dist/troika-three-utils.esm.js",
+    "webgl-sdf-generator": "./node_modules/webgl-sdf-generator/dist/webgl-sdf-generator.mjs",
+    "bidi-js": "./node_modules/bidi-js/dist/bidi.mjs"
+  }
+}
+</script>
+
+<script type="module">
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+} from "three";
+
+const viewport = document.getElementById("viewport");
+const status = document.getElementById("status");
+const buttons = Array.from(document.querySelectorAll(".example-btn"));
+const helpersToggleBtn = document.getElementById("helpers-toggle");
+const toggleAnchorAxes = document.getElementById("toggle-anchor-axes");
+const toggleElementAxes = document.getElementById("toggle-element-axes");
+const toggleHitRegions = document.getElementById("toggle-hit-regions");
+const toggleLayoutBounds = document.getElementById("toggle-layout-bounds");
+const debugOutput = document.getElementById("debug-output");
+
+const EXAMPLES = {
+  "1": {
+    factory: "createLoadoutPanelExample",
+    load: () => import("./dist/examples/example1-loadout-panel.js"),
+    info: "Example 1 - Object-anchored Loadout Panel - BILLBOARD_YAW facing",
+  },
+  "2": {
+    factory: "createCameraHudExample",
+    load: () => import("./dist/examples/example2-camera-hud.js"),
+    info: "Example 2 - Camera HUD - FOV-fit responsive, slider controls brightness",
+  },
+  "3": {
+    factory: "createVRWristMenuExample",
+    load: () => import("./dist/examples/example3-vr-wrist-menu.js"),
+    info: "Example 3 - VR Wrist Menu - LOCK_UP + yaw-toward-head facing",
+  },
+  "4": {
+    factory: "createPhoneTouchExample",
+    load: () => import("./dist/examples/example4-phone-touch.js"),
+    info: "Example 4 - Phone Touch - 44px hit targets, film grain toggle",
+  },
+};
+
+let renderer;
+let scene;
+let camera;
+let activeRuntime = null;
+let activeExampleId = null;
+const debugState = {
+  showAnchorAxes: false,
+  showElementAxes: false,
+  showHitRegions: false,
+  showLayoutBounds: false,
+};
+
+function hasHelpersEnabled() {
+  return debugState.showAnchorAxes || debugState.showElementAxes;
+}
+
+function getRuntimeUIManager(runtime = activeRuntime) {
+  if (!runtime || typeof runtime !== "object") return null;
+  return runtime.uiManager ?? null;
+}
+
+function syncDebugControls() {
+  const helpersEnabled = hasHelpersEnabled();
+  helpersToggleBtn.textContent = helpersEnabled ? "Helpers: ON" : "Helpers: OFF";
+  helpersToggleBtn.classList.toggle("active", helpersEnabled);
+  helpersToggleBtn.setAttribute("aria-pressed", helpersEnabled ? "true" : "false");
+
+  toggleAnchorAxes.checked = debugState.showAnchorAxes;
+  toggleElementAxes.checked = debugState.showElementAxes;
+  toggleHitRegions.checked = debugState.showHitRegions;
+  toggleLayoutBounds.checked = debugState.showLayoutBounds;
+}
+
+function applyDebugStateToRuntime(runtime = activeRuntime) {
+  const uiManager = getRuntimeUIManager(runtime);
+  if (!uiManager) return;
+
+  if (typeof uiManager.setDebugHelpersEnabled === "function") {
+    uiManager.setDebugHelpersEnabled(hasHelpersEnabled());
+  }
+
+  if (uiManager.debug && typeof uiManager.debug === "object") {
+    uiManager.debug.showAnchorAxes = debugState.showAnchorAxes;
+    uiManager.debug.showElementAxes = debugState.showElementAxes;
+    uiManager.debug.showHitRegions = debugState.showHitRegions;
+    uiManager.debug.showLayoutBounds = debugState.showLayoutBounds;
+  }
+}
+
+function formatNum(v) {
+  return Number.isFinite(v) ? v.toFixed(3) : "n/a";
+}
+
+function formatVec3(v) {
+  return `${formatNum(v.x)}, ${formatNum(v.y)}, ${formatNum(v.z)}`;
+}
+
+function formatQuat(v) {
+  return `${formatNum(v.x)}, ${formatNum(v.y)}, ${formatNum(v.z)}, ${formatNum(v.w)}`;
+}
+
+function renderDebugPanel() {
+  const uiManager = getRuntimeUIManager();
+  if (!uiManager || typeof uiManager.getDebugSnapshot !== "function") {
+    debugOutput.textContent = "No active example.";
+    requestAnimationFrame(renderDebugPanel);
+    return;
+  }
+
+  const snapshot = uiManager.getDebugSnapshot();
+  if (!snapshot) {
+    debugOutput.textContent = "Hover an interactive UI element.";
+    requestAnimationFrame(renderDebugPanel);
+    return;
+  }
+
+  const hit = snapshot.hitRegion
+    ? `${formatNum(snapshot.hitRegion.x)}, ${formatNum(snapshot.hitRegion.y)}, ${formatNum(snapshot.hitRegion.w)}, ${formatNum(snapshot.hitRegion.h)}, slop=${formatNum(snapshot.hitRegion.slop)}`
+    : "none";
+
+  debugOutput.textContent = [
+    `pointer: ${snapshot.pointerId}`,
+    `element: ${snapshot.elementId}`,
+    `uuid: ${snapshot.elementUuid}`,
+    `local pos: ${formatVec3(snapshot.localPosition)}`,
+    `world pos: ${formatVec3(snapshot.worldPosition)}`,
+    `world quat: ${formatQuat(snapshot.worldQuaternion)}`,
+    `world euler deg: ${formatVec3(snapshot.worldEulerDeg)}`,
+    `size: ${formatNum(snapshot.computedSize.width)} x ${formatNum(snapshot.computedSize.height)}`,
+    `hit region: ${hit}`,
+  ].join("\n");
+
+  requestAnimationFrame(renderDebugPanel);
+}
+
+function getViewportSize() {
+  const width = Math.max(1, viewport.clientWidth);
+  const height = Math.max(1, viewport.clientHeight);
+  return { width, height };
+}
+
+function ensureThree() {
+  if (renderer) return;
+
+  renderer = new WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setClearColor(0x050607);
+  viewport.appendChild(renderer.domElement);
+
+  scene = new Scene();
+  const { width, height } = getViewportSize();
+  camera = new PerspectiveCamera(55, width / height, 0.05, 100);
+  camera.position.set(0, 1.6, 1);
+  camera.lookAt(0, 1.0, -3);
+
+  handleResize();
+}
+
+function setButtonActive(exampleId) {
+  for (const btn of buttons) {
+    btn.classList.toggle("active", btn.dataset.example === exampleId);
+  }
+}
+
+function handleResize() {
+  if (!renderer || !camera) return;
+
+  const { width, height } = getViewportSize();
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height, false);
+
+  if (activeRuntime && typeof activeRuntime.onResize === "function") {
+    activeRuntime.onResize(width, height);
+  }
+}
+
+window.addEventListener("resize", handleResize);
+
+async function unloadActiveRuntime() {
+  if (!activeRuntime) return;
+  try {
+    if (typeof activeRuntime.stop === "function") activeRuntime.stop();
+    if (typeof activeRuntime.dispose === "function") activeRuntime.dispose();
+  } catch (err) {
+    console.error("[examples] error while disposing runtime", err);
+  } finally {
+    activeRuntime = null;
+  }
+}
+
+async function loadExample(exampleId) {
+  const def = EXAMPLES[exampleId];
+  if (!def) return;
+
+  ensureThree();
+  status.textContent = "Loading...";
+  setButtonActive(exampleId);
+
+  await unloadActiveRuntime();
+
+  try {
+    const mod = await def.load();
+    const createFn = mod[def.factory];
+    if (typeof createFn !== "function") {
+      throw new Error(`Factory "${def.factory}" not found`);
+    }
+
+    const runtime = createFn(renderer, scene, camera);
+    activeRuntime = runtime;
+    activeExampleId = exampleId;
+    applyDebugStateToRuntime(activeRuntime);
+
+    handleResize();
+
+    if (runtime && typeof runtime.start === "function") {
+      runtime.start();
+    } else if (runtime && typeof runtime.animate === "function") {
+      // Backward compatibility for older example shape.
+      runtime.animate();
+    } else {
+      throw new Error("Example runtime missing start()/animate()");
+    }
+
+    status.textContent = def.info;
+  } catch (err) {
+    console.error("[examples] failed to load example", err);
+    status.textContent = `Failed to load example ${exampleId}. Check console.`;
+    setButtonActive(activeExampleId);
+  }
+}
+
+for (const btn of buttons) {
+  btn.addEventListener("click", () => {
+    const id = btn.dataset.example;
+    if (!id || id === activeExampleId) return;
+    loadExample(id);
+  });
+}
+
+helpersToggleBtn.addEventListener("click", () => {
+  const enable = !hasHelpersEnabled();
+  if (enable) {
+    if (!debugState.showAnchorAxes && !debugState.showElementAxes) {
+      debugState.showAnchorAxes = true;
+      debugState.showElementAxes = true;
+    }
+  } else {
+    debugState.showAnchorAxes = false;
+    debugState.showElementAxes = false;
+  }
+
+  syncDebugControls();
+  applyDebugStateToRuntime();
+});
+
+toggleAnchorAxes.addEventListener("change", () => {
+  debugState.showAnchorAxes = toggleAnchorAxes.checked;
+  syncDebugControls();
+  applyDebugStateToRuntime();
+});
+
+toggleElementAxes.addEventListener("change", () => {
+  debugState.showElementAxes = toggleElementAxes.checked;
+  syncDebugControls();
+  applyDebugStateToRuntime();
+});
+
+toggleHitRegions.addEventListener("change", () => {
+  debugState.showHitRegions = toggleHitRegions.checked;
+  applyDebugStateToRuntime();
+});
+
+toggleLayoutBounds.addEventListener("change", () => {
+  debugState.showLayoutBounds = toggleLayoutBounds.checked;
+  applyDebugStateToRuntime();
+});
+
+syncDebugControls();
+renderDebugPanel();
+</script>
+</body>
+</html>
