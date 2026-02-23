@@ -17,6 +17,8 @@ const _q1 = new Quaternion();
  * Use with slerp/lerp each frame for smooth follow.
  */
 export function smoothAlpha(dt: number, hz: number): number {
+  // `hz <= 0` means "disable smoothing" and snap directly to target.
+  if (hz <= 0) return 1;
   return 1 - Math.exp(-dt * hz);
 }
 

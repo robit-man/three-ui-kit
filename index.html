@@ -522,9 +522,9 @@ function handleCanvasClick(event) {
   updateBackdropRayFromClient(event);
 
   if (typeof backdrop.toggleSelectedFromHover !== "function") return;
-  const result = backdrop.toggleSelectedFromHover(true);
+  const result = backdrop.toggleSelectedFromHover(false);
   if (result === "selected" && typeof backdrop.getSelectedGridSnapshot === "function") {
-    const selected = backdrop.getSelectedGridSnapshot(true);
+    const selected = backdrop.getSelectedGridSnapshot(false);
     if (selected) {
       status.textContent = `Selected grid point ${selected.label}.`;
     }
@@ -812,11 +812,11 @@ function renderDebugPanel() {
   const snapshot = uiManager.getDebugSnapshot();
   const gridSnapshot =
     backdrop && typeof backdrop.getHoveredGridSnapshot === "function"
-      ? backdrop.getHoveredGridSnapshot(true)
+      ? backdrop.getHoveredGridSnapshot(false)
       : null;
   const selectedGridSnapshot =
     backdrop && typeof backdrop.getSelectedGridSnapshot === "function"
-      ? backdrop.getSelectedGridSnapshot(true)
+      ? backdrop.getSelectedGridSnapshot(false)
       : null;
 
   if (!snapshot) {

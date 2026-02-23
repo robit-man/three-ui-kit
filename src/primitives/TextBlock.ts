@@ -31,7 +31,7 @@ const VARIANT_SIZE_INDEX: Record<TextVariant, number> = {
 };
 
 export class TextBlock extends UIElement {
-  private static readonly MEASURE_EPSILON = 1e-4;
+  private static readonly MEASURE_EPSILON = 0.01;
   private _troika: any; // troika Text instance
   private _variant: TextVariant;
   private _colorKey: string;
@@ -111,9 +111,13 @@ export class TextBlock extends UIElement {
     this._text = text;
     this._troika.text = text;
     this._troika.sync(() => {
+      const prevW = this.intrinsicWidth;
+      const prevH = this.intrinsicHeight;
       this._synced = true;
       this._updateMeasurement();
-      this.markDirty();
+      if (this._measurementChanged(prevW, prevH)) {
+        this.markDirty();
+      }
     });
   }
 

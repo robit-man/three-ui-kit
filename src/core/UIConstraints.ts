@@ -15,6 +15,8 @@ export interface FovFitOptions {
   distance: number;
   /** Target fraction of frustum height the UI should occupy */
   targetHeightFrac: number;
+  /** Optional fixed design height (UI units) to avoid live layout scale jitter. */
+  designHeightUI?: number;
   /** Optional cap on width fraction */
   targetWidthFrac?: number;
   /** Scale clamps */
@@ -25,6 +27,7 @@ export interface FovFitOptions {
 export class UIConstraintFovFit {
   distance: number;
   targetHeightFrac: number;
+  designHeightUI?: number;
   targetWidthFrac: number;
   minScale: number;
   maxScale: number;
@@ -37,6 +40,7 @@ export class UIConstraintFovFit {
   constructor(opts: FovFitOptions) {
     this.distance = opts.distance;
     this.targetHeightFrac = opts.targetHeightFrac;
+    this.designHeightUI = opts.designHeightUI;
     this.targetWidthFrac = opts.targetWidthFrac ?? 1;
     this.minScale = opts.minScale ?? 0.4;
     this.maxScale = opts.maxScale ?? 2.0;
@@ -67,7 +71,8 @@ export class UIConstraintFovFit {
     const targetWorldH = this.frustumHeight * this.targetHeightFrac;
 
     // Current world height if scale=1
-    const currentWorldH = rootHeightUI * uiUnitMeters;
+    const effectiveHeightUI = this.designHeightUI ?? rootHeightUI;
+    const currentWorldH = effectiveHeightUI * uiUnitMeters;
 
     if (currentWorldH <= 0) {
       this.scale = 1;

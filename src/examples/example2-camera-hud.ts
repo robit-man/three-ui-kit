@@ -40,6 +40,10 @@ import { AstralBackdrop } from "./astral-backdrop.js";
 /* ------------------------------------------------------------------ */
 
 const SPACER_EPSILON = 0.25;
+const CAMERA_HUD_ROOT_WIDTH = 440;
+const CAMERA_HUD_ROOT_HEIGHT = 224;
+const CAMERA_HUD_LEFT_PANEL_HEIGHT = 176;
+const CAMERA_HUD_RIGHT_PANEL_HEIGHT = 204;
 
 class ReadoutSpacer extends UIElement {
   private _row: UIElement;
@@ -124,18 +128,19 @@ export function createCameraHudExample(
   const root = new UIRoot({
     theme,
     layout: { type: "STACK_X", gap: 12, padding: 10, align: "start" },
-    sizing: { width: 440, height: "auto" },
+    sizing: { width: CAMERA_HUD_ROOT_WIDTH, height: CAMERA_HUD_ROOT_HEIGHT },
     pivot: "BOTTOM_CENTER",
     anchor: {
       target: camera,
       mode: "camera",
       facing: "CAMERA",
       offsetPos: new Vector3(0, -1.02, -2.75),
-      smoothingHz: 52,
+      smoothingHz: 0,
     },
     fovFit: {
       distance: 2.75,
       targetHeightFrac: 0.14,
+      designHeightUI: CAMERA_HUD_ROOT_HEIGHT,
       minScale: 0.34,
       maxScale: 1.05,
     },
@@ -149,7 +154,7 @@ export function createCameraHudExample(
 
   const leftPanel = new Panel({
     width: 160,
-    height: "auto",
+    height: CAMERA_HUD_LEFT_PANEL_HEIGHT,
     layout: { type: "STACK_Y", gap: 6, padding: 8, align: "center" },
     style: {
       fillColor: "#050607", fillAlpha: 0.04,
@@ -183,7 +188,7 @@ export function createCameraHudExample(
 
   const rightPanel = new Panel({
     width: 260,
-    height: "auto",
+    height: CAMERA_HUD_RIGHT_PANEL_HEIGHT,
     layout: { type: "STACK_Y", gap: 6, padding: 10 },
     style: {
       fillColor: "#050607", fillAlpha: 0.04,
