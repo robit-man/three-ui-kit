@@ -47,6 +47,7 @@ export function createPhoneTouchExample(
   uiManager: UIManager;
   root: UIRoot;
   grainPass: GrainPass;
+  backdrop: AstralBackdrop;
 } {
   const backdrop = new AstralBackdrop({ scene });
 
@@ -99,7 +100,7 @@ export function createPhoneTouchExample(
   const frame = new Panel({
     width: 260,
     height: "auto",
-    layout: { type: "STACK_Y", gap: 6, padding: 10 },
+    layout: { type: "STACK_Y", gap: 10, padding: 10 },
     style: {
       fillColor: "#050607", fillAlpha: 0.04,
       strokeColor: "#B88838", strokeAlpha: 0.35,
@@ -114,7 +115,7 @@ export function createPhoneTouchExample(
   // Header
   const headerPanel = new Panel({
     width: 240,
-    height: 24,
+    height: 28,
     layout: { type: "STACK_X", gap: 6, padding: 2, align: "center" },
     style: { fillAlpha: 0, strokeWidth: 0 },
   });
@@ -266,5 +267,5 @@ export function createPhoneTouchExample(
     removeAndDispose(sceneObjects);
   }
 
-  return { start, stop, dispose, onResize, uiManager, root, grainPass };
+  return { start, stop, dispose, onResize, uiManager, root, grainPass, backdrop };
 }

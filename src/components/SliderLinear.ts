@@ -70,7 +70,7 @@ export class SliderLinear extends UIElement {
     const rowH = opts.height ?? 28;
     const showReadout = opts.showReadout !== false;
     const hasHeader = Boolean(opts.label || showReadout);
-    const headerGap = hasHeader ? 6 : 0;
+    const headerGap = hasHeader ? 8 : 0;
 
     super({
       sizing: { width: tw, height: "auto" },
@@ -89,7 +89,7 @@ export class SliderLinear extends UIElement {
     if (hasHeader) {
       const headerRow = new UIElement({
         sizing: { width: tw, height: "auto" },
-        layout: { type: "STACK_X", gap: 6, align: "center" },
+        layout: { type: "STACK_X", gap: 8, align: "center" },
       });
 
       if (opts.label) {
@@ -114,7 +114,7 @@ export class SliderLinear extends UIElement {
           row: headerRow,
           left: this._labelText,
           right: this._readoutText,
-          gap: 6,
+          gap: 8,
         });
         headerRow.add(this._labelText, spacer, this._readoutText);
       } else if (this._labelText) {

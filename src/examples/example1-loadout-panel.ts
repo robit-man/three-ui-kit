@@ -68,6 +68,7 @@ export function createLoadoutPanelExample(
   uiManager: UIManager;
   root: UIRoot;
   weaponObject: LineSegments;
+  backdrop: AstralBackdrop;
 } {
   const backdrop = new AstralBackdrop({ scene });
 
@@ -260,5 +261,5 @@ export function createLoadoutPanelExample(
     removeAndDispose(sceneObjects);
   }
 
-  return { start, stop, dispose, uiManager, root, weaponObject };
+  return { start, stop, dispose, uiManager, root, weaponObject, backdrop };
 }

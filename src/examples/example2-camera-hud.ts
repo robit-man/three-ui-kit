@@ -47,6 +47,7 @@ export function createCameraHudExample(
   root: UIRoot;
   glowComposer: GlowComposer;
   toggleBloom: (enabled: boolean) => void;
+  backdrop: AstralBackdrop;
 } {
   const backdrop = new AstralBackdrop({ scene });
 
@@ -178,8 +179,8 @@ export function createCameraHudExample(
 
   // Readouts
   const readouts = [
-    { label: "TEMP", value: "42.7°C", key: "temp" },
-    { label: "FREQ", value: "1.21 GHz", key: "freq" },
+    { label: "TEMP", value: "42.7 C", key: "temp" },
+    { label: "FREQ", value: "1.21 GHZ", key: "freq" },
     { label: "LOAD", value: "68%", key: "load" },
   ];
 
@@ -189,15 +190,18 @@ export function createCameraHudExample(
     const row = new Panel({
       width: 240,
       height: 20,
-      layout: { type: "STACK_X", gap: 0, align: "center", justify: "start" },
+      layout: { type: "STACK_X", gap: 10, align: "center", justify: "start" },
       style: { fillAlpha: 0, strokeWidth: 0 },
     });
     row.applyTheme(theme);
 
     const lbl = new TextBlock({ text: ro.label, variant: "label", colorKey: "text1" });
     lbl.applyTheme(theme);
+    lbl.sizing.minWidth = 54;
+
     const val = new TextBlock({ text: ro.value, variant: "readout", colorKey: "accentA" });
     val.applyTheme(theme);
+    val.sizing.minWidth = 94;
     readoutTexts.set(ro.key, val);
 
     row.add(lbl, val);
@@ -257,6 +261,8 @@ export function createCameraHudExample(
   let useBloom = false;
   let running = false;
   let rafId = 0;
+  let tempReadoutAccumulator = 0;
+  let lastTempReadout = "42.7 C";
   const sceneObjects = [ico, oct, cube];
 
   function frame() {
@@ -271,8 +277,16 @@ export function createCameraHudExample(
     cube.rotation.z += dt * 0.2;
 
     gauge.value = 0.5 + Math.sin(t * 0.5) * 0.3;
-    const tempText = readoutTexts.get("temp");
-    tempText?.setText(`${(40 + Math.sin(t) * 5).toFixed(1)}°C`);
+    tempReadoutAccumulator += dt;
+    if (tempReadoutAccumulator >= 0.08) {
+      tempReadoutAccumulator = 0;
+      const nextTempReadout = `${(40 + Math.sin(t) * 5).toFixed(1)} C`;
+      if (nextTempReadout !== lastTempReadout) {
+        const tempText = readoutTexts.get("temp");
+        tempText?.setText(nextTempReadout);
+        lastTempReadout = nextTempReadout;
+      }
+    }
 
     backdrop.update(dt, t);
     uiManager.update(dt);
@@ -321,5 +335,16 @@ export function createCameraHudExample(
     removeAndDispose(sceneObjects);
   }
 
-  return { start, stop, dispose, onResize, uiManager, root, glowComposer, toggleBloom };
+  return {
+    start,
+    stop,
+    dispose,
+    onResize,
+    uiManager,
+    root,
+    glowComposer,
+    toggleBloom,
+    backdrop,
+  };
 }
+

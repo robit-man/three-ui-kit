@@ -3,15 +3,24 @@ import {
   BackSide,
   BufferAttribute,
   BufferGeometry,
+  Camera,
+  CanvasTexture,
   Color,
   type ColorRepresentation,
   Fog,
+  Group,
   LineSegments,
   MathUtils,
   Mesh,
+  Object3D,
+  Raycaster,
   Scene,
   ShaderMaterial,
   SphereGeometry,
+  Sprite,
+  SpriteMaterial,
+  Vector2,
+  Vector3,
 } from "three";
 
 const BASE_ATMOS_COLOR = new Color(0.08, 0.22, 0.52);
@@ -20,6 +29,23 @@ const GRID_FLICKER_DURATION = 0.25;
 const GRID_FADE_DURATION = 0.45;
 const GRID_DELAY_SCALE = 0.08;
 const GRID_JITTER = 0.12;
+
+const GRID_RAY_THRESHOLD = 0.18;
+const LABEL_OFFSET = new Vector3(0.075, 0.075, 0.075);
+const LABEL_WORLD_HEIGHT = 0.085;
+const LABEL_FONT = '26px "IBM Plex Mono", "Space Mono", monospace';
+
+type LabelResource = {
+  sprite: Sprite;
+  material: SpriteMaterial;
+  texture: CanvasTexture;
+};
+
+export interface GridHoverSnapshot {
+  coord: { x: number; y: number; z: number };
+  world: { x: number; y: number; z: number };
+  label: string;
+}
 
 export interface AstralBackdropOptions {
   scene: Scene;
@@ -35,6 +61,7 @@ export interface AstralBackdropOptions {
 
 export class AstralBackdrop {
   private readonly _scene: Scene;
+  private readonly _gridDistance: number;
   private readonly _atmosphereColor = new Color();
   private readonly _fogDark = new Color(0x000000);
   private readonly _fogTarget = new Color();
@@ -51,15 +78,25 @@ export class AstralBackdrop {
   private readonly _atmosphereMesh: Mesh<SphereGeometry, ShaderMaterial>;
   private readonly _fogNear: number;
   private readonly _fogFar: number;
+  private readonly _raycaster = new Raycaster();
+  private readonly _allCoordLabels = new Group();
 
   private _active = true;
   private _startTime: number | null = null;
   private _atmosphereAlpha = 0;
   private _fogAlpha = 0;
+  private _showAllCoordinateLabels = false;
+  private _allLabelsBuilt = false;
+  private _allLabelResources: LabelResource[] = [];
+  private _hoverLabel: LabelResource;
+  private _hoverLabelText = "";
+  private _hasHoverCoord = false;
+  private _hoverCoord = new Vector3();
 
   constructor(opts: AstralBackdropOptions) {
     this._scene = opts.scene;
     this._active = opts.active ?? true;
+    this._gridDistance = Math.max(1, Math.floor(opts.gridDistance ?? 5));
     this._fogNear = Math.max(0.1, opts.fogNear ?? 8);
     this._fogFar = Math.max(this._fogNear + 0.1, opts.fogFar ?? 26);
     this._atmosphereColor.copy(
@@ -77,7 +114,7 @@ export class AstralBackdrop {
       segmentCount,
     } = this._createSectorGrid(
       opts.lineLength ?? 0.05,
-      opts.gridDistance ?? 5,
+      this._gridDistance,
       opts.lineColor ?? "#ffffff",
       opts.lineOpacity ?? 0.2
     );
@@ -98,6 +135,15 @@ export class AstralBackdrop {
     this._atmosphereMesh.scale.setScalar(60);
     this._atmosphereMesh.frustumCulled = false;
 
+    this._allCoordLabels.visible = false;
+    this._allCoordLabels.name = "astral-grid-coordinate-labels";
+    this._gridLines.add(this._allCoordLabels);
+
+    this._hoverLabel = this._createLabelSprite("(0, 0, 0)", 0.96);
+    this._hoverLabel.sprite.visible = false;
+    this._hoverLabel.sprite.name = "astral-grid-hover-label";
+    this._gridLines.add(this._hoverLabel.sprite);
+
     this._scene.add(this._gridLines);
     this._scene.add(this._atmosphereMesh);
     this._enableFog();
@@ -111,6 +157,87 @@ export class AstralBackdrop {
     this._atmosphereColor.set(color);
   }
 
+  setCoordinateLabelsEnabled(enabled: boolean): void {
+    this._showAllCoordinateLabels = enabled;
+    if (enabled && !this._allLabelsBuilt) {
+      this._buildAllCoordinateLabels();
+    }
+    this._allCoordLabels.visible = enabled;
+    this._refreshHoverLabel();
+  }
+
+  getCoordinateLabelsEnabled(): boolean {
+    return this._showAllCoordinateLabels;
+  }
+
+  updatePointerRay(camera: Camera, ndcX: number, ndcY: number): void {
+    this._raycaster.params.Line = this._raycaster.params.Line ?? {};
+    (this._raycaster.params.Line as { threshold?: number }).threshold =
+      GRID_RAY_THRESHOLD;
+
+    this._raycaster.setFromCamera(_v2.set(ndcX, ndcY), camera);
+    const hit = this._raycaster.intersectObject(this._gridLines, false)[0];
+    if (!hit) {
+      this.clearPointerHover();
+      return;
+    }
+
+    const localHit = this._gridLines.worldToLocal(hit.point.clone());
+    const gx = Math.round(localHit.x);
+    const gy = Math.round(localHit.y);
+    const gz = Math.round(localHit.z);
+
+    if (
+      Math.abs(gx) > this._gridDistance ||
+      Math.abs(gy) > this._gridDistance ||
+      Math.abs(gz) > this._gridDistance
+    ) {
+      this.clearPointerHover();
+      return;
+    }
+
+    this._hoverCoord.set(gx, gy, gz);
+    this._hasHoverCoord = true;
+    this._refreshHoverLabel();
+  }
+
+  clearPointerHover(): void {
+    this._hasHoverCoord = false;
+    this._hoverLabel.sprite.visible = false;
+  }
+
+  getHoveredGridPoint(grounded = false): Vector3 | null {
+    if (!this._hasHoverCoord) return null;
+    _v3.copy(this._hoverCoord);
+    if (grounded) _v3.y = 0;
+    return this._gridLines.localToWorld(_v3.clone());
+  }
+
+  getHoveredGridSnapshot(grounded = false): GridHoverSnapshot | null {
+    const world = this.getHoveredGridPoint(grounded);
+    if (!world) return null;
+    return {
+      coord: {
+        x: this._hoverCoord.x,
+        y: grounded ? 0 : this._hoverCoord.y,
+        z: this._hoverCoord.z,
+      },
+      world: { x: world.x, y: world.y, z: world.z },
+      label: this._formatCoordLabel(
+        this._hoverCoord.x,
+        grounded ? 0 : this._hoverCoord.y,
+        this._hoverCoord.z
+      ),
+    };
+  }
+
+  placeObjectAtHoveredPoint(target: Object3D, grounded = true): boolean {
+    const point = this.getHoveredGridPoint(grounded);
+    if (!point) return false;
+    target.position.copy(point);
+    return true;
+  }
+
   update(dt: number, elapsedTime: number): void {
     this._updateGrid(elapsedTime);
     this._updateAtmosphere(dt, elapsedTime);
@@ -120,6 +247,12 @@ export class AstralBackdrop {
   dispose(): void {
     this._gridLines.removeFromParent();
     this._atmosphereMesh.removeFromParent();
+
+    this._disposeLabelResource(this._hoverLabel);
+    for (const res of this._allLabelResources) {
+      this._disposeLabelResource(res);
+    }
+    this._allLabelResources.length = 0;
 
     this._gridGeometry.dispose();
     this._gridMaterial.dispose();
@@ -394,4 +527,121 @@ export class AstralBackdrop {
     this._fogWork.copy(this._fogTarget).multiplyScalar(this._fogAlpha);
     fog.color.lerp(this._fogWork, 0.12);
   }
+
+  private _buildAllCoordinateLabels(): void {
+    if (this._allLabelsBuilt) return;
+    this._allLabelsBuilt = true;
+
+    for (let x = -this._gridDistance; x <= this._gridDistance; x++) {
+      for (let y = -this._gridDistance; y <= this._gridDistance; y++) {
+        for (let z = -this._gridDistance; z <= this._gridDistance; z++) {
+          const label = this._formatCoordLabel(x, y, z);
+          const res = this._createLabelSprite(label, 0.58);
+          res.sprite.position.set(
+            x + LABEL_OFFSET.x,
+            y + LABEL_OFFSET.y,
+            z + LABEL_OFFSET.z
+          );
+          this._allCoordLabels.add(res.sprite);
+          this._allLabelResources.push(res);
+        }
+      }
+    }
+  }
+
+  private _refreshHoverLabel(): void {
+    if (!this._hasHoverCoord || this._showAllCoordinateLabels) {
+      this._hoverLabel.sprite.visible = false;
+      return;
+    }
+
+    const label = this._formatCoordLabel(
+      this._hoverCoord.x,
+      this._hoverCoord.y,
+      this._hoverCoord.z
+    );
+    if (label !== this._hoverLabelText) {
+      const pos = this._hoverLabel.sprite.position.clone();
+      this._hoverLabel.sprite.removeFromParent();
+      this._disposeLabelResource(this._hoverLabel);
+
+      this._hoverLabel = this._createLabelSprite(label, 0.96);
+      this._hoverLabel.sprite.name = "astral-grid-hover-label";
+      this._hoverLabel.sprite.position.copy(pos);
+      this._gridLines.add(this._hoverLabel.sprite);
+      this._hoverLabelText = label;
+    }
+
+    this._hoverLabel.sprite.position.set(
+      this._hoverCoord.x + LABEL_OFFSET.x,
+      this._hoverCoord.y + LABEL_OFFSET.y,
+      this._hoverCoord.z + LABEL_OFFSET.z
+    );
+    this._hoverLabel.sprite.visible = true;
+  }
+
+  private _createLabelSprite(
+    label: string,
+    alpha: number
+  ): LabelResource {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Unable to create canvas 2d context for grid labels");
+    }
+
+    context.font = LABEL_FONT;
+    const padX = 20;
+    const textW = Math.ceil(context.measureText(label).width);
+    canvas.width = Math.max(96, textW + padX * 2);
+    canvas.height = 52;
+
+    const drawCtx = canvas.getContext("2d");
+    if (!drawCtx) {
+      throw new Error("Unable to draw canvas 2d context for grid labels");
+    }
+
+    drawCtx.clearRect(0, 0, canvas.width, canvas.height);
+    drawCtx.font = LABEL_FONT;
+    drawCtx.textBaseline = "middle";
+    drawCtx.lineJoin = "round";
+    drawCtx.lineWidth = 8;
+    drawCtx.strokeStyle = "rgba(5, 6, 7, 0.85)";
+    drawCtx.strokeText(label, padX, canvas.height * 0.5);
+    drawCtx.fillStyle = `rgba(196, 220, 255, ${alpha.toFixed(3)})`;
+    drawCtx.fillText(label, padX, canvas.height * 0.5);
+
+    const texture = new CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    texture.generateMipmaps = false;
+
+    const material = new SpriteMaterial({
+      map: texture,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+    });
+    material.toneMapped = false;
+
+    const sprite = new Sprite(material);
+    const aspect = canvas.width / canvas.height;
+    sprite.scale.set(LABEL_WORLD_HEIGHT * aspect, LABEL_WORLD_HEIGHT, 1);
+    sprite.center.set(0, 0.5);
+    sprite.renderOrder = 5000;
+
+    return { sprite, material, texture };
+  }
+
+  private _disposeLabelResource(res: LabelResource): void {
+    res.sprite.removeFromParent();
+    res.material.dispose();
+    res.texture.dispose();
+  }
+
+  private _formatCoordLabel(x: number, y: number, z: number): string {
+    return `(${x}, ${y}, ${z})`;
+  }
 }
+
+const _v2 = new Vector2();
+const _v3 = new Vector3();

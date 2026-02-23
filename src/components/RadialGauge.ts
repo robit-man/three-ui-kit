@@ -89,7 +89,10 @@ export class RadialGauge extends UIElement {
 
   set value(v: number) {
     this._value = clamp(v, 0, 1);
-    this._readout.setText(this._formatValue());
+    const nextText = this._formatValue();
+    if (this._readout.getText() !== nextText) {
+      this._readout.setText(nextText);
+    }
     this._updateUniform();
   }
 
@@ -199,7 +202,7 @@ export class RadialGauge extends UIElement {
     this._mesh.scale.set(sz, sz, 1);
     this._mesh.position.set(sz / 2, -sz / 2, 0);
 
-    const readoutX = (sz - this._readout.computedWidth) / 2;
+    const readoutX = sz / 2;
     const readoutY = (sz - this._readout.computedHeight) / 2;
     this._readout.position.set(readoutX, -readoutY, 0.01);
   }

@@ -47,6 +47,7 @@ export function createVRWristMenuExample(
   uiManager: UIManager;
   root: UIRoot;
   leftController: Object3D;
+  backdrop: AstralBackdrop;
 } {
   const theme = ThemeFactory();
   const backdrop = new AstralBackdrop({ scene });
@@ -260,5 +261,5 @@ export function createVRWristMenuExample(
     removeAndDispose(sceneObjects);
   }
 
-  return { start, stop, dispose, uiManager, root, leftController };
+  return { start, stop, dispose, uiManager, root, leftController, backdrop };
 }
