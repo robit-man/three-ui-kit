@@ -31,6 +31,8 @@ export class RadialGauge extends UIElement {
   private _startAngle: number;
   private _sweepAngle: number;
   private _gaugeSize: number;
+  private _readoutBoxWidth: number;
+  private _readoutBoxHeight: number;
 
   constructor(opts: RadialGaugeOptions = {}) {
     const r = opts.radius ?? 60;
@@ -48,6 +50,8 @@ export class RadialGauge extends UIElement {
     this._startAngle = opts.startAngle ?? -Math.PI / 2;
     this._sweepAngle = opts.sweepAngle ?? Math.PI * 2;
     this._gaugeSize = gaugeSize;
+    this._readoutBoxWidth = Math.max(40, Math.round(gaugeSize * 0.5));
+    this._readoutBoxHeight = 20;
 
     this._gaugeArea = new UIElement({
       sizing: { width: gaugeSize, height: gaugeSize },
@@ -64,6 +68,8 @@ export class RadialGauge extends UIElement {
       colorKey: "accentA",
       align: "center",
     });
+    this._readout.sizing.width = this._readoutBoxWidth;
+    this._readout.sizing.height = this._readoutBoxHeight;
     this._gaugeArea.add(this._readout);
 
     if (opts.label) {

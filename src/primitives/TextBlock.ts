@@ -94,7 +94,7 @@ export class TextBlock extends UIElement {
       const prevH = this.intrinsicHeight;
       this._synced = true;
       this._updateMeasurement();
-      if (this._measurementChanged(prevW, prevH)) {
+      if (this._measurementChanged(prevW, prevH) && this._sizeDependsOnMeasurement()) {
         this.markDirty();
       }
     });
@@ -115,7 +115,7 @@ export class TextBlock extends UIElement {
       const prevH = this.intrinsicHeight;
       this._synced = true;
       this._updateMeasurement();
-      if (this._measurementChanged(prevW, prevH)) {
+      if (this._measurementChanged(prevW, prevH) && this._sizeDependsOnMeasurement()) {
         this.markDirty();
       }
     });
@@ -157,7 +157,7 @@ export class TextBlock extends UIElement {
     const prevW = this.intrinsicWidth;
     const prevH = this.intrinsicHeight;
     this._updateMeasurement();
-    if (this._measurementChanged(prevW, prevH)) {
+    if (this._measurementChanged(prevW, prevH) && this._sizeDependsOnMeasurement()) {
       this.markDirty();
     }
   }
@@ -167,6 +167,10 @@ export class TextBlock extends UIElement {
       Math.abs(this.intrinsicWidth - prevW) > TextBlock.MEASURE_EPSILON ||
       Math.abs(this.intrinsicHeight - prevH) > TextBlock.MEASURE_EPSILON
     );
+  }
+
+  private _sizeDependsOnMeasurement(): boolean {
+    return this.sizing.width === "auto" || this.sizing.height === "auto";
   }
 
   dispose(): void {
