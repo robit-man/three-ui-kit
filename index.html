@@ -474,18 +474,23 @@ function applyDebugStateToRuntime(runtime = activeRuntime) {
   }
 }
 
-function handleCanvasPointerMove(event) {
+function updateBackdropRayFromClient(event) {
   const backdrop = getRuntimeBackdrop();
   if (!camera || !renderer || !backdrop || typeof backdrop.updatePointerRay !== "function") {
-    return;
+    return false;
   }
 
   const rect = renderer.domElement.getBoundingClientRect();
-  if (rect.width <= 0 || rect.height <= 0) return;
+  if (rect.width <= 0 || rect.height <= 0) return false;
 
   const ndcX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   const ndcY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   backdrop.updatePointerRay(camera, ndcX, ndcY);
+  return true;
+}
+
+function handleCanvasPointerMove(event) {
+  updateBackdropRayFromClient(event);
 }
 
 function handleCanvasPointerLeave() {
@@ -510,7 +515,25 @@ function cacheRuntimeAnchor(runtime) {
   });
 }
 
-function attachRootToHoveredGridPoint() {
+function handleCanvasClick(event) {
+  const backdrop = getRuntimeBackdrop();
+  if (!backdrop) return;
+
+  updateBackdropRayFromClient(event);
+
+  if (typeof backdrop.toggleSelectedFromHover !== "function") return;
+  const result = backdrop.toggleSelectedFromHover(true);
+  if (result === "selected" && typeof backdrop.getSelectedGridSnapshot === "function") {
+    const selected = backdrop.getSelectedGridSnapshot(true);
+    if (selected) {
+      status.textContent = `Selected grid point ${selected.label}.`;
+    }
+  } else if (result === "cleared") {
+    status.textContent = "Selected grid point cleared.";
+  }
+}
+
+function attachRootToSelectedGridPoint() {
   const runtime = activeRuntime;
   const root = getRuntimeRoot(runtime);
   const backdrop = getRuntimeBackdrop(runtime);
@@ -519,14 +542,14 @@ function attachRootToHoveredGridPoint() {
     return;
   }
 
-  if (typeof backdrop.getHoveredGridPoint !== "function") {
-    status.textContent = "Backdrop does not support grid hover snapping.";
+  if (typeof backdrop.getSelectedGridPoint !== "function") {
+    status.textContent = "Backdrop does not support selected grid point snapping.";
     return;
   }
 
-  const groundedPoint = backdrop.getHoveredGridPoint(true);
+  const groundedPoint = backdrop.getSelectedGridPoint(true);
   if (!groundedPoint) {
-    status.textContent = "Hover near a grid asterisk first, then attach.";
+    status.textContent = "Click a grid point to select it first, then attach UI.";
     return;
   }
 
@@ -547,7 +570,7 @@ function attachRootToHoveredGridPoint() {
   root.anchor.smoothingHz = 12;
   root.anchor.customFacing = undefined;
 
-  status.textContent = `UI attached to grounded grid point (${Math.round(groundedPoint.x)}, 0, ${Math.round(groundedPoint.z)}).`;
+  status.textContent = `UI attached to selected grid point (${Math.round(groundedPoint.x)}, 0, ${Math.round(groundedPoint.z)}).`;
 }
 
 function restoreRuntimeAnchor() {
@@ -695,6 +718,7 @@ function ensureThree() {
 
   renderer.domElement.addEventListener("pointermove", handleCanvasPointerMove);
   renderer.domElement.addEventListener("pointerleave", handleCanvasPointerLeave);
+  renderer.domElement.addEventListener("click", handleCanvasClick);
 
   applyNavigationMode();
   handleResize();
@@ -720,6 +744,9 @@ async function unloadActiveRuntime() {
   const backdrop = getRuntimeBackdrop(activeRuntime);
   if (backdrop && typeof backdrop.clearPointerHover === "function") {
     backdrop.clearPointerHover();
+  }
+  if (backdrop && typeof backdrop.clearSelectedPoint === "function") {
+    backdrop.clearSelectedPoint();
   }
 
   try {
@@ -787,12 +814,21 @@ function renderDebugPanel() {
     backdrop && typeof backdrop.getHoveredGridSnapshot === "function"
       ? backdrop.getHoveredGridSnapshot(true)
       : null;
+  const selectedGridSnapshot =
+    backdrop && typeof backdrop.getSelectedGridSnapshot === "function"
+      ? backdrop.getSelectedGridSnapshot(true)
+      : null;
 
   if (!snapshot) {
-    const gridInfo = gridSnapshot
-      ? `\nGrid hover: ${gridSnapshot.label}\nGrid world: ${formatVec3(gridSnapshot.world)}`
-      : "";
-    debugOutput.textContent = `Hover an interactive UI element.${gridInfo}`;
+    const gridInfo = [
+      gridSnapshot
+        ? `Grid hover: ${gridSnapshot.label}\nGrid world: ${formatVec3(gridSnapshot.world)}`
+        : "Grid hover: none",
+      selectedGridSnapshot
+        ? `Grid selected: ${selectedGridSnapshot.label}\nSelected world: ${formatVec3(selectedGridSnapshot.world)}`
+        : "Grid selected: none",
+    ].join("\n");
+    debugOutput.textContent = `Hover an interactive UI element.\n${gridInfo}`;
     requestAnimationFrame(renderDebugPanel);
     return;
   }
@@ -802,6 +838,10 @@ function renderDebugPanel() {
     : "none";
   const gridLine = gridSnapshot ? gridSnapshot.label : "none";
   const gridWorld = gridSnapshot ? formatVec3(gridSnapshot.world) : "n/a";
+  const selectedGridLine = selectedGridSnapshot ? selectedGridSnapshot.label : "none";
+  const selectedGridWorld = selectedGridSnapshot
+    ? formatVec3(selectedGridSnapshot.world)
+    : "n/a";
 
   debugOutput.textContent = [
     `pointer: ${snapshot.pointerId}`,
@@ -815,6 +855,8 @@ function renderDebugPanel() {
     `hit region: ${hit}`,
     `grid hover: ${gridLine}`,
     `grid world: ${gridWorld}`,
+    `grid selected: ${selectedGridLine}`,
+    `selected world: ${selectedGridWorld}`,
     `camera mode: ${navMode}`,
   ].join("\n");
 
@@ -887,7 +929,7 @@ toggleLayoutBounds.addEventListener("change", () => {
   applyDebugStateToRuntime();
 });
 
-attachGridBtn.addEventListener("click", attachRootToHoveredGridPoint);
+attachGridBtn.addEventListener("click", attachRootToSelectedGridPoint);
 restoreAnchorBtn.addEventListener("click", restoreRuntimeAnchor);
 
 syncDebugControls();

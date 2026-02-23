@@ -9,6 +9,7 @@ import {
   type ColorRepresentation,
   Fog,
   Group,
+  LineBasicMaterial,
   LineSegments,
   MathUtils,
   Mesh,
@@ -62,6 +63,7 @@ export interface AstralBackdropOptions {
 export class AstralBackdrop {
   private readonly _scene: Scene;
   private readonly _gridDistance: number;
+  private readonly _lineLength: number;
   private readonly _atmosphereColor = new Color();
   private readonly _fogDark = new Color(0x000000);
   private readonly _fogTarget = new Color();
@@ -80,6 +82,12 @@ export class AstralBackdrop {
   private readonly _fogFar: number;
   private readonly _raycaster = new Raycaster();
   private readonly _allCoordLabels = new Group();
+  private readonly _selectedGeometry: BufferGeometry;
+  private readonly _selectedMaterial: LineBasicMaterial;
+  private readonly _selectedLines: LineSegments<
+    BufferGeometry,
+    LineBasicMaterial
+  >;
 
   private _active = true;
   private _startTime: number | null = null;
@@ -92,11 +100,14 @@ export class AstralBackdrop {
   private _hoverLabelText = "";
   private _hasHoverCoord = false;
   private _hoverCoord = new Vector3();
+  private _hasSelectedCoord = false;
+  private _selectedCoord = new Vector3();
 
   constructor(opts: AstralBackdropOptions) {
     this._scene = opts.scene;
     this._active = opts.active ?? true;
     this._gridDistance = Math.max(1, Math.floor(opts.gridDistance ?? 5));
+    this._lineLength = opts.lineLength ?? 0.05;
     this._fogNear = Math.max(0.1, opts.fogNear ?? 8);
     this._fogFar = Math.max(this._fogNear + 0.1, opts.fogFar ?? 26);
     this._atmosphereColor.copy(
@@ -113,7 +124,7 @@ export class AstralBackdrop {
       jitters,
       segmentCount,
     } = this._createSectorGrid(
-      opts.lineLength ?? 0.05,
+      this._lineLength,
       this._gridDistance,
       opts.lineColor ?? "#ffffff",
       opts.lineOpacity ?? 0.2
@@ -138,6 +149,29 @@ export class AstralBackdrop {
     this._allCoordLabels.visible = false;
     this._allCoordLabels.name = "astral-grid-coordinate-labels";
     this._gridLines.add(this._allCoordLabels);
+
+    this._selectedGeometry = new BufferGeometry();
+    this._selectedGeometry.setAttribute(
+      "position",
+      new BufferAttribute(new Float32Array(18), 3)
+    );
+    this._selectedMaterial = new LineBasicMaterial({
+      color: "#ffae00",
+      transparent: true,
+      opacity: 0.96,
+      depthTest: false,
+      depthWrite: false,
+    });
+    this._selectedMaterial.toneMapped = false;
+    this._selectedLines = new LineSegments(
+      this._selectedGeometry,
+      this._selectedMaterial
+    );
+    this._selectedLines.visible = false;
+    this._selectedLines.frustumCulled = false;
+    this._selectedLines.renderOrder = 4600;
+    this._selectedLines.name = "astral-grid-selected-point";
+    this._gridLines.add(this._selectedLines);
 
     this._hoverLabel = this._createLabelSprite("(0, 0, 0)", 0.96);
     this._hoverLabel.sprite.visible = false;
@@ -238,6 +272,66 @@ export class AstralBackdrop {
     return true;
   }
 
+  toggleSelectedFromHover(grounded = true): "selected" | "cleared" | "none" {
+    if (!this._hasHoverCoord) return "none";
+
+    const sx = this._hoverCoord.x;
+    const sy = grounded ? 0 : this._hoverCoord.y;
+    const sz = this._hoverCoord.z;
+
+    if (
+      this._hasSelectedCoord &&
+      this._selectedCoord.x === sx &&
+      this._selectedCoord.y === sy &&
+      this._selectedCoord.z === sz
+    ) {
+      this.clearSelectedPoint();
+      return "cleared";
+    }
+
+    this._selectedCoord.set(sx, sy, sz);
+    this._hasSelectedCoord = true;
+    this._updateSelectedMarker();
+    return "selected";
+  }
+
+  clearSelectedPoint(): void {
+    this._hasSelectedCoord = false;
+    this._selectedLines.visible = false;
+  }
+
+  getSelectedGridPoint(grounded = false): Vector3 | null {
+    if (!this._hasSelectedCoord) return null;
+    _v3.copy(this._selectedCoord);
+    if (grounded) _v3.y = 0;
+    return this._gridLines.localToWorld(_v3.clone());
+  }
+
+  getSelectedGridSnapshot(grounded = false): GridHoverSnapshot | null {
+    const world = this.getSelectedGridPoint(grounded);
+    if (!world) return null;
+    return {
+      coord: {
+        x: this._selectedCoord.x,
+        y: grounded ? 0 : this._selectedCoord.y,
+        z: this._selectedCoord.z,
+      },
+      world: { x: world.x, y: world.y, z: world.z },
+      label: this._formatCoordLabel(
+        this._selectedCoord.x,
+        grounded ? 0 : this._selectedCoord.y,
+        this._selectedCoord.z
+      ),
+    };
+  }
+
+  placeObjectAtSelectedPoint(target: Object3D, grounded = true): boolean {
+    const point = this.getSelectedGridPoint(grounded);
+    if (!point) return false;
+    target.position.copy(point);
+    return true;
+  }
+
   update(dt: number, elapsedTime: number): void {
     this._updateGrid(elapsedTime);
     this._updateAtmosphere(dt, elapsedTime);
@@ -256,6 +350,8 @@ export class AstralBackdrop {
 
     this._gridGeometry.dispose();
     this._gridMaterial.dispose();
+    this._selectedGeometry.dispose();
+    this._selectedMaterial.dispose();
     this._atmosphereMesh.geometry.dispose();
     this._atmosphereMaterial.dispose();
 
@@ -501,6 +597,46 @@ export class AstralBackdrop {
       this._alphas[v + 1] = alpha;
     }
     this._alphaAttr.needsUpdate = true;
+  }
+
+  private _updateSelectedMarker(): void {
+    if (!this._hasSelectedCoord) {
+      this._selectedLines.visible = false;
+      return;
+    }
+
+    const half = this._lineLength * 0.5;
+    const x = this._selectedCoord.x;
+    const y = this._selectedCoord.y;
+    const z = this._selectedCoord.z;
+
+    const pos = this._selectedGeometry.getAttribute("position") as BufferAttribute;
+    const arr = pos.array as Float32Array;
+
+    arr[0] = x - half;
+    arr[1] = y;
+    arr[2] = z;
+    arr[3] = x + half;
+    arr[4] = y;
+    arr[5] = z;
+
+    arr[6] = x;
+    arr[7] = y - half;
+    arr[8] = z;
+    arr[9] = x;
+    arr[10] = y + half;
+    arr[11] = z;
+
+    arr[12] = x;
+    arr[13] = y;
+    arr[14] = z - half;
+    arr[15] = x;
+    arr[16] = y;
+    arr[17] = z + half;
+
+    pos.needsUpdate = true;
+    this._selectedGeometry.computeBoundingSphere();
+    this._selectedLines.visible = true;
   }
 
   private _updateAtmosphere(dt: number, elapsedTime: number): void {

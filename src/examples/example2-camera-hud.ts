@@ -22,6 +22,7 @@ import {
 import {
   UIManager,
   UIRoot,
+  UIElement,
   Panel,
   TextBlock,
   SliderLinear,
@@ -37,6 +38,43 @@ import { AstralBackdrop } from "./astral-backdrop.js";
 /* ------------------------------------------------------------------ */
 /*  Scene setup                                                        */
 /* ------------------------------------------------------------------ */
+
+const SPACER_EPSILON = 0.25;
+
+class ReadoutSpacer extends UIElement {
+  private _row: UIElement;
+  private _left: UIElement;
+  private _right: UIElement;
+  private _gap: number;
+
+  constructor(opts: {
+    row: UIElement;
+    left: UIElement;
+    right: UIElement;
+    gap: number;
+  }) {
+    super({ sizing: { width: 0, height: 1 } });
+    this._row = opts.row;
+    this._left = opts.left;
+    this._right = opts.right;
+    this._gap = opts.gap;
+  }
+
+  onUpdate(): void {
+    const pad = this._row.layout.padding ?? 0;
+    const padX = this._row.layout.paddingX ?? pad;
+    const innerW = Math.max(0, this._row.computedWidth - padX * 2);
+    const desired = Math.max(
+      0,
+      innerW - this._left.computedWidth - this._right.computedWidth - this._gap * 2
+    );
+    const current = typeof this.sizing.width === "number" ? this.sizing.width : 0;
+    if (Math.abs(current - desired) > SPACER_EPSILON) {
+      this.sizing.width = desired;
+      this.markDirty();
+    }
+  }
+}
 
 export function createCameraHudExample(
   renderer: WebGLRenderer,
@@ -85,21 +123,21 @@ export function createCameraHudExample(
 
   const root = new UIRoot({
     theme,
-    layout: { type: "STACK_X", gap: 16, padding: 12, align: "start" },
-    sizing: { width: 480, height: "auto" },
+    layout: { type: "STACK_X", gap: 12, padding: 10, align: "start" },
+    sizing: { width: 440, height: "auto" },
     pivot: "BOTTOM_CENTER",
     anchor: {
       target: camera,
       mode: "camera",
       facing: "CAMERA",
-      offsetPos: new Vector3(0, -0.9, -1.8),
-      smoothingHz: 16,
+      offsetPos: new Vector3(0, -1.02, -2.75),
+      smoothingHz: 52,
     },
     fovFit: {
-      distance: 1.8,
-      targetHeightFrac: 0.22,
-      minScale: 0.5,
-      maxScale: 1.6,
+      distance: 2.75,
+      targetHeightFrac: 0.14,
+      minScale: 0.34,
+      maxScale: 1.05,
     },
     depthTest: false,
     renderOrder: 100,
@@ -187,24 +225,42 @@ export function createCameraHudExample(
   const readoutTexts: Map<string, TextBlock> = new Map();
 
   for (const ro of readouts) {
+    const rowGap = 8;
     const row = new Panel({
       width: 240,
-      height: 20,
-      layout: { type: "STACK_X", gap: 10, align: "center", justify: "start" },
+      height: 22,
+      layout: { type: "STACK_X", gap: rowGap, align: "center", justify: "start" },
       style: { fillAlpha: 0, strokeWidth: 0 },
     });
     row.applyTheme(theme);
 
-    const lbl = new TextBlock({ text: ro.label, variant: "label", colorKey: "text1" });
+    const lbl = new TextBlock({
+      text: ro.label,
+      variant: "label",
+      colorKey: "text1",
+      maxWidth: 54,
+    });
     lbl.applyTheme(theme);
     lbl.sizing.minWidth = 54;
 
-    const val = new TextBlock({ text: ro.value, variant: "readout", colorKey: "accentA" });
+    const val = new TextBlock({
+      text: ro.value,
+      variant: "readout",
+      colorKey: "accentA",
+      align: "right",
+      maxWidth: 94,
+    });
     val.applyTheme(theme);
     val.sizing.minWidth = 94;
     readoutTexts.set(ro.key, val);
 
-    row.add(lbl, val);
+    const spacer = new ReadoutSpacer({
+      row,
+      left: lbl,
+      right: val,
+      gap: rowGap,
+    });
+    row.add(lbl, spacer, val);
     rightPanel.add(row);
   }
 
