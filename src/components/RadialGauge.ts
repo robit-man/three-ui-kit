@@ -208,8 +208,16 @@ export class RadialGauge extends UIElement {
     this._mesh.scale.set(sz, sz, 1);
     this._mesh.position.set(sz / 2, -sz / 2, 0);
 
-    const readoutX = sz / 2;
-    const readoutY = (sz - this._readout.computedHeight) / 2;
+    const readoutW =
+      this._readout.computedWidth > 0
+        ? this._readout.computedWidth
+        : this._readoutBoxWidth;
+    const readoutH =
+      this._readout.computedHeight > 0
+        ? this._readout.computedHeight
+        : this._readoutBoxHeight;
+    const readoutX = (sz - readoutW) / 2;
+    const readoutY = (sz - readoutH) / 2;
     this._readout.position.set(readoutX, -readoutY, 0.01);
   }
 }

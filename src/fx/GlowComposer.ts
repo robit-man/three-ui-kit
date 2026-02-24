@@ -1,30 +1,21 @@
 /**
- * GlowComposer — selective bloom post-processing for desktop.
- * Tier B glow: EffectComposer + UnrealBloomPass on a dedicated layer.
- *
- * Usage:
- *   Place glow-only meshes on layer GLOW_LAYER (default 1).
- *   The bloom pass renders only that layer, then composites.
+ * GlowComposer - bloom post-processing manager for desktop.
+ * Uses a resilient setup pattern:
+ * - ensure composer/render pass exists
+ * - ensure bloom pass exists when needed
+ * - apply parameter updates even when toggled on late
  */
 
 import {
   WebGLRenderer,
   Camera,
   Scene,
-  Layers,
   Vector2,
-  ShaderMaterial,
-  MeshBasicMaterial,
-  Color,
 } from "three";
 
-// Dynamic imports for post-processing (tree-shakeable)
-// Users must have three/examples/jsm available
-
-let EffectComposer: any;
-let RenderPass: any;
-let UnrealBloomPass: any;
-let ShaderPass: any;
+let EffectComposerCtor: any;
+let RenderPassCtor: any;
+let UnrealBloomPassCtor: any;
 
 export const GLOW_LAYER = 1;
 
@@ -46,10 +37,14 @@ export class GlowComposer {
   private _renderer: WebGLRenderer;
   private _scene: Scene;
   private _camera: Camera;
-  private _composer: any; // EffectComposer
-  private _bloomPass: any; // UnrealBloomPass
+  private _composer: any = null;
+  private _renderPass: any = null;
+  private _bloomPass: any = null;
   private _enabled = false;
   private _initialized = false;
+  private _modulesLoaded = false;
+  private _initPromise: Promise<void> | null = null;
+  private _size = new Vector2();
 
   strength: number;
   radius: number;
@@ -68,58 +63,110 @@ export class GlowComposer {
 
   /**
    * Initialize post-processing pipeline.
-   * Call once, after imports are available.
+   * Safe to call repeatedly.
    */
   async init(): Promise<void> {
+    if (this._initialized) {
+      this._enabled = true;
+      this._syncBloomParams();
+      return;
+    }
+
+    if (this._initPromise) {
+      await this._initPromise;
+      return;
+    }
+
+    this._initPromise = this._initInternal();
+    try {
+      await this._initPromise;
+    } finally {
+      this._initPromise = null;
+    }
+  }
+
+  private async _initInternal(): Promise<void> {
+    const modulesReady = await this._ensureModules();
+    if (!modulesReady) {
+      this._enabled = false;
+      this._initialized = false;
+      return;
+    }
+
+    this._ensureComposer();
+    this._ensureBloomPass();
+    this._syncBloomParams();
+
+    this._initialized = !!this._composer;
+    this._enabled = this._initialized;
+  }
+
+  private async _ensureModules(): Promise<boolean> {
+    if (this._modulesLoaded) return true;
+
     try {
       const postModule = await import(
         // @ts-ignore
         "three/examples/jsm/postprocessing/EffectComposer.js"
       );
-      EffectComposer = postModule.EffectComposer;
+      EffectComposerCtor = postModule.EffectComposer;
 
       const renderModule = await import(
         // @ts-ignore
         "three/examples/jsm/postprocessing/RenderPass.js"
       );
-      RenderPass = renderModule.RenderPass;
+      RenderPassCtor = renderModule.RenderPass;
 
       const bloomModule = await import(
         // @ts-ignore
         "three/examples/jsm/postprocessing/UnrealBloomPass.js"
       );
-      UnrealBloomPass = bloomModule.UnrealBloomPass;
+      UnrealBloomPassCtor = bloomModule.UnrealBloomPass;
 
-      const shaderModule = await import(
-        // @ts-ignore
-        "three/examples/jsm/postprocessing/ShaderPass.js"
-      );
-      ShaderPass = shaderModule.ShaderPass;
+      this._modulesLoaded = true;
+      return true;
     } catch {
       console.warn("[GlowComposer] Could not load post-processing modules. Bloom disabled.");
-      return;
+      return false;
     }
+  }
 
-    const size = this._renderer.getSize(new Vector2());
-    const w = Math.floor(size.x * this.resolutionScale);
-    const h = Math.floor(size.y * this.resolutionScale);
+  private _ensureComposer(): void {
+    if (this._composer) return;
+    if (!EffectComposerCtor || !RenderPassCtor) return;
 
-    this._composer = new EffectComposer(this._renderer);
+    this._renderer.getSize(this._size);
+    const w = Math.max(1, Math.floor(this._size.x * this.resolutionScale));
+    const h = Math.max(1, Math.floor(this._size.y * this.resolutionScale));
+
+    this._composer = new EffectComposerCtor(this._renderer);
     this._composer.setSize(w, h);
 
-    const renderPass = new RenderPass(this._scene, this._camera);
-    this._composer.addPass(renderPass);
+    this._renderPass = new RenderPassCtor(this._scene, this._camera);
+    this._composer.addPass(this._renderPass);
+  }
 
-    this._bloomPass = new UnrealBloomPass(
+  private _ensureBloomPass(): void {
+    if (!this._composer || this._bloomPass || !UnrealBloomPassCtor) return;
+
+    this._renderer.getSize(this._size);
+    const w = Math.max(1, Math.floor(this._size.x * this.resolutionScale));
+    const h = Math.max(1, Math.floor(this._size.y * this.resolutionScale));
+
+    this._bloomPass = new UnrealBloomPassCtor(
       new Vector2(w, h),
       this.strength,
       this.radius,
       this.threshold
     );
     this._composer.addPass(this._bloomPass);
+  }
 
-    this._initialized = true;
-    this._enabled = true;
+  private _syncBloomParams(): void {
+    if (!this._bloomPass) return;
+    this._bloomPass.strength = this.strength;
+    this._bloomPass.radius = this.radius;
+    this._bloomPass.threshold = this.threshold;
   }
 
   /** Render the bloom composite. Call instead of renderer.render() when enabled. */
@@ -128,11 +175,17 @@ export class GlowComposer {
       this._renderer.render(this._scene, this._camera);
       return;
     }
+    this._syncBloomParams();
     this._composer.render();
   }
 
   /** Enable / disable bloom. */
-  set enabled(v: boolean) { this._enabled = v; }
+  set enabled(v: boolean) {
+    this._enabled = v;
+    if (v && !this._initialized) {
+      void this.init();
+    }
+  }
   get enabled(): boolean { return this._enabled; }
 
   /** Update bloom parameters live. */
@@ -149,21 +202,35 @@ export class GlowComposer {
       this.threshold = threshold;
       if (this._bloomPass) this._bloomPass.threshold = threshold;
     }
+
+    if (this._enabled) {
+      if (!this._initialized || !this._bloomPass) {
+        void this.init();
+      } else {
+        this._syncBloomParams();
+      }
+    }
   }
 
   /** Resize on viewport change. */
   resize(width: number, height: number): void {
     if (this._composer) {
-      const w = Math.floor(width * this.resolutionScale);
-      const h = Math.floor(height * this.resolutionScale);
+      const w = Math.max(1, Math.floor(width * this.resolutionScale));
+      const h = Math.max(1, Math.floor(height * this.resolutionScale));
       this._composer.setSize(w, h);
+      if (this._bloomPass && typeof this._bloomPass.setSize === "function") {
+        this._bloomPass.setSize(w, h);
+      }
     }
   }
 
   dispose(): void {
     // EffectComposer doesn't have a dispose, but we can null refs
     this._composer = null;
+    this._renderPass = null;
     this._bloomPass = null;
     this._enabled = false;
+    this._initialized = false;
+    this._initPromise = null;
   }
 }

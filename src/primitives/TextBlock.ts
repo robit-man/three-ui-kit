@@ -36,6 +36,7 @@ export class TextBlock extends UIElement {
   private _variant: TextVariant;
   private _colorKey: string;
   private _text: string;
+  private _alignX: "left" | "center" | "right";
   private _alignV: TextAlignV;
   private _maxWidth: number;
   private _synced = false;
@@ -49,12 +50,13 @@ export class TextBlock extends UIElement {
     this._text = opts.text ?? "";
     this._variant = opts.variant ?? "body";
     this._colorKey = opts.colorKey ?? (this._variant === "label" ? "text1" : "text0");
+    this._alignX = opts.align ?? "left";
     this._alignV = opts.alignV ?? "top";
     this._maxWidth = opts.maxWidth ?? 0;
 
     this._troika = new Text();
     this._troika.text = this._text;
-    this._troika.anchorX = opts.align ?? "left";
+    this._troika.anchorX = this._alignX;
     this._troika.anchorY = "top";
     this._troika.depthOffset = -0.001;
     this._troika.material.toneMapped = false;
@@ -153,6 +155,7 @@ export class TextBlock extends UIElement {
   }
 
   onUpdate(): void {
+    this._syncAnchorOffset();
     if (!this._synced) return;
     const prevW = this.intrinsicWidth;
     const prevH = this.intrinsicHeight;
@@ -171,6 +174,20 @@ export class TextBlock extends UIElement {
 
   private _sizeDependsOnMeasurement(): boolean {
     return this.sizing.width === "auto" || this.sizing.height === "auto";
+  }
+
+  private _syncAnchorOffset(): void {
+    const widthRef =
+      this.computedWidth > 0 ? this.computedWidth : this.intrinsicWidth;
+
+    let x = 0;
+    if (this._alignX === "center") {
+      x = widthRef * 0.5;
+    } else if (this._alignX === "right") {
+      x = widthRef;
+    }
+
+    this._troika.position.x = x;
   }
 
   dispose(): void {

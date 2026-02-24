@@ -99,3 +99,9 @@ This review targeted the failures described in the request:
 - Camera-relative placement uses top-left root origin with no pivot model.
 - Demo shell does not support persistent selection or runtime teardown.
 - Debug/helper features are declared but not implemented.
+
+## Builder Expansion Workorders
+- `WO-007-visual-element-taxonomy-and-new-primitives.md`
+- `WO-008-element-catalog-previews-search-and-filter.md`
+- `WO-009-grid-panel-editor-drag-drop-authoring.md`
+- `WO-010-profile-persistence-and-schema-runtime.md`

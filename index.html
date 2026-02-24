@@ -256,8 +256,8 @@
       <h2>Camera Navigation</h2>
       <label class="subtle" for="nav-mode">Mode</label>
       <select id="nav-mode">
-        <option value="static">Static Camera</option>
         <option value="orbit">Orbit Controls</option>
+        <option value="static">Static Camera</option>
         <option value="fly">Fly Controls</option>
         <option value="pointer-lock">Pointer Lock Controls</option>
       </select>
@@ -386,7 +386,7 @@ const debugState = {
 const runtimeOriginalAnchors = new WeakMap();
 const runtimeGridAnchorTargets = new WeakMap();
 
-let navMode = "static";
+let navMode = "orbit";
 let orbitControls = null;
 let flyControls = null;
 let pointerLockControls = null;
@@ -394,6 +394,10 @@ let navLoopStarted = false;
 let navLastTime = performance.now();
 const pointerLockKeys = new Set();
 let viewportResizeObserver = null;
+
+if (navModeSelect) {
+  navModeSelect.value = navMode;
+}
 
 function getRuntimeUIManager(runtime = activeRuntime) {
   if (!runtime || typeof runtime !== "object") return null;
