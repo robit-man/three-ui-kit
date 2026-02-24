@@ -52,6 +52,7 @@ class SliderHeaderSpacer extends UIElement {
 }
 
 export class SliderLinear extends UIElement {
+  private _headerRow?: UIElement;
   private _trackRow: UIElement;
   private _trackMesh: Mesh;
   private _fillMesh: Mesh;
@@ -64,6 +65,7 @@ export class SliderLinear extends UIElement {
   private _trackH: number;
   private _thumbSize: number;
   private _trackRowHeight: number;
+  private _headerGap: number;
 
   constructor(opts: SliderLinearOptions = {}) {
     const tw = opts.width ?? 200;
@@ -85,12 +87,14 @@ export class SliderLinear extends UIElement {
     this._trackH = 4;
     this._thumbSize = 12;
     this._trackRowHeight = rowH;
+    this._headerGap = headerGap;
 
     if (hasHeader) {
       const headerRow = new UIElement({
         sizing: { width: tw, height: "auto" },
         layout: { type: "STACK_X", gap: 8, align: "center" },
       });
+      this._headerRow = headerRow;
 
       if (opts.label) {
         this._labelText = new TextBlock({
@@ -156,6 +160,23 @@ export class SliderLinear extends UIElement {
     });
   }
 
+  measure(): { width: number; height: number } {
+    const headerMeasured = this._headerRow
+      ? Math.max(
+          this._headerRow.computedHeight,
+          this._labelText?.measure().height ?? 0,
+          this._readoutText?.measure().height ?? 0,
+          12
+        )
+      : 0;
+    const gap = this._headerRow ? this._headerGap : 0;
+    const totalHeight = headerMeasured + gap + this._trackRowHeight;
+    return {
+      width: this._trackW,
+      height: totalHeight,
+    };
+  }
+
   get value(): number {
     return this._value;
   }
@@ -211,6 +232,11 @@ export class SliderLinear extends UIElement {
   }
 
   onUpdate(): void {
+    if (this.hitRegions.length === 0) {
+      this.registerHitRegion();
+    }
+    this.syncHitRegion();
+
     const rowH = this._trackRow.computedHeight > 0 ? this._trackRow.computedHeight : this._trackRowHeight;
     const midY = rowH / 2;
 

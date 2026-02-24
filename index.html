@@ -495,7 +495,11 @@
     #tuneables-binding-field,
     #tuneables-binding-formatter,
     #tuneables-binding-fallback,
-    #tuneables-binding-template {
+    #tuneables-binding-template,
+    #tuneables-grid-border-width,
+    #tuneables-grid-corner-radius,
+    #tuneables-grid-bg-opacity,
+    #tuneables-grid-depth-offset {
       width: 100%;
       font-family: inherit;
       font-size: 11px;
@@ -573,6 +577,31 @@
       font-weight: 400;
       color: rgba(235,240,245,0.72);
       text-transform: uppercase;
+    }
+
+    .tuneable-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .tuneable-field span {
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(235,240,245,0.68);
+    }
+
+    #tuneables-grid-border-color,
+    #tuneables-grid-bg-color {
+      width: 100%;
+      min-height: 31px;
+      padding: 3px;
+      border: 1px solid rgba(184,136,56,0.28);
+      border-radius: 4px;
+      background: rgba(11,12,13,0.95);
+      cursor: pointer;
     }
 
     #hydration-actions {
@@ -873,6 +902,11 @@
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 4px;
+      padding: 6px;
+      border: 1px solid rgba(184,136,56,0.35);
+      border-radius: 3px;
+      background: rgba(5,6,7,0.2);
+      will-change: transform;
     }
 
     #editor-grid-size-controls {
@@ -1297,6 +1331,44 @@
           <span>Auto Resize Grid Output</span>
         </label>
         <p class="subtle">When enabled, structural output trims unused rows/cols to avoid large empty bordered grids.</p>
+        <div class="tuneables-subsection" id="editor-grid-display-panel">
+          <h4>Grid Display</h4>
+          <label class="helper-row">
+            <input id="tuneables-grid-border-visible" type="checkbox">
+            <span>Show Grid Border</span>
+          </label>
+          <div class="inline-row">
+            <label class="tuneable-field">
+              <span>Border Color</span>
+              <input id="tuneables-grid-border-color" type="color" value="#B88838">
+            </label>
+            <label class="tuneable-field">
+              <span>Border Width</span>
+              <input id="tuneables-grid-border-width" type="number" min="0" max="8" step="0.25" value="1">
+            </label>
+          </div>
+          <div class="inline-row">
+            <label class="tuneable-field">
+              <span>Corner Radius</span>
+              <input id="tuneables-grid-corner-radius" type="number" min="0" max="24" step="0.5" value="3">
+            </label>
+            <label class="tuneable-field">
+              <span>Background Color</span>
+              <input id="tuneables-grid-bg-color" type="color" value="#050607">
+            </label>
+          </div>
+          <div class="inline-row">
+            <label class="tuneable-field">
+              <span>Background Opacity</span>
+              <input id="tuneables-grid-bg-opacity" type="number" min="0" max="1" step="0.01" value="0.03">
+            </label>
+            <label class="tuneable-field">
+              <span>Micro Depth</span>
+              <input id="tuneables-grid-depth-offset" type="number" min="0" max="0.2" step="0.001" value="0">
+            </label>
+          </div>
+          <p class="subtle">Micro depth offsets the assembled panel backward on local Z to reduce z-fighting.</p>
+        </div>
         <div class="tuneables-subsection" id="editor-cell-details">
           <h4>Cell Details</h4>
           <div id="editor-cell-selection" class="workspace-state is-empty">Select a grid cell to inspect structure details.</div>
@@ -1480,6 +1552,7 @@ import {
   PerspectiveCamera,
   WebGLRenderer,
   Object3D,
+  Box3,
   Vector3,
   BufferGeometry,
   BufferAttribute,
@@ -1561,6 +1634,13 @@ const editorCellSelectionState = document.getElementById("editor-cell-selection"
 const editorStructureValidationState = document.getElementById("editor-structure-validation");
 const editorOpenElementBtn = document.getElementById("editor-open-element-btn");
 const tuneablesAutoResizeGrid = document.getElementById("tuneables-auto-resize-grid");
+const tuneablesGridBorderVisible = document.getElementById("tuneables-grid-border-visible");
+const tuneablesGridBorderColor = document.getElementById("tuneables-grid-border-color");
+const tuneablesGridBorderWidth = document.getElementById("tuneables-grid-border-width");
+const tuneablesGridCornerRadius = document.getElementById("tuneables-grid-corner-radius");
+const tuneablesGridBgColor = document.getElementById("tuneables-grid-bg-color");
+const tuneablesGridBgOpacity = document.getElementById("tuneables-grid-bg-opacity");
+const tuneablesGridDepthOffset = document.getElementById("tuneables-grid-depth-offset");
 const tuneablesTriggerElementInput = document.getElementById("tuneables-trigger-element");
 const tuneablesTriggerEventSelect = document.getElementById("tuneables-trigger-event");
 const tuneablesTriggerProfileSelect = document.getElementById("tuneables-trigger-profile");
@@ -1688,6 +1768,17 @@ const ROLLOUT_FLAGS = {
 };
 const CUSTOM_ELEMENTS_STORAGE_KEY = "three-ui-kit-custom-elements-v1";
 const PREVIEW_PIXEL_RATIO_MAX = 1.5;
+const PREVIEW_FRAME_PADDING_METERS = 0.08;
+const PREVIEW_MIN_EXTENT_METERS = 0.001;
+const PREVIEW_SPIN_NODE_TYPES = new Set([
+  "icon",
+  "marker-plus",
+  "tri-chevron",
+  "segmented-hex-ring",
+  "reticle-corners",
+  "radial-tick-arc",
+  "node-link-graph",
+]);
 const DEFAULT_GRID_COLS = 6;
 const DEFAULT_GRID_ROWS = 8;
 const MIN_GRID_DIMENSION = 2;
@@ -2700,9 +2791,101 @@ function applyProfileCompatibilityGate(profile, opts = {}) {
   return { warnings, errors, changed, version };
 }
 
+function clampNumber(value, min, max, fallback) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) {
+    return fallback;
+  }
+  if (num < min) return min;
+  if (num > max) return max;
+  return num;
+}
+
+function normalizeHexColor(value, fallback) {
+  if (typeof value !== "string") return fallback;
+  const raw = value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(raw)) {
+    return raw.toUpperCase();
+  }
+  if (/^#[0-9a-fA-F]{3}$/.test(raw)) {
+    const r = raw[1];
+    const g = raw[2];
+    const b = raw[3];
+    return `#${r}${r}${g}${g}${b}${b}`.toUpperCase();
+  }
+  return fallback;
+}
+
+function hexColorToRgba(value, alpha = 1) {
+  const color = normalizeHexColor(value, "#000000");
+  const parsed = Number.parseInt(color.slice(1), 16);
+  const r = (parsed >> 16) & 255;
+  const g = (parsed >> 8) & 255;
+  const b = parsed & 255;
+  const a = clampNumber(alpha, 0, 1, 1);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+function normalizeScenePlacement(input) {
+  if (!input || typeof input !== "object") return null;
+  const world = input.world && typeof input.world === "object" ? input.world : null;
+  if (!world) return null;
+  const x = Number(world.x);
+  const y = Number(world.y);
+  const z = Number(world.z);
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) return null;
+
+  const out = {
+    world: { x, y, z },
+    updatedAt: Number.isFinite(Number(input.updatedAt)) ? Number(input.updatedAt) : Date.now(),
+  };
+
+  if (input.coord && typeof input.coord === "object") {
+    const cx = Number(input.coord.x);
+    const cy = Number(input.coord.y);
+    const cz = Number(input.coord.z);
+    if (Number.isFinite(cx) && Number.isFinite(cy) && Number.isFinite(cz)) {
+      out.coord = { x: cx, y: cy, z: cz };
+    }
+  }
+
+  if (typeof input.label === "string" && input.label.trim().length > 0) {
+    out.label = input.label.trim();
+  }
+
+  return out;
+}
+
+function defaultGridDisplayTuneables() {
+  return {
+    showBorder: true,
+    borderColor: "#B88838",
+    borderWidth: 1,
+    cornerRadius: 3,
+    backgroundColor: "#050607",
+    backgroundOpacity: 0.03,
+    depthOffset: 0,
+  };
+}
+
+function normalizeGridDisplayTuneables(input) {
+  const base = defaultGridDisplayTuneables();
+  if (!input || typeof input !== "object") return base;
+  return {
+    showBorder: input.showBorder !== false,
+    borderColor: normalizeHexColor(input.borderColor, base.borderColor),
+    borderWidth: clampNumber(input.borderWidth, 0, 8, base.borderWidth),
+    cornerRadius: clampNumber(input.cornerRadius, 0, 24, base.cornerRadius),
+    backgroundColor: normalizeHexColor(input.backgroundColor, base.backgroundColor),
+    backgroundOpacity: clampNumber(input.backgroundOpacity, 0, 1, base.backgroundOpacity),
+    depthOffset: clampNumber(input.depthOffset, 0, 0.2, base.depthOffset),
+  };
+}
+
 function defaultProfileTuneables() {
   return {
     autoResizeGrid: true,
+    gridDisplay: defaultGridDisplayTuneables(),
     nestedTriggers: [],
     dataBindings: [],
   };
@@ -2758,6 +2941,7 @@ function normalizeProfileTuneables(input) {
 
   return {
     autoResizeGrid: input.autoResizeGrid !== false,
+    gridDisplay: normalizeGridDisplayTuneables(input.gridDisplay),
     nestedTriggers,
     dataBindings: gatedDataBindings,
   };
@@ -3054,6 +3238,7 @@ function createProfile(name = "Profile", opts = {}) {
       cells: seededCells,
     },
     tuneables: defaultProfileTuneables(),
+    scenePlacement: null,
   };
   if (sceneSchema) {
     profile.sceneSchema = sceneSchema;
@@ -3155,6 +3340,17 @@ function ensureProfileStore() {
     const prevTuneablesRaw = JSON.stringify(profile.tuneables ?? null);
     ensureProfileTuneables(profile);
     if (JSON.stringify(profile.tuneables) !== prevTuneablesRaw) {
+      storeChanged = true;
+    }
+
+    const prevPlacementRaw = JSON.stringify(profile.scenePlacement ?? null);
+    const normalizedPlacement = normalizeScenePlacement(profile.scenePlacement);
+    if (normalizedPlacement) {
+      profile.scenePlacement = normalizedPlacement;
+    } else if (profile.scenePlacement !== undefined) {
+      delete profile.scenePlacement;
+    }
+    if (JSON.stringify(profile.scenePlacement ?? null) !== prevPlacementRaw) {
       storeChanged = true;
     }
 
@@ -3638,6 +3834,104 @@ function renderTuneablesDataBindingList() {
   }
 }
 
+function syncGridDisplayTuneablesControlState(gridDisplay) {
+  if (tuneablesGridBorderColor) {
+    tuneablesGridBorderColor.disabled = !gridDisplay.showBorder;
+  }
+  if (tuneablesGridBorderWidth) {
+    tuneablesGridBorderWidth.disabled = !gridDisplay.showBorder;
+  }
+}
+
+function syncGridDisplayTuneablesUI(gridDisplayInput) {
+  const gridDisplay = normalizeGridDisplayTuneables(gridDisplayInput);
+  if (tuneablesGridBorderVisible) {
+    tuneablesGridBorderVisible.checked = gridDisplay.showBorder;
+  }
+  if (tuneablesGridBorderColor) {
+    tuneablesGridBorderColor.value = gridDisplay.borderColor;
+  }
+  if (tuneablesGridBorderWidth) {
+    tuneablesGridBorderWidth.value = String(gridDisplay.borderWidth);
+  }
+  if (tuneablesGridCornerRadius) {
+    tuneablesGridCornerRadius.value = String(gridDisplay.cornerRadius);
+  }
+  if (tuneablesGridBgColor) {
+    tuneablesGridBgColor.value = gridDisplay.backgroundColor;
+  }
+  if (tuneablesGridBgOpacity) {
+    tuneablesGridBgOpacity.value = String(gridDisplay.backgroundOpacity);
+  }
+  if (tuneablesGridDepthOffset) {
+    tuneablesGridDepthOffset.value = String(gridDisplay.depthOffset);
+  }
+  syncGridDisplayTuneablesControlState(gridDisplay);
+}
+
+function readGridDisplayTuneablesFromUI() {
+  return normalizeGridDisplayTuneables({
+    showBorder: Boolean(tuneablesGridBorderVisible?.checked),
+    borderColor: tuneablesGridBorderColor?.value,
+    borderWidth: tuneablesGridBorderWidth?.value,
+    cornerRadius: tuneablesGridCornerRadius?.value,
+    backgroundColor: tuneablesGridBgColor?.value,
+    backgroundOpacity: tuneablesGridBgOpacity?.value,
+    depthOffset: tuneablesGridDepthOffset?.value,
+  });
+}
+
+function applyEditorGridDisplayStyle(gridDisplayInput) {
+  if (!editorGrid) return;
+  const gridDisplay = normalizeGridDisplayTuneables(gridDisplayInput);
+  const borderWidth = gridDisplay.showBorder ? gridDisplay.borderWidth : 0;
+  editorGrid.style.padding = `${GRID_PANEL_PADDING}px`;
+  editorGrid.style.borderWidth = `${borderWidth}px`;
+  editorGrid.style.borderStyle = "solid";
+  editorGrid.style.borderColor =
+    borderWidth > 0 ? hexColorToRgba(gridDisplay.borderColor, 0.85) : "transparent";
+  editorGrid.style.borderRadius = `${gridDisplay.cornerRadius}px`;
+  editorGrid.style.backgroundColor = hexColorToRgba(
+    gridDisplay.backgroundColor,
+    gridDisplay.backgroundOpacity
+  );
+  editorGrid.style.transform = `translate3d(0, 0, ${-gridDisplay.depthOffset}px)`;
+}
+
+function applyGridDisplayTuneablesFromControls(opts = {}) {
+  const profile = activeProfile();
+  if (!profile) return false;
+  const tuneables = tuneablesForProfile(profile);
+  const previous = normalizeGridDisplayTuneables(tuneables.gridDisplay);
+  const next = readGridDisplayTuneablesFromUI();
+  if (JSON.stringify(previous) === JSON.stringify(next)) {
+    syncGridDisplayTuneablesUI(next);
+    return false;
+  }
+
+  tuneables.gridDisplay = next;
+  profile.updatedAt = new Date().toISOString();
+  profile.sceneSchema = buildGridSchema({
+    cols: profile.grid?.cols ?? editorState.cols,
+    rows: profile.grid?.rows ?? editorState.rows,
+    cells: profile.grid?.cells ?? editorState.cells,
+    tuneables,
+    autoResize: tuneables.autoResizeGrid !== false,
+  });
+  if (opts.recordAction !== false) {
+    pushAssemblyAction("set-grid-display", { gridDisplay: next });
+  }
+  persistProfileStore();
+  syncGridDisplayTuneablesUI(next);
+  renderEditorGrid();
+  syncEditorSchemaOutput();
+  syncLiveBuilderUiFromEditor();
+  if (opts.announce !== false) {
+    status.textContent = "Assembly grid display updated.";
+  }
+  return true;
+}
+
 function syncTuneablesUIFromActiveProfile() {
   const profile = activeProfile();
   const tuneables = tuneablesForProfile(profile);
@@ -3645,6 +3939,7 @@ function syncTuneablesUIFromActiveProfile() {
   if (tuneablesAutoResizeGrid) {
     tuneablesAutoResizeGrid.checked = tuneables.autoResizeGrid !== false;
   }
+  syncGridDisplayTuneablesUI(tuneables.gridDisplay);
   syncTuneablesBindingControlsEnabledState();
   syncTuneablesTargetProfileSelect();
   renderTuneablesTriggerList();
@@ -3777,6 +4072,18 @@ function applyProfileToEditor(profileId) {
   if (!profile) return;
   ensureProfileTuneables(profile);
   let derivedFromScene = false;
+  let placementNormalized = false;
+
+  const prevPlacementRaw = JSON.stringify(profile.scenePlacement ?? null);
+  const normalizedPlacement = normalizeScenePlacement(profile.scenePlacement);
+  if (normalizedPlacement) {
+    profile.scenePlacement = normalizedPlacement;
+  } else if (profile.scenePlacement !== undefined) {
+    delete profile.scenePlacement;
+  }
+  if (JSON.stringify(profile.scenePlacement ?? null) !== prevPlacementRaw) {
+    placementNormalized = true;
+  }
 
   profileStore.activeProfileId = profile.id;
   editorState.activeProfileId = profile.id;
@@ -3805,6 +4112,7 @@ function applyProfileToEditor(profileId) {
   renderEditorGrid();
   syncEditorSchemaOutput();
   syncLiveBuilderUiFromEditor();
+  restorePlacedBuilderUiForActiveProfile({ announce: false });
   const bindingValidation = validateTuneableDataBindingsForProfile(profile, {
     enforceFormatter: false,
   });
@@ -3816,7 +4124,7 @@ function applyProfileToEditor(profileId) {
       status.textContent = compatibilityNotes[0];
     }
   }
-  if (derivedFromScene) {
+  if (derivedFromScene || placementNormalized) {
     persistProfileStore();
   }
 }
@@ -3926,6 +4234,7 @@ function buildGridSchema(opts = {}) {
   const cellsInput = Array.isArray(opts.cells) ? opts.cells.slice(0, total) : editorState.cells.slice(0, total);
   const cells = cellsInput.concat(blankCells(cols, rows)).slice(0, total);
   const tuneables = opts.tuneables ?? tuneablesForActiveProfile();
+  const gridDisplay = normalizeGridDisplayTuneables(tuneables?.gridDisplay);
   const autoResize = opts.autoResize ?? (tuneables?.autoResizeGrid !== false);
   const includeTuneableBindings = opts.includeTuneableBindings !== false;
 
@@ -3982,12 +4291,12 @@ function buildGridSchema(opts = {}) {
           padding: GRID_PANEL_PADDING,
         },
         style: {
-          fillColor: "#050607",
-          fillAlpha: 0.03,
-          strokeColor: "#B88838",
-          strokeAlpha: 0.35,
-          strokeWidth: 1,
-          cornerRadius: 3,
+          fillColor: gridDisplay.backgroundColor,
+          fillAlpha: gridDisplay.backgroundOpacity,
+          strokeColor: gridDisplay.borderColor,
+          strokeAlpha: gridDisplay.showBorder && gridDisplay.borderWidth > 0 ? 0.9 : 0,
+          strokeWidth: gridDisplay.showBorder ? gridDisplay.borderWidth : 0,
+          cornerRadius: gridDisplay.cornerRadius,
         },
         children,
       },
@@ -4728,6 +5037,9 @@ function dispatchAssemblyAction(action) {
 function renderEditorGrid() {
   if (!editorGrid) return;
   editorGrid.innerHTML = "";
+  const profile = activeProfile();
+  const tuneables = tuneablesForProfile(profile);
+  applyEditorGridDisplayStyle(tuneables.gridDisplay);
   editorGrid.style.gridTemplateColumns = `repeat(${editorState.cols}, minmax(0, 1fr))`;
 
   for (let i = 0; i < editorState.cells.length; i++) {
@@ -4821,14 +5133,19 @@ function createCatalogPreview(canvas, entry) {
   renderer.setClearColor(0x000000, 0);
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(44, 1, 0.01, 10);
-  camera.position.set(0, 0, 2.25);
+  const camera = new PerspectiveCamera(40, 1, 0.01, 12);
+  camera.position.set(0, 0, 1.8);
   camera.lookAt(0, 0, 0);
+  camera.updateProjectionMatrix();
+
+  const previewPivot = new Object3D();
+  previewPivot.name = "catalog-preview-pivot";
+  scene.add(previewPivot);
 
   const schema = {
     type: "root",
-    layout: { type: "STACK_X", justify: "center", align: "center", padding: 8 },
-    sizing: { width: 88, height: 88 },
+    layout: { type: "STACK_X", justify: "center", align: "center", padding: 0 },
+    sizing: { width: "auto", height: "auto" },
     children: [cloneDeep(entry.schema)],
   };
 
@@ -4836,7 +5153,61 @@ function createCatalogPreview(canvas, entry) {
     theme: ThemeFactory(),
     rootOptions: { uiUnitMeters: 0.01, depthTest: false },
   });
-  scene.add(root);
+  previewPivot.add(root);
+
+  const bounds = new Box3();
+  const boundsCenter = new Vector3();
+  const boundsSize = new Vector3();
+  const previewType = typeof entry?.schema?.type === "string" ? entry.schema.type : "";
+  const spinSpeed = PREVIEW_SPIN_NODE_TYPES.has(previewType) ? 0.35 : 0;
+  let frameRadius = 0.06;
+  let elapsed = Math.random() * Math.PI * 2;
+
+  const framePreview = () => {
+    root.position.set(0, 0, 0);
+    root.update(0, camera);
+    root.updateMatrixWorld(true);
+
+    bounds.makeEmpty();
+    bounds.expandByObject(root);
+    if (bounds.isEmpty()) {
+      camera.position.set(0, 0, 1.8);
+      camera.near = 0.01;
+      camera.far = 8;
+      camera.lookAt(0, 0, 0);
+      camera.updateProjectionMatrix();
+      return;
+    }
+
+    bounds.getCenter(boundsCenter);
+    bounds.getSize(boundsSize);
+    const sizeX = Math.max(PREVIEW_MIN_EXTENT_METERS, Math.abs(boundsSize.x));
+    const sizeY = Math.max(PREVIEW_MIN_EXTENT_METERS, Math.abs(boundsSize.y));
+    const sizeZ = Math.max(PREVIEW_MIN_EXTENT_METERS, Math.abs(boundsSize.z));
+
+    // Re-center this schema around the preview pivot so any spin is around the visual center.
+    root.position.set(-boundsCenter.x, -boundsCenter.y, -boundsCenter.z);
+    root.update(0, camera);
+    root.updateMatrixWorld(true);
+
+    const halfW = sizeX * 0.5;
+    const halfH = sizeY * 0.5;
+    const halfD = sizeZ * 0.5;
+    const fovY = (camera.fov * Math.PI) / 180;
+    const tanY = Math.max(1e-3, Math.tan(fovY * 0.5));
+    const tanX = tanY * Math.max(0.25, camera.aspect);
+
+    const fitDistY = halfH / tanY;
+    const fitDistX = halfW / Math.max(1e-3, tanX);
+    const fitDist = Math.max(fitDistX, fitDistY) + halfD + PREVIEW_FRAME_PADDING_METERS;
+
+    camera.position.set(0, 0, Math.max(0.18, fitDist));
+    camera.near = 0.01;
+    camera.far = Math.max(6, fitDist + sizeZ + 4);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+    frameRadius = Math.max(0.03, Math.max(halfW, halfH, halfD));
+  };
 
   const runtime = {
     canvas,
@@ -4844,22 +5215,24 @@ function createCatalogPreview(canvas, entry) {
     scene,
     camera,
     root,
-    spin: entry.kind === "component" ? 0.25 : 0.38,
     resize() {
       const width = Math.max(1, canvas.clientWidth);
       const height = Math.max(1, canvas.clientHeight);
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
+      framePreview();
     },
     update(dt) {
-      root.rotation.y += dt * this.spin;
-      root.rotation.z += dt * 0.08;
+      elapsed += dt;
+      previewPivot.rotation.set(0, 0, elapsed * spinSpeed);
+      previewPivot.position.y =
+        spinSpeed > 0 ? Math.sin(elapsed * 1.25) * frameRadius * 0.08 : 0;
       root.update(dt, camera);
       renderer.render(scene, camera);
     },
     dispose() {
-      root.removeFromParent();
+      previewPivot.removeFromParent();
       renderer.dispose();
     },
   };
@@ -5366,6 +5739,7 @@ function importProfilePayload(payload) {
       ),
     },
     tuneables: normalizeProfileTuneables(incoming.tuneables),
+    scenePlacement: normalizeScenePlacement(incoming.scenePlacement),
   };
   if (
     incoming.sceneSchema &&
@@ -6262,6 +6636,21 @@ function buildNestedTriggerEvents(profileId, instance) {
   return events;
 }
 
+function applyGridDisplayDepthToRoot(root, profileId) {
+  if (!root) return;
+  const profile = getProfileById(profileId) ?? activeProfile();
+  const tuneables = tuneablesForProfile(profile);
+  const depthOffset = normalizeGridDisplayTuneables(tuneables.gridDisplay).depthOffset;
+  const panel =
+    typeof UIHydrate.findById === "function"
+      ? UIHydrate.findById(root, "builder-grid-panel")
+      : typeof root.findById === "function"
+        ? root.findById("builder-grid-panel")
+        : null;
+  if (!panel) return;
+  panel.position.z = -depthOffset;
+}
+
 function createBuilderRoot(anchorTarget, opts = {}) {
   const preview = opts.preview === true;
   const profileId = opts.profileId ?? profileStore.activeProfileId;
@@ -6292,6 +6681,7 @@ function createBuilderRoot(anchorTarget, opts = {}) {
     root.anchor.offsetPos.set(0, 0.22, 0);
     root.anchor.offsetRot.identity();
   }
+  applyGridDisplayDepthToRoot(root, profileId);
   root.visible = !preview;
   return root;
 }
@@ -6423,6 +6813,70 @@ function createBuilderUiInstance(preview = false) {
   return instance;
 }
 
+function savePlacedBuilderUiForProfile(point, snapshot = null) {
+  const profile = activeProfile();
+  if (!profile || !point) return;
+  const nextPlacement = normalizeScenePlacement({
+    world: { x: point.x, y: point.y, z: point.z },
+    coord: snapshot?.coord ?? undefined,
+    label: snapshot?.label ?? undefined,
+    updatedAt: Date.now(),
+  });
+  profile.scenePlacement = nextPlacement;
+  profile.updatedAt = new Date().toISOString();
+  persistProfileStore();
+}
+
+function restorePlacedBuilderUiForActiveProfile(opts = {}) {
+  const runtime = activeRuntime;
+  if (!runtime || dragBuilderUiInstance) return false;
+  const profile = activeProfile();
+  if (!profile) return false;
+  const placement = normalizeScenePlacement(profile.scenePlacement);
+
+  if (!placement) {
+    if (placedBuilderUiInstance) {
+      disposeBuilderUiInstance(placedBuilderUiInstance, runtime);
+      placedBuilderUiInstance = null;
+    }
+    return false;
+  }
+
+  profile.scenePlacement = placement;
+  if (!placedBuilderUiInstance || placedBuilderUiInstance.currentProfileId !== profile.id) {
+    if (placedBuilderUiInstance) {
+      disposeBuilderUiInstance(placedBuilderUiInstance, runtime);
+      placedBuilderUiInstance = null;
+    }
+    try {
+      placedBuilderUiInstance = createBuilderUiInstance(false);
+    } catch (err) {
+      console.error("[builder-ui] restore failed", err);
+      if (opts.announce !== false) {
+        status.textContent = err instanceof Error ? err.message : "Failed to restore placed UI.";
+      }
+      return false;
+    }
+  }
+
+  placedBuilderUiInstance.anchorTarget.position.set(
+    placement.world.x,
+    placement.world.y,
+    placement.world.z
+  );
+  placedBuilderUiInstance.root.visible = true;
+  if (placedBuilderUiInstance.root.anchor) {
+    placedBuilderUiInstance.root.anchor.smoothingHz = 10;
+  }
+
+  if (opts.announce) {
+    status.textContent = placement.label
+      ? `Restored placed UI at ${placement.label}.`
+      : `Restored placed UI at (${formatNum(placement.world.x)}, ${formatNum(placement.world.y)}, ${formatNum(placement.world.z)}).`;
+  }
+  return true;
+}
+
 function placeBuilderUiFromHover(event, fromClick = false) {
   const runtime = activeRuntime;
   const backdrop = getRuntimeBackdrop(runtime);
@@ -6474,6 +6928,7 @@ function placeBuilderUiFromHover(event, fromClick = false) {
     typeof backdrop.getHoveredGridSnapshot === "function"
       ? backdrop.getHoveredGridSnapshot(false)
       : null;
+  savePlacedBuilderUiForProfile(point, snapshot);
   status.textContent = snapshot
     ? `Built UI placed at ${snapshot.label}.`
     : `Built UI placed at (${formatNum(point.x)}, ${formatNum(point.y)}, ${formatNum(point.z)}).`;
@@ -6885,6 +7340,7 @@ async function loadExample(exampleId) {
     renderHydrationFormatterPreview();
     renderHydrationDiagnosticsState();
     renderHydrationCheckpointState();
+    restorePlacedBuilderUiForActiveProfile({ announce: false });
     status.textContent = def.info;
   } catch (err) {
     console.error("[examples] failed to load example", err);
@@ -7202,6 +7658,21 @@ tuneablesAutoResizeGrid.addEventListener("change", () => {
   syncLiveBuilderUiFromEditor();
   status.textContent = `Auto resize ${tuneables.autoResizeGrid ? "enabled" : "disabled"}.`;
 });
+
+for (const input of [
+  tuneablesGridBorderVisible,
+  tuneablesGridBorderColor,
+  tuneablesGridBorderWidth,
+  tuneablesGridCornerRadius,
+  tuneablesGridBgColor,
+  tuneablesGridBgOpacity,
+  tuneablesGridDepthOffset,
+]) {
+  if (!input) continue;
+  input.addEventListener("change", () => {
+    applyGridDisplayTuneablesFromControls({ announce: true, recordAction: true });
+  });
+}
 
 tuneablesAddTriggerBtn.addEventListener("click", () => {
   addNestedTriggerBinding();
