@@ -16,6 +16,8 @@
 
     #app {
       position: relative;
+      --sidebar-width: 320px;
+      --sidebar-grabber-y: 50%;
       width: 100dvw;
       height: 100dvh;
       overflow: hidden;
@@ -25,13 +27,16 @@
         #050607;
     }
 
+    #app.sidebar-resizing {
+      user-select: none;
+    }
+
     #sidebar {
       position: absolute;
       top: 0;
       left: 0;
       z-index: 20;
-      width: 320px;
-      max-width: 92dvw;
+      width: var(--sidebar-width);
       height: 100dvh;
       border-right: 1px solid rgba(235,240,245,0.1);
       background: linear-gradient(180deg, rgba(11,12,13,0.95), rgba(5,6,7,0.95));
@@ -44,6 +49,43 @@
       overflow-x: hidden;
       -ms-overflow-style: none;
       scrollbar-width: none;
+    }
+
+    #sidebar-sections {
+      width: 100%;
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    #sidebar-sections > section {
+      min-width: 0;
+    }
+
+    #sidebar.is-wide #sidebar-sections {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #sidebar.is-wide #catalog-panel,
+    #sidebar.is-wide #editor-panel,
+    #sidebar.is-wide #debug-panel {
+      grid-column: 1 / -1;
+    }
+
+    #sidebar.is-compact #catalog-toolbar,
+    #sidebar.is-compact .inline-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    #sidebar.is-compact .section-head {
+      flex-wrap: wrap;
+    }
+
+    #sidebar.is-compact #editor-inject-btn {
+      width: 100%;
+      min-width: 0;
     }
 
     #sidebar::-webkit-scrollbar {
@@ -141,7 +183,7 @@
 
     .inline-row {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
       gap: 6px;
       width: 100%;
     }
@@ -201,7 +243,12 @@
     #customizer-tags,
     #tuneables-trigger-event,
     #tuneables-trigger-profile,
-    #tuneables-trigger-element {
+    #tuneables-trigger-element,
+    #tuneables-binding-element,
+    #tuneables-binding-target,
+    #tuneables-binding-field,
+    #tuneables-binding-formatter,
+    #tuneables-binding-fallback {
       width: 100%;
       font-family: inherit;
       font-size: 11px;
@@ -258,6 +305,22 @@
       color: rgba(184,136,56,0.95);
     }
 
+    .tuneables-subsection {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-top: 1px solid rgba(235,240,245,0.08);
+      padding-top: 8px;
+    }
+
+    .tuneables-subsection h4 {
+      margin: 0;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      font-weight: 400;
+      color: rgba(184,136,56,0.9);
+    }
+
     #tuneables-trigger-list {
       display: flex;
       flex-direction: column;
@@ -270,6 +333,23 @@
     }
 
     #tuneables-trigger-list::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
+
+    #tuneables-binding-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 164px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    #tuneables-binding-list::-webkit-scrollbar {
       width: 0;
       height: 0;
       display: none;
@@ -302,6 +382,64 @@
     }
 
     .tuneables-trigger-remove:hover {
+      border-color: rgba(255, 144, 94, 0.9);
+      color: rgba(255, 224, 204, 0.98);
+      background: rgba(136, 30, 16, 0.72);
+    }
+
+    .tuneables-binding-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 54px;
+      gap: 6px;
+      align-items: start;
+      border: 1px solid rgba(235,240,245,0.14);
+      border-radius: 4px;
+      padding: 5px 6px;
+      background: rgba(5,6,7,0.6);
+      font-size: 10px;
+      color: rgba(235,240,245,0.8);
+      line-height: 1.3;
+    }
+
+    .tuneables-binding-row.invalid {
+      border-color: rgba(255, 120, 92, 0.72);
+      background: rgba(70, 20, 12, 0.45);
+    }
+
+    .tuneables-binding-main {
+      display: block;
+      word-break: break-word;
+    }
+
+    .tuneables-binding-extra {
+      display: block;
+      margin-top: 3px;
+      font-size: 9px;
+      color: rgba(235,240,245,0.64);
+      word-break: break-word;
+    }
+
+    .tuneables-binding-error {
+      display: block;
+      margin-top: 3px;
+      font-size: 9px;
+      color: rgba(255, 192, 168, 0.95);
+      word-break: break-word;
+    }
+
+    .tuneables-binding-remove {
+      width: 100%;
+      padding: 5px 4px;
+      font-family: inherit;
+      font-size: 9px;
+      border: 1px solid rgba(255, 120, 92, 0.62);
+      border-radius: 4px;
+      color: rgba(255, 202, 184, 0.95);
+      background: rgba(96, 26, 16, 0.52);
+      cursor: pointer;
+    }
+
+    .tuneables-binding-remove:hover {
       border-color: rgba(255, 144, 94, 0.9);
       color: rgba(255, 224, 204, 0.98);
       background: rgba(136, 30, 16, 0.72);
@@ -536,10 +674,67 @@
       line-height: 1.5;
     }
 
+    #sidebar-resizer {
+      position: absolute;
+      top: 0;
+      left: calc(var(--sidebar-width) - 8px);
+      width: 16px;
+      height: 100dvh;
+      z-index: 24;
+      border: 0;
+      background: transparent;
+      cursor: col-resize;
+      touch-action: none;
+      outline: none;
+      padding: 0;
+    }
+
+    #sidebar-resizer::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      transform: translateX(-50%);
+      background: rgba(235,240,245,0.15);
+      transition: background-color 0.15s ease;
+    }
+
+    #sidebar-resizer-knob {
+      position: absolute;
+      left: 50%;
+      top: var(--sidebar-grabber-y);
+      width: 11px;
+      height: 34px;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      border: 1px solid rgba(184,136,56,0.5);
+      background: rgba(5,6,7,0.94);
+      box-shadow: 0 0 0 1px rgba(184,136,56,0.14), 0 0 14px rgba(184,136,56,0.18);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+      pointer-events: none;
+    }
+
+    #sidebar-resizer:hover::before,
+    #app.sidebar-resizing #sidebar-resizer::before {
+      background: rgba(184,136,56,0.72);
+    }
+
+    #sidebar-resizer:hover #sidebar-resizer-knob,
+    #app.sidebar-resizing #sidebar-resizer-knob {
+      border-color: rgba(184,136,56,0.95);
+      background: rgba(14, 13, 10, 0.98);
+      box-shadow: 0 0 0 1px rgba(184,136,56,0.32), 0 0 18px rgba(184,136,56,0.28);
+    }
+
     #viewport-wrap {
       position: absolute;
-      inset: 0;
-      width: 100dvw;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: var(--sidebar-width);
+      width: calc(100dvw - var(--sidebar-width));
       height: 100dvh;
       z-index: 0;
     }
@@ -547,8 +742,8 @@
     #viewport {
       position: absolute;
       inset: 0;
-      width: 100dvw;
-      height: 100dvh;
+      width: 100%;
+      height: 100%;
     }
 
     canvas {
@@ -557,9 +752,9 @@
       height: 100%;
     }
 
-    @media (max-width: 1040px) {
-      #sidebar {
-        width: min(320px, 92dvw);
+    @media (max-width: 860px) {
+      #sidebar.is-wide #sidebar-sections {
+        grid-template-columns: minmax(0, 1fr);
       }
     }
   </style>
@@ -574,6 +769,7 @@
       <button class="example-btn" data-example="hud">Unified Scene - Camera HUD + Builder</button>
     </div>
 
+    <div id="sidebar-sections">
     <section id="profile-controls" aria-label="Profile controls">
       <h2>Builder Profiles</h2>
       <select id="profile-select"></select>
@@ -641,19 +837,39 @@
           <span>Auto Resize Grid Output</span>
         </label>
         <p class="subtle">When enabled, scene output trims unused rows/cols to avoid large empty bordered grids.</p>
-        <div class="inline-row">
-          <input id="tuneables-trigger-element" type="text" placeholder="Trigger element id (e.g. button-7)">
-          <select id="tuneables-trigger-event">
-            <option value="click">click</option>
-            <option value="change">change</option>
-            <option value="select">select</option>
-          </select>
+        <div class="tuneables-subsection">
+          <h4>Nested Triggers</h4>
+          <div class="inline-row">
+            <input id="tuneables-trigger-element" type="text" placeholder="Trigger element id (e.g. button-7)">
+            <select id="tuneables-trigger-event">
+              <option value="click">click</option>
+              <option value="change">change</option>
+              <option value="select">select</option>
+            </select>
+          </div>
+          <div class="inline-row">
+            <select id="tuneables-trigger-profile"></select>
+            <button class="small-btn" id="tuneables-add-trigger-btn" type="button">Add Trigger</button>
+          </div>
+          <div id="tuneables-trigger-list"></div>
         </div>
-        <div class="inline-row">
-          <select id="tuneables-trigger-profile"></select>
-          <button class="small-btn" id="tuneables-add-trigger-btn" type="button">Add Trigger</button>
+        <div class="tuneables-subsection">
+          <h4>Data Bindings</h4>
+          <p class="subtle">Bind telemetry fields to selected UI element outputs.</p>
+          <div class="inline-row">
+            <select id="tuneables-binding-element"></select>
+            <select id="tuneables-binding-target"></select>
+          </div>
+          <div class="inline-row">
+            <select id="tuneables-binding-field"></select>
+            <select id="tuneables-binding-formatter"></select>
+          </div>
+          <div class="inline-row">
+            <input id="tuneables-binding-fallback" type="text" placeholder="Fallback (optional)">
+            <button class="small-btn" id="tuneables-add-binding-btn" type="button">Add Binding</button>
+          </div>
+          <div id="tuneables-binding-list"></div>
         </div>
-        <div id="tuneables-trigger-list"></div>
       </section>
     </section>
 
@@ -667,6 +883,10 @@
         <option value="pointer-lock">Pointer Lock Controls</option>
       </select>
       <button id="pointer-lock-btn" type="button" disabled>Lock Pointer</button>
+      <label class="helper-row">
+        <input id="snap-orbit-grid" type="checkbox">
+        <span>Snap Orbit Origin To Grid</span>
+      </label>
       <p class="subtle">Fly: hold mouse button and use WASD + Space/Shift. Pointer lock: WASD + mouse look.</p>
     </section>
 
@@ -701,9 +921,13 @@
       <h2>Hover Inspector</h2>
       <pre id="debug-output">No active example.</pre>
     </section>
+    </div>
 
     <div id="status">Loading unified camera HUD scene...</div>
   </aside>
+  <button id="sidebar-resizer" type="button" aria-label="Resize sidebar">
+    <span id="sidebar-resizer-knob" aria-hidden="true"></span>
+  </button>
 
   <main id="viewport-wrap">
     <div id="viewport"></div>
@@ -730,18 +954,32 @@ import {
   PerspectiveCamera,
   WebGLRenderer,
   Object3D,
+  Vector3,
+  BufferGeometry,
+  BufferAttribute,
+  LineSegments,
+  LineBasicMaterial,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { FlyControls } from "three/examples/jsm/controls/FlyControls.js";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
-import { ThemeFactory, UIHydrate } from "./dist/index.js";
+import {
+  ThemeFactory,
+  UIHydrate,
+  CAMERA_HUD_TELEMETRY_FIELDS,
+  buildDefaultCameraHudProfileSchema as buildDefaultCameraHudProfileSchemaLib,
+} from "./dist/index.js";
 
 const viewport = document.getElementById("viewport");
+const appRoot = document.getElementById("app");
+const sidebar = document.getElementById("sidebar");
+const sidebarResizer = document.getElementById("sidebar-resizer");
 const status = document.getElementById("status");
 const buttons = Array.from(document.querySelectorAll(".example-btn"));
 
 const navModeSelect = document.getElementById("nav-mode");
 const pointerLockBtn = document.getElementById("pointer-lock-btn");
+const snapOrbitGridCheckbox = document.getElementById("snap-orbit-grid");
 
 const helpersToggleBtn = document.getElementById("helpers-toggle");
 const toggleAnchorAxes = document.getElementById("toggle-anchor-axes");
@@ -783,6 +1021,13 @@ const tuneablesTriggerEventSelect = document.getElementById("tuneables-trigger-e
 const tuneablesTriggerProfileSelect = document.getElementById("tuneables-trigger-profile");
 const tuneablesAddTriggerBtn = document.getElementById("tuneables-add-trigger-btn");
 const tuneablesTriggerList = document.getElementById("tuneables-trigger-list");
+const tuneablesBindingElementSelect = document.getElementById("tuneables-binding-element");
+const tuneablesBindingTargetSelect = document.getElementById("tuneables-binding-target");
+const tuneablesBindingFieldSelect = document.getElementById("tuneables-binding-field");
+const tuneablesBindingFormatterSelect = document.getElementById("tuneables-binding-formatter");
+const tuneablesBindingFallbackInput = document.getElementById("tuneables-binding-fallback");
+const tuneablesAddBindingBtn = document.getElementById("tuneables-add-binding-btn");
+const tuneablesBindingList = document.getElementById("tuneables-binding-list");
 
 const EXAMPLES = {
   hud: {
@@ -820,13 +1065,43 @@ let navLoopStarted = false;
 let navLastTime = performance.now();
 const pointerLockKeys = new Set();
 let viewportResizeObserver = null;
+let orbitOriginMarker = null;
+let snapOrbitToGrid = false;
+const snapOrbitPanState = {
+  active: false,
+  pointerId: null,
+  snappedTarget: new Vector3(),
+  pull: new Vector3(),
+};
+
+const ORBIT_ORIGIN_MARKER_HALF_LENGTH = 0.1;
+const ORBIT_ORIGIN_MARKER_COLOR = 0xffae00;
+const ORBIT_SNAP_RESISTANCE = 0.58;
+const SIDEBAR_WIDTH_STORAGE_KEY = "three-ui-kit-sidebar-width-v1";
+const SIDEBAR_DEFAULT_WIDTH = 320;
+const SIDEBAR_MIN_WIDTH = 248;
+const SIDEBAR_MAX_WIDTH = 760;
+const SIDEBAR_MIN_VIEWPORT_WIDTH = 320;
+const SIDEBAR_WIDE_BREAKPOINT = 620;
+const SIDEBAR_COMPACT_BREAKPOINT = 310;
+
+const sidebarResizeState = {
+  active: false,
+  pointerId: null,
+  startX: 0,
+  startWidth: SIDEBAR_DEFAULT_WIDTH,
+  currentWidth: SIDEBAR_DEFAULT_WIDTH,
+};
 
 if (navModeSelect) {
   navModeSelect.value = navMode;
 }
+if (snapOrbitGridCheckbox) {
+  snapOrbitGridCheckbox.checked = snapOrbitToGrid;
+}
 
 const PROFILE_STORAGE_KEY = "three-ui-kit-builder-profiles-v1";
-const PROFILE_VERSION = 1;
+const PROFILE_VERSION = 2;
 const CUSTOM_ELEMENTS_STORAGE_KEY = "three-ui-kit-custom-elements-v1";
 const PREVIEW_PIXEL_RATIO_MAX = 1.5;
 const DEFAULT_GRID_COLS = 6;
@@ -837,129 +1112,16 @@ const GRID_CELL_SIZE = 34;
 const GRID_CELL_GAP = 3;
 const GRID_PANEL_PADDING = 6;
 const GRID_ROOT_PADDING = 4;
+const BINDABLE_TARGETS_BY_NODE_TYPE = new Map([
+  ["text", ["text"]],
+  ["data-tag", ["text"]],
+  ["radial-gauge", ["value"]],
+  ["slider", ["value"]],
+]);
+const BUILTIN_BINDING_FORMATTERS = ["hudMotionFraction"];
 
 function buildDefaultCameraHudProfileSchema() {
-  const readoutRow = (id, label, value) => ({
-    type: "panel",
-    id: `hud-readout-row-${id}`,
-    sizing: { width: 240, height: 20 },
-    layout: { type: "STACK_X", gap: 6, align: "center", justify: "start", padding: 0 },
-    style: { fillAlpha: 0, strokeWidth: 0 },
-    children: [
-      {
-        type: "text",
-        id: `hud-readout-label-${id}`,
-        props: { text: label, variant: "label", colorKey: "text1", align: "left" },
-        sizing: { width: 76, height: 16 },
-      },
-      {
-        type: "panel",
-        id: `hud-readout-spacer-${id}`,
-        sizing: { width: 4, height: 1 },
-        style: { fillAlpha: 0, strokeAlpha: 0, strokeWidth: 0 },
-      },
-      {
-        type: "text",
-        id: `hud-readout-value-${id}`,
-        props: { text: value, variant: "readout", colorKey: "accentA", align: "right" },
-        sizing: { width: 152, height: 16 },
-      },
-    ],
-  });
-
-  return {
-    type: "root",
-    id: "camera-hud-default-profile-root",
-    layout: { type: "STACK_X", gap: 12, padding: 10, align: "start" },
-    sizing: { width: 440, height: 304 },
-    children: [
-      {
-        type: "panel",
-        id: "hud-left-panel",
-        sizing: { width: 160, height: 188 },
-        layout: { type: "STACK_Y", gap: 8, padding: 8, align: "center", justify: "start" },
-        style: {
-          fillColor: "#050607",
-          fillAlpha: 0.04,
-          strokeColor: "#B88838",
-          strokeAlpha: 0.35,
-          strokeWidth: 1,
-          cornerRadius: 4,
-        },
-        children: [
-          {
-            type: "text",
-            id: "hud-gauge-title",
-            props: { text: "CAMERA", variant: "label", colorKey: "text1", align: "center" },
-            sizing: { width: 140, height: 16 },
-          },
-          {
-            type: "radial-gauge",
-            id: "hud-gauge-motion",
-            props: {
-              radius: 44,
-              thickness: 3,
-              value: 0.42,
-              label: "MOTION",
-              startAngle: -Math.PI * 0.75,
-              sweepAngle: Math.PI * 1.5,
-            },
-          },
-          {
-            type: "text",
-            id: "hud-gauge-value",
-            props: { text: "0.42", variant: "readout", colorKey: "accentA", align: "center" },
-            sizing: { width: 140, height: 16 },
-          },
-        ],
-      },
-      {
-        type: "panel",
-        id: "hud-right-panel",
-        sizing: { width: 260, height: 282 },
-        layout: { type: "STACK_Y", gap: 4, padding: 10, align: "start", justify: "start" },
-        style: {
-          fillColor: "#050607",
-          fillAlpha: 0.04,
-          strokeColor: "#B88838",
-          strokeAlpha: 0.35,
-          strokeWidth: 1,
-          cornerRadius: 4,
-        },
-        children: [
-          {
-            type: "panel",
-            id: "hud-title-row",
-            sizing: { width: 240, height: 22 },
-            layout: { type: "STACK_X", gap: 6, align: "center", justify: "start" },
-            style: { fillAlpha: 0, strokeWidth: 0 },
-            children: [
-              { type: "marker-plus", id: "hud-title-mark", props: { size: 7, colorKey: "accentA" } },
-              {
-                type: "text",
-                id: "hud-title-text",
-                props: { text: "LIVE TELEMETRY", variant: "title", colorKey: "accentA" },
-              },
-            ],
-          },
-          { type: "divider", id: "hud-divider-top", props: { length: 240 } },
-          readoutRow("speed", "SPEED", "0.00 m/s"),
-          readoutRow("rtt", "RTT", "-- ms"),
-          readoutRow("down", "DOWN", "-- Mbps"),
-          readoutRow("net", "NET", "unknown"),
-          readoutRow("browser", "BROWSER", "detecting..."),
-          readoutRow("geo", "GEO", "locating..."),
-          { type: "divider", id: "hud-divider-bottom", props: { length: 240 } },
-          {
-            type: "slider",
-            id: "hud-bloom-slider",
-            props: { label: "BLOOM", value: 0.45, showReadout: true },
-            sizing: { width: 240, height: 16 },
-          },
-        ],
-      },
-    ],
-  };
+  return buildDefaultCameraHudProfileSchemaLib();
 }
 
 const BASE_CATALOG_REGISTRY = [
@@ -1352,10 +1514,220 @@ function deriveGridCellsFromSceneSchema(schema, cols, rows) {
   return cells;
 }
 
+function walkSchemaNodes(schema, visitor) {
+  if (!schema || typeof schema !== "object") return;
+  visitor(schema);
+  if (!Array.isArray(schema.children)) return;
+  for (const child of schema.children) {
+    walkSchemaNodes(child, visitor);
+  }
+}
+
+function collectSchemaNodeTypeIndex(schema) {
+  const map = new Map();
+  walkSchemaNodes(schema, (node) => {
+    const id = typeof node.id === "string" ? node.id.trim() : "";
+    if (!id) return;
+    const type = typeof node.type === "string" ? node.type : "";
+    if (!type) return;
+    map.set(id, type);
+  });
+  return map;
+}
+
+function supportedBindingTargetsForType(nodeType) {
+  const targets = BINDABLE_TARGETS_BY_NODE_TYPE.get(nodeType);
+  return Array.isArray(targets) ? targets.slice() : [];
+}
+
+function defaultBindingTargetForType(nodeType) {
+  const targets = supportedBindingTargetsForType(nodeType);
+  return targets.length > 0 ? targets[0] : "";
+}
+
+function collectAvailableBindingFormatters() {
+  const names = new Set(BUILTIN_BINDING_FORMATTERS);
+  const runtimeBinding = getRuntimeBindingRuntime(activeRuntime);
+  if (runtimeBinding && runtimeBinding.formatters && typeof runtimeBinding.formatters === "object") {
+    for (const [name, formatter] of Object.entries(runtimeBinding.formatters)) {
+      if (typeof name !== "string" || name.trim().length === 0) continue;
+      if (typeof formatter !== "function") continue;
+      names.add(name.trim());
+    }
+  }
+  return names;
+}
+
+function collectTelemetryFieldOptions() {
+  const byId = new Map();
+  if (Array.isArray(CAMERA_HUD_TELEMETRY_FIELDS)) {
+    for (const spec of CAMERA_HUD_TELEMETRY_FIELDS) {
+      if (!spec || typeof spec !== "object") continue;
+      const fieldId = typeof spec.fieldId === "string" ? spec.fieldId.trim() : "";
+      if (!fieldId) continue;
+      const label = typeof spec.label === "string" ? spec.label.trim() : fieldId;
+      byId.set(fieldId, {
+        fieldId,
+        label,
+      });
+    }
+  }
+
+  if (activeRuntime && typeof activeRuntime.getTelemetrySnapshot === "function") {
+    const snapshot = activeRuntime.getTelemetrySnapshot();
+    if (snapshot && snapshot.fields && typeof snapshot.fields === "object") {
+      for (const [fieldIdRaw, field] of Object.entries(snapshot.fields)) {
+        const fieldId = typeof fieldIdRaw === "string" ? fieldIdRaw.trim() : "";
+        if (!fieldId || byId.has(fieldId)) continue;
+        const source = typeof field?.source === "string" ? field.source : "";
+        byId.set(fieldId, {
+          fieldId,
+          label: source ? `${fieldId} (${source})` : fieldId,
+        });
+      }
+    }
+  }
+
+  return Array.from(byId.values()).sort((a, b) => a.fieldId.localeCompare(b.fieldId));
+}
+
+function normalizeDataBindingDraft(input) {
+  if (!input || typeof input !== "object") return null;
+  return {
+    id:
+      typeof input.id === "string" && input.id.trim().length > 0
+        ? input.id.trim()
+        : "",
+    elementId:
+      typeof input.elementId === "string" ? input.elementId.trim() : "",
+    target:
+      typeof input.target === "string" ? input.target.trim().toLowerCase() : "",
+    field:
+      typeof input.field === "string" ? input.field.trim() : "",
+    formatter:
+      typeof input.formatter === "string" ? input.formatter.trim() : "",
+    fallback:
+      input.fallback === undefined || input.fallback === null
+        ? ""
+        : String(input.fallback),
+    template:
+      typeof input.template === "string" ? input.template : "",
+  };
+}
+
+function validateDataBindingCandidate(candidate, elementTypeById, opts = {}) {
+  const normalized = normalizeDataBindingDraft(candidate);
+  if (!normalized) {
+    return { ok: false, error: "Binding row must be an object." };
+  }
+  if (!normalized.elementId) {
+    return { ok: false, error: "Binding element id is required." };
+  }
+  if (!normalized.field) {
+    return { ok: false, error: "Binding field id is required." };
+  }
+
+  const nodeType = elementTypeById.get(normalized.elementId);
+  if (!nodeType) {
+    return {
+      ok: false,
+      error: `Element "${normalized.elementId}" does not exist in the active scene schema.`,
+    };
+  }
+
+  const targets = supportedBindingTargetsForType(nodeType);
+  if (targets.length === 0) {
+    return {
+      ok: false,
+      error: `Element "${normalized.elementId}" (${nodeType}) does not support data bindings.`,
+    };
+  }
+
+  const resolvedTarget = normalized.target || targets[0];
+  if (!targets.includes(resolvedTarget)) {
+    return {
+      ok: false,
+      error: `Element "${normalized.elementId}" only supports targets: ${targets.join(", ")}.`,
+    };
+  }
+
+  const allowedFormatters = opts.allowedFormatters instanceof Set
+    ? opts.allowedFormatters
+    : null;
+  if (allowedFormatters && normalized.formatter && !allowedFormatters.has(normalized.formatter)) {
+    return {
+      ok: false,
+      error: `Formatter "${normalized.formatter}" is not available in the current runtime.`,
+    };
+  }
+
+  return {
+    ok: true,
+    binding: {
+      id: normalized.id || makeId("binding"),
+      elementId: normalized.elementId,
+      target: resolvedTarget,
+      field: normalized.field,
+      formatter: normalized.formatter,
+      fallback: normalized.fallback,
+      template: normalized.template,
+    },
+    nodeType,
+  };
+}
+
+function toSchemaBinding(binding) {
+  const out = {
+    field: binding.field,
+    target: binding.target,
+  };
+  if (typeof binding.formatter === "string" && binding.formatter.length > 0) {
+    out.formatter = binding.formatter;
+  }
+  if (typeof binding.fallback === "string" && binding.fallback.length > 0) {
+    out.fallback = binding.fallback;
+  }
+  if (typeof binding.template === "string" && binding.template.length > 0) {
+    out.template = binding.template;
+  }
+  return out;
+}
+
+function deriveTuneableDataBindingsFromSceneSchema(sceneSchema) {
+  if (!sceneSchema || typeof sceneSchema !== "object") return [];
+  const elementTypeById = collectSchemaNodeTypeIndex(sceneSchema);
+  const derived = [];
+
+  walkSchemaNodes(sceneSchema, (node) => {
+    const elementId = typeof node.id === "string" ? node.id.trim() : "";
+    if (!elementId) return;
+    if (!Array.isArray(node.bindings)) return;
+
+    for (const rawBinding of node.bindings) {
+      const validation = validateDataBindingCandidate(
+        {
+          elementId,
+          target: rawBinding?.target,
+          field: rawBinding?.field,
+          formatter: rawBinding?.formatter,
+          fallback: rawBinding?.fallback,
+          template: rawBinding?.template,
+        },
+        elementTypeById
+      );
+      if (!validation.ok) continue;
+      derived.push(validation.binding);
+    }
+  });
+
+  return derived;
+}
+
 function defaultProfileTuneables() {
   return {
     autoResizeGrid: true,
     nestedTriggers: [],
+    dataBindings: [],
   };
 }
 
@@ -1388,15 +1760,44 @@ function normalizeProfileTuneables(input) {
         .filter(Boolean)
     : [];
 
+  const dataBindings = Array.isArray(input.dataBindings)
+    ? input.dataBindings
+        .map((binding) => {
+          const normalized = normalizeDataBindingDraft(binding);
+          if (!normalized || !normalized.elementId || !normalized.field) return null;
+          return {
+            id: normalized.id || makeId("binding"),
+            elementId: normalized.elementId,
+            target: normalized.target,
+            field: normalized.field,
+            formatter: normalized.formatter,
+            fallback: normalized.fallback,
+            template: normalized.template,
+          };
+        })
+        .filter(Boolean)
+    : [];
+
   return {
     autoResizeGrid: input.autoResizeGrid !== false,
     nestedTriggers,
+    dataBindings,
   };
 }
 
 function ensureProfileTuneables(profile) {
   if (!profile || typeof profile !== "object") return defaultProfileTuneables();
   profile.tuneables = normalizeProfileTuneables(profile.tuneables);
+  if (
+    profile.tuneables.dataBindings.length === 0 &&
+    profile.sceneSchema &&
+    typeof profile.sceneSchema === "object"
+  ) {
+    const derived = deriveTuneableDataBindingsFromSceneSchema(profile.sceneSchema);
+    if (derived.length > 0) {
+      profile.tuneables.dataBindings = derived;
+    }
+  }
   return profile.tuneables;
 }
 
@@ -1435,6 +1836,7 @@ function createProfile(name = "Profile", opts = {}) {
   };
   if (sceneSchema) {
     profile.sceneSchema = sceneSchema;
+    profile.tuneables.dataBindings = deriveTuneableDataBindingsFromSceneSchema(sceneSchema);
   }
   return profile;
 }
@@ -1446,8 +1848,9 @@ function loadProfileStore() {
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return false;
     if (!Array.isArray(parsed.profiles)) return false;
+    const parsedVersion = Number(parsed.version);
     profileStore = {
-      version: PROFILE_VERSION,
+      version: Number.isFinite(parsedVersion) ? parsedVersion : 1,
       activeProfileId:
         typeof parsed.activeProfileId === "string" ? parsed.activeProfileId : null,
       profiles: parsed.profiles.filter((profile) => {
@@ -1483,6 +1886,12 @@ function ensureProfileStore() {
     return;
   }
 
+  let storeChanged = false;
+  if (profileStore.version !== PROFILE_VERSION) {
+    profileStore.version = PROFILE_VERSION;
+    storeChanged = true;
+  }
+
   const hasDefaultSceneProfile = profileStore.profiles.some((profile) => {
     return (
       typeof profile.name === "string" &&
@@ -1503,7 +1912,6 @@ function ensureProfileStore() {
     persistProfileStore();
   }
 
-  let storeChanged = false;
   for (const profile of profileStore.profiles) {
     const prevTuneablesRaw = JSON.stringify(profile.tuneables ?? null);
     ensureProfileTuneables(profile);
@@ -1618,6 +2026,257 @@ function renderTuneablesTriggerList() {
   }
 }
 
+function getProfileStructuralSchema(profile) {
+  if (!profile || typeof profile !== "object") {
+    return buildGridSchema({ includeTuneableBindings: false });
+  }
+  const tuneables = tuneablesForProfile(profile);
+  if (
+    profile.sceneSchema &&
+    typeof profile.sceneSchema === "object" &&
+    profile.sceneSchema.type === "root"
+  ) {
+    return cloneDeep(profile.sceneSchema);
+  }
+  if (profile.grid && Array.isArray(profile.grid.cells)) {
+    return buildGridSchema({
+      cols: profile.grid.cols,
+      rows: profile.grid.rows,
+      cells: profile.grid.cells,
+      tuneables,
+      autoResize: tuneables.autoResizeGrid !== false,
+      includeTuneableBindings: false,
+    });
+  }
+  return buildGridSchema({
+    tuneables,
+    autoResize: tuneables.autoResizeGrid !== false,
+    includeTuneableBindings: false,
+  });
+}
+
+function getBindableElementTypeByIdForProfile(profile) {
+  const schema = getProfileStructuralSchema(profile);
+  const all = collectSchemaNodeTypeIndex(schema);
+  const bindable = new Map();
+  for (const [id, type] of all.entries()) {
+    if (supportedBindingTargetsForType(type).length > 0) {
+      bindable.set(id, type);
+    }
+  }
+  return bindable;
+}
+
+function syncTuneablesBindingElementOptions(profile = activeProfile()) {
+  if (!tuneablesBindingElementSelect) return;
+  const bindable = getBindableElementTypeByIdForProfile(profile);
+  const previousValue = tuneablesBindingElementSelect.value;
+  tuneablesBindingElementSelect.innerHTML = "";
+
+  const options = Array.from(bindable.entries()).sort(([a], [b]) => a.localeCompare(b));
+  if (options.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "No bindable elements";
+    tuneablesBindingElementSelect.appendChild(opt);
+  } else {
+    for (const [elementId, type] of options) {
+      const opt = document.createElement("option");
+      opt.value = elementId;
+      opt.textContent = `${elementId} (${type})`;
+      tuneablesBindingElementSelect.appendChild(opt);
+    }
+  }
+
+  if (
+    previousValue &&
+    Array.from(tuneablesBindingElementSelect.options).some((opt) => opt.value === previousValue)
+  ) {
+    tuneablesBindingElementSelect.value = previousValue;
+  }
+}
+
+function syncTuneablesBindingTargetOptions(profile = activeProfile()) {
+  if (!tuneablesBindingTargetSelect) return;
+  const bindable = getBindableElementTypeByIdForProfile(profile);
+  const elementId = tuneablesBindingElementSelect?.value ?? "";
+  const nodeType = bindable.get(elementId) ?? "";
+  const targets = supportedBindingTargetsForType(nodeType);
+  const previousValue = tuneablesBindingTargetSelect.value;
+  tuneablesBindingTargetSelect.innerHTML = "";
+
+  if (targets.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "No targets";
+    tuneablesBindingTargetSelect.appendChild(opt);
+    return;
+  }
+
+  for (const target of targets) {
+    const opt = document.createElement("option");
+    opt.value = target;
+    opt.textContent = target;
+    tuneablesBindingTargetSelect.appendChild(opt);
+  }
+
+  if (targets.includes(previousValue)) {
+    tuneablesBindingTargetSelect.value = previousValue;
+  }
+}
+
+function syncTuneablesBindingFieldOptions() {
+  if (!tuneablesBindingFieldSelect) return;
+  const previousValue = tuneablesBindingFieldSelect.value;
+  tuneablesBindingFieldSelect.innerHTML = "";
+
+  const options = collectTelemetryFieldOptions();
+  if (options.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "No telemetry fields";
+    tuneablesBindingFieldSelect.appendChild(opt);
+    return;
+  }
+
+  for (const option of options) {
+    const opt = document.createElement("option");
+    opt.value = option.fieldId;
+    opt.textContent = `${option.label} (${option.fieldId})`;
+    tuneablesBindingFieldSelect.appendChild(opt);
+  }
+  if (options.some((option) => option.fieldId === previousValue)) {
+    tuneablesBindingFieldSelect.value = previousValue;
+  }
+}
+
+function syncTuneablesBindingFormatterOptions() {
+  if (!tuneablesBindingFormatterSelect) return;
+  const previousValue = tuneablesBindingFormatterSelect.value;
+  tuneablesBindingFormatterSelect.innerHTML = "";
+
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = "Formatter: none";
+  tuneablesBindingFormatterSelect.appendChild(none);
+
+  const formatters = Array.from(collectAvailableBindingFormatters()).sort((a, b) =>
+    a.localeCompare(b)
+  );
+  for (const name of formatters) {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    tuneablesBindingFormatterSelect.appendChild(opt);
+  }
+
+  if (
+    previousValue &&
+    Array.from(tuneablesBindingFormatterSelect.options).some((opt) => opt.value === previousValue)
+  ) {
+    tuneablesBindingFormatterSelect.value = previousValue;
+  } else {
+    tuneablesBindingFormatterSelect.value = "";
+  }
+}
+
+function validateTuneableDataBindingsForProfile(profile, opts = {}) {
+  const tuneables = tuneablesForProfile(profile);
+  const bindable = getBindableElementTypeByIdForProfile(profile);
+  const formatterSet =
+    opts.enforceFormatter === true ? collectAvailableBindingFormatters() : null;
+  const errors = [];
+
+  for (let i = 0; i < tuneables.dataBindings.length; i++) {
+    const binding = tuneables.dataBindings[i];
+    const validation = validateDataBindingCandidate(binding, bindable, {
+      allowedFormatters: formatterSet,
+    });
+    if (!validation.ok) {
+      errors.push(`dataBindings[${i}]: ${validation.error}`);
+    }
+  }
+
+  return {
+    errors,
+    bindable,
+  };
+}
+
+function renderTuneablesDataBindingList() {
+  if (!tuneablesBindingList) return;
+  tuneablesBindingList.innerHTML = "";
+  const profile = activeProfile();
+  if (!profile) return;
+  const tuneables = tuneablesForProfile(profile);
+  const bindable = getBindableElementTypeByIdForProfile(profile);
+
+  if (!Array.isArray(tuneables.dataBindings) || tuneables.dataBindings.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "subtle";
+    empty.textContent = "No data bindings configured.";
+    tuneablesBindingList.appendChild(empty);
+    return;
+  }
+
+  const availableFormatters = collectAvailableBindingFormatters();
+  for (const binding of tuneables.dataBindings) {
+    const validation = validateDataBindingCandidate(binding, bindable);
+    const row = document.createElement("div");
+    row.className = `tuneables-binding-row${validation.ok ? "" : " invalid"}`;
+
+    const body = document.createElement("div");
+    const main = document.createElement("span");
+    main.className = "tuneables-binding-main";
+    const targetText = binding.target || "(auto)";
+    main.textContent = `${binding.elementId}.${targetText} <- ${binding.field}`;
+    body.appendChild(main);
+
+    const extras = [];
+    if (binding.formatter) {
+      const formatterText = availableFormatters.has(binding.formatter)
+        ? `formatter: ${binding.formatter}`
+        : `formatter: ${binding.formatter} (unavailable)`;
+      extras.push(formatterText);
+    }
+    if (binding.fallback) {
+      extras.push(`fallback: ${binding.fallback}`);
+    }
+    if (extras.length > 0) {
+      const extra = document.createElement("span");
+      extra.className = "tuneables-binding-extra";
+      extra.textContent = extras.join(" | ");
+      body.appendChild(extra);
+    }
+
+    if (!validation.ok) {
+      const err = document.createElement("span");
+      err.className = "tuneables-binding-error";
+      err.textContent = validation.error;
+      body.appendChild(err);
+    }
+
+    row.appendChild(body);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "tuneables-binding-remove";
+    removeBtn.textContent = "Remove";
+    removeBtn.addEventListener("click", () => {
+      tuneables.dataBindings = tuneables.dataBindings.filter((item) => item.id !== binding.id);
+      profile.updatedAt = new Date().toISOString();
+      persistProfileStore();
+      renderTuneablesDataBindingList();
+      syncEditorSchemaOutput();
+      syncLiveBuilderUiFromEditor();
+      status.textContent = `Removed data binding for "${binding.elementId}".`;
+    });
+    row.appendChild(removeBtn);
+
+    tuneablesBindingList.appendChild(row);
+  }
+}
+
 function syncTuneablesUIFromActiveProfile() {
   const profile = activeProfile();
   const tuneables = tuneablesForProfile(profile);
@@ -1626,6 +2285,11 @@ function syncTuneablesUIFromActiveProfile() {
   }
   syncTuneablesTargetProfileSelect();
   renderTuneablesTriggerList();
+  syncTuneablesBindingElementOptions(profile);
+  syncTuneablesBindingTargetOptions(profile);
+  syncTuneablesBindingFieldOptions();
+  syncTuneablesBindingFormatterOptions();
+  renderTuneablesDataBindingList();
 }
 
 function addNestedTriggerBinding() {
@@ -1679,6 +2343,63 @@ function addNestedTriggerBinding() {
   return true;
 }
 
+function addTuneablesDataBinding() {
+  const profile = activeProfile();
+  if (!profile) return false;
+  const tuneables = tuneablesForProfile(profile);
+  const bindable = getBindableElementTypeByIdForProfile(profile);
+
+  const draft = {
+    elementId: tuneablesBindingElementSelect?.value ?? "",
+    target: tuneablesBindingTargetSelect?.value ?? "",
+    field: tuneablesBindingFieldSelect?.value ?? "",
+    formatter: tuneablesBindingFormatterSelect?.value ?? "",
+    fallback: (tuneablesBindingFallbackInput?.value ?? "").trim(),
+  };
+
+  const validation = validateDataBindingCandidate(draft, bindable, {
+    allowedFormatters: collectAvailableBindingFormatters(),
+  });
+  if (!validation.ok) {
+    status.textContent = validation.error;
+    return false;
+  }
+
+  const next = validation.binding;
+  const existingIndex = tuneables.dataBindings.findIndex((row) => {
+    if (!row || typeof row !== "object") return false;
+    if (row.elementId !== next.elementId) return false;
+    const existingTarget =
+      row.target ||
+      defaultBindingTargetForType(bindable.get(row.elementId) ?? "");
+    return existingTarget === next.target;
+  });
+
+  if (existingIndex >= 0) {
+    const prev = tuneables.dataBindings[existingIndex];
+    tuneables.dataBindings[existingIndex] = {
+      ...prev,
+      ...next,
+      id: prev.id || next.id,
+      template:
+        typeof prev.template === "string" && prev.template.length > 0
+          ? prev.template
+          : next.template,
+    };
+    status.textContent = `Updated data binding for "${next.elementId}.${next.target}".`;
+  } else {
+    tuneables.dataBindings.push(next);
+    status.textContent = `Added data binding for "${next.elementId}.${next.target}".`;
+  }
+
+  profile.updatedAt = new Date().toISOString();
+  persistProfileStore();
+  renderTuneablesDataBindingList();
+  syncEditorSchemaOutput();
+  syncLiveBuilderUiFromEditor();
+  return true;
+}
+
 function applyProfileToEditor(profileId) {
   const profile = profileStore.profiles.find((p) => p.id === profileId);
   if (!profile) return;
@@ -1711,6 +2432,12 @@ function applyProfileToEditor(profileId) {
   renderEditorGrid();
   syncEditorSchemaOutput();
   syncLiveBuilderUiFromEditor();
+  const bindingValidation = validateTuneableDataBindingsForProfile(profile, {
+    enforceFormatter: false,
+  });
+  if (bindingValidation.errors.length > 0) {
+    status.textContent = `Profile has invalid bindings: ${bindingValidation.errors[0]}`;
+  }
   if (derivedFromScene) {
     persistProfileStore();
   }
@@ -1761,6 +2488,59 @@ function resolveGridBounds(cells, cols, rows, autoResize) {
   return { minRow, maxRow, minCol, maxCol };
 }
 
+function applyTuneableDataBindingsToSchema(schema, tuneables) {
+  if (!schema || typeof schema !== "object") return schema;
+  if (!tuneables || !Array.isArray(tuneables.dataBindings) || tuneables.dataBindings.length === 0) {
+    return schema;
+  }
+
+  const elementTypeById = collectSchemaNodeTypeIndex(schema);
+  const grouped = new Map();
+
+  for (const row of tuneables.dataBindings) {
+    const validation = validateDataBindingCandidate(row, elementTypeById);
+    if (!validation.ok) continue;
+
+    if (!grouped.has(validation.binding.elementId)) {
+      grouped.set(validation.binding.elementId, []);
+    }
+    grouped.get(validation.binding.elementId).push(toSchemaBinding(validation.binding));
+  }
+
+  if (grouped.size === 0) {
+    return schema;
+  }
+
+  walkSchemaNodes(schema, (node) => {
+    const id = typeof node.id === "string" ? node.id.trim() : "";
+    if (!id) return;
+    const incoming = grouped.get(id);
+    if (!incoming || incoming.length === 0) return;
+
+    const nodeType = typeof node.type === "string" ? node.type : "";
+    const replaceTargets = new Set(
+      incoming
+        .map((binding) => binding.target || defaultBindingTargetForType(nodeType))
+        .filter(Boolean)
+    );
+
+    const existing = Array.isArray(node.bindings)
+      ? node.bindings.filter((binding) => binding && typeof binding === "object")
+      : [];
+    const preserved = existing.filter((binding) => {
+      const explicitTarget =
+        typeof binding.target === "string" ? binding.target.trim() : "";
+      const resolvedTarget = explicitTarget || defaultBindingTargetForType(nodeType);
+      if (!resolvedTarget) return true;
+      return !replaceTargets.has(resolvedTarget);
+    });
+
+    node.bindings = preserved.concat(incoming.map((binding) => ({ ...binding })));
+  });
+
+  return schema;
+}
+
 function buildGridSchema(opts = {}) {
   const cols = Math.max(1, Number(opts.cols ?? editorState.cols) || DEFAULT_GRID_COLS);
   const rows = Math.max(1, Number(opts.rows ?? editorState.rows) || DEFAULT_GRID_ROWS);
@@ -1769,6 +2549,7 @@ function buildGridSchema(opts = {}) {
   const cells = cellsInput.concat(blankCells(cols, rows)).slice(0, total);
   const tuneables = opts.tuneables ?? tuneablesForActiveProfile();
   const autoResize = opts.autoResize ?? (tuneables?.autoResizeGrid !== false);
+  const includeTuneableBindings = opts.includeTuneableBindings !== false;
 
   const bounds = resolveGridBounds(cells, cols, rows, autoResize);
   const usedRows = Math.max(1, bounds.maxRow - bounds.minRow + 1);
@@ -1805,7 +2586,7 @@ function buildGridSchema(opts = {}) {
   const panelWidth = autoResize ? panelWidthAuto : 292;
   const rootWidth = autoResize ? panelWidth + GRID_ROOT_PADDING * 2 : 300;
 
-  return {
+  const rootSchema = {
     type: "root",
     id: "builder-preview-root",
     layout: { type: "STACK_Y", padding: GRID_ROOT_PADDING },
@@ -1834,6 +2615,10 @@ function buildGridSchema(opts = {}) {
       },
     ],
   };
+  if (includeTuneableBindings) {
+    applyTuneableDataBindingsToSchema(rootSchema, tuneables);
+  }
+  return rootSchema;
 }
 
 function buildSceneSchemaForProfile(profileId) {
@@ -1843,7 +2628,8 @@ function buildSceneSchemaForProfile(profileId) {
   }
   const tuneables = tuneablesForProfile(profile);
   if (profile.sceneSchema && typeof profile.sceneSchema === "object" && profile.sceneSchema.type === "root") {
-    return cloneDeep(profile.sceneSchema);
+    const schema = cloneDeep(profile.sceneSchema);
+    return applyTuneableDataBindingsToSchema(schema, tuneables);
   }
   if (profile.grid && Array.isArray(profile.grid.cells)) {
     return buildGridSchema({
@@ -1854,7 +2640,10 @@ function buildSceneSchemaForProfile(profileId) {
       autoResize: tuneables.autoResizeGrid !== false,
     });
   }
-  return buildGridSchema();
+  return buildGridSchema({
+    tuneables,
+    autoResize: tuneables.autoResizeGrid !== false,
+  });
 }
 
 function buildActiveSceneSchema() {
@@ -1863,11 +2652,15 @@ function buildActiveSceneSchema() {
 
 function syncEditorSchemaOutput() {
   if (!editorSchemaOutput) return;
+  const profile = activeProfile();
   const schema = buildGridSchema();
   const sceneSchema = buildActiveSceneSchema();
   const errors = UIHydrate.validate(schema);
   const sceneErrors = UIHydrate.validate(sceneSchema);
   const tuneables = tuneablesForActiveProfile();
+  const bindingValidation = validateTuneableDataBindingsForProfile(profile, {
+    enforceFormatter: true,
+  });
   editorSchemaOutput.value = JSON.stringify(
     {
       version: PROFILE_VERSION,
@@ -1875,6 +2668,7 @@ function syncEditorSchemaOutput() {
       tuneables,
       errors,
       sceneErrors,
+      bindingErrors: bindingValidation.errors,
       schema,
       sceneSchema,
     },
@@ -1975,12 +2769,26 @@ function renderEditorGrid() {
       if (tuneablesTriggerElementInput) {
         tuneablesTriggerElementInput.value = `${key}-${i}`;
       }
+      if (tuneablesBindingElementSelect) {
+        const elementId = `${key}-${i}`;
+        const canSelect = Array.from(tuneablesBindingElementSelect.options).some(
+          (opt) => opt.value === elementId
+        );
+        if (canSelect) {
+          tuneablesBindingElementSelect.value = elementId;
+          syncTuneablesBindingTargetOptions(activeProfile());
+        }
+      }
       setCustomizerFromEntry(entry);
       renderCatalog();
     });
 
     editorGrid.appendChild(cell);
   }
+
+  syncTuneablesBindingElementOptions(activeProfile());
+  syncTuneablesBindingTargetOptions(activeProfile());
+  renderTuneablesDataBindingList();
 }
 
 function disposeCatalogPreviews() {
@@ -2350,6 +3158,13 @@ function importProfilePayload(payload) {
     profile.sceneSchema = cloneDeep(incoming.sceneSchema);
   }
 
+  const bindingValidation = validateTuneableDataBindingsForProfile(profile, {
+    enforceFormatter: false,
+  });
+  if (bindingValidation.errors.length > 0) {
+    throw new Error(`Invalid data bindings: ${bindingValidation.errors[0]}`);
+  }
+
   profileStore.profiles.push(profile);
   profileStore.activeProfileId = profile.id;
   persistProfileStore();
@@ -2370,6 +3185,46 @@ function getRuntimeBackdrop(runtime = activeRuntime) {
 function getRuntimeRoot(runtime = activeRuntime) {
   if (!runtime || typeof runtime !== "object") return null;
   return runtime.root ?? null;
+}
+
+function getRuntimeBindingRuntime(runtime = activeRuntime) {
+  if (!runtime || typeof runtime !== "object") return null;
+  const hub = runtime.telemetryHub;
+  if (!hub || typeof hub.subscribe !== "function") return null;
+
+  return {
+    subscribe(listener) {
+      const unsubscribe = hub.subscribe((snapshot, changed) => {
+        const fields = {};
+        const changedFieldIds = [];
+        if (Array.isArray(changed) && changed.length > 0) {
+          for (const field of changed) {
+            if (!field || typeof field.fieldId !== "string") continue;
+            fields[field.fieldId] = field;
+            changedFieldIds.push(field.fieldId);
+          }
+        } else if (snapshot && snapshot.fields && typeof snapshot.fields === "object") {
+          for (const [fieldId, field] of Object.entries(snapshot.fields)) {
+            fields[fieldId] = field;
+            changedFieldIds.push(fieldId);
+          }
+        }
+        listener({ fields, changedFieldIds });
+      }, true);
+      return typeof unsubscribe === "function" ? unsubscribe : () => {};
+    },
+    getField(fieldId) {
+      if (!fieldId || typeof hub.getField !== "function") return undefined;
+      return hub.getField(fieldId) ?? undefined;
+    },
+    formatters: {
+      hudMotionFraction(value) {
+        const n = typeof value === "number" ? value : Number(value);
+        if (!Number.isFinite(n)) return "0.00";
+        return n.toFixed(2);
+      },
+    },
+  };
 }
 
 function hasHelpersEnabled() {
@@ -2396,6 +3251,261 @@ function getViewportSize() {
   const width = Math.max(1, viewport.clientWidth);
   const height = Math.max(1, viewport.clientHeight);
   return { width, height };
+}
+
+function getSidebarWidthLimits() {
+  const appWidth = Math.max(
+    320,
+    appRoot?.clientWidth || window.innerWidth || document.documentElement.clientWidth || 0
+  );
+  const maxByViewport = Math.max(220, appWidth - SIDEBAR_MIN_VIEWPORT_WIDTH);
+  const max = Math.min(SIDEBAR_MAX_WIDTH, maxByViewport);
+  const min = Math.min(SIDEBAR_MIN_WIDTH, max);
+  return { min, max };
+}
+
+function updateSidebarWidthClasses(width) {
+  if (!sidebar) return;
+  sidebar.classList.toggle("is-wide", width >= SIDEBAR_WIDE_BREAKPOINT);
+  sidebar.classList.toggle("is-compact", width <= SIDEBAR_COMPACT_BREAKPOINT);
+}
+
+function setSidebarWidth(width, opts = {}) {
+  if (!appRoot || !sidebar) return SIDEBAR_DEFAULT_WIDTH;
+  const { min, max } = getSidebarWidthLimits();
+  const numeric = Number(width);
+  const clamped = Math.round(
+    Number.isFinite(numeric)
+      ? Math.min(max, Math.max(min, numeric))
+      : Math.min(max, Math.max(min, SIDEBAR_DEFAULT_WIDTH))
+  );
+  sidebarResizeState.currentWidth = clamped;
+  appRoot.style.setProperty("--sidebar-width", `${clamped}px`);
+  updateSidebarWidthClasses(clamped);
+  if (opts.persist === true) {
+    try {
+      localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(clamped));
+    } catch {
+      // Ignore local storage failures.
+    }
+  }
+  if (opts.triggerResize !== false) {
+    handleResize();
+  }
+  return clamped;
+}
+
+function updateSidebarGrabberY(clientY) {
+  if (!appRoot) return;
+  const yValue = Number(clientY);
+  if (!Number.isFinite(yValue)) return;
+  const rect = appRoot.getBoundingClientRect();
+  const y = Math.max(18, Math.min(rect.height - 18, yValue - rect.top));
+  appRoot.style.setProperty("--sidebar-grabber-y", `${Math.round(y)}px`);
+}
+
+function finishSidebarResize(persist) {
+  if (!appRoot || !sidebarResizer) return;
+  const pointerId = sidebarResizeState.pointerId;
+  if (pointerId !== null && typeof sidebarResizer.releasePointerCapture === "function") {
+    try {
+      sidebarResizer.releasePointerCapture(pointerId);
+    } catch {
+      // Ignore pointer capture release failures.
+    }
+  }
+  sidebarResizeState.active = false;
+  sidebarResizeState.pointerId = null;
+  appRoot.classList.remove("sidebar-resizing");
+  if (persist) {
+    setSidebarWidth(sidebarResizeState.currentWidth, { persist: true, triggerResize: false });
+  }
+}
+
+function handleSidebarResizerPointerDown(event) {
+  if (!sidebarResizer || !appRoot) return;
+  if (event.pointerType !== "touch" && event.button !== 0) return;
+  event.preventDefault();
+  sidebarResizeState.active = true;
+  sidebarResizeState.pointerId = event.pointerId ?? null;
+  sidebarResizeState.startX = event.clientX;
+  sidebarResizeState.startWidth = sidebarResizeState.currentWidth;
+  appRoot.classList.add("sidebar-resizing");
+  updateSidebarGrabberY(event.clientY);
+  if (typeof sidebarResizer.setPointerCapture === "function" && event.pointerId !== undefined) {
+    sidebarResizer.setPointerCapture(event.pointerId);
+  }
+}
+
+function handleSidebarResizerPointerMove(event) {
+  updateSidebarGrabberY(event.clientY);
+  if (!sidebarResizeState.active) return;
+  if (sidebarResizeState.pointerId !== null && event.pointerId !== sidebarResizeState.pointerId) {
+    return;
+  }
+  const dx = event.clientX - sidebarResizeState.startX;
+  setSidebarWidth(sidebarResizeState.startWidth + dx, { persist: false, triggerResize: true });
+}
+
+function handleSidebarResizerPointerUp(event) {
+  if (!sidebarResizeState.active) return;
+  if (sidebarResizeState.pointerId !== null && event.pointerId !== sidebarResizeState.pointerId) {
+    return;
+  }
+  updateSidebarGrabberY(event.clientY);
+  finishSidebarResize(true);
+}
+
+function handleSidebarResizerPointerCancel(event) {
+  if (!sidebarResizeState.active) return;
+  if (sidebarResizeState.pointerId !== null && event.pointerId !== sidebarResizeState.pointerId) {
+    return;
+  }
+  finishSidebarResize(false);
+}
+
+function handleSidebarResizerLostPointerCapture() {
+  if (!sidebarResizeState.active) return;
+  finishSidebarResize(true);
+}
+
+function handleWindowResize() {
+  setSidebarWidth(sidebarResizeState.currentWidth, { persist: false, triggerResize: false });
+  handleResize();
+}
+
+function initSidebarResizer() {
+  if (!appRoot || !sidebar || !sidebarResizer) return;
+  let width = SIDEBAR_DEFAULT_WIDTH;
+  try {
+    const stored = localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+    if (stored !== null) {
+      const parsed = Number(stored);
+      if (Number.isFinite(parsed)) {
+        width = parsed;
+      }
+    }
+  } catch {
+    // Ignore local storage failures.
+  }
+
+  setSidebarWidth(width, { persist: false, triggerResize: false });
+
+  const initialY = Math.round((appRoot.clientHeight || window.innerHeight || 0) * 0.5);
+  appRoot.style.setProperty("--sidebar-grabber-y", `${Math.max(18, initialY)}px`);
+
+  sidebarResizer.addEventListener("pointerdown", handleSidebarResizerPointerDown);
+  sidebarResizer.addEventListener("pointermove", handleSidebarResizerPointerMove);
+  sidebarResizer.addEventListener("pointerup", handleSidebarResizerPointerUp);
+  sidebarResizer.addEventListener("pointercancel", handleSidebarResizerPointerCancel);
+  sidebarResizer.addEventListener("lostpointercapture", handleSidebarResizerLostPointerCapture);
+  sidebarResizer.addEventListener("pointerenter", (event) => {
+    updateSidebarGrabberY(event.clientY);
+  });
+}
+
+function createOrbitOriginMarker() {
+  const L = ORBIT_ORIGIN_MARKER_HALF_LENGTH;
+  const positions = new Float32Array([
+    -L, 0, 0,
+    L, 0, 0,
+    0, -L, 0,
+    0, L, 0,
+    0, 0, -L,
+    0, 0, L,
+  ]);
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new BufferAttribute(positions, 3));
+  const material = new LineBasicMaterial({
+    color: ORBIT_ORIGIN_MARKER_COLOR,
+    transparent: true,
+    opacity: 0.96,
+    depthTest: false,
+    depthWrite: false,
+  });
+  material.toneMapped = false;
+
+  const marker = new LineSegments(geometry, material);
+  marker.frustumCulled = false;
+  marker.renderOrder = 4700;
+  marker.name = "orbit-camera-origin-marker";
+  return marker;
+}
+
+function resetOrbitSnapTarget() {
+  if (!orbitControls) return;
+  snapOrbitPanState.snappedTarget.set(
+    Math.round(orbitControls.target.x),
+    Math.round(orbitControls.target.y),
+    Math.round(orbitControls.target.z)
+  );
+  snapOrbitPanState.pull.set(0, 0, 0);
+  orbitControls.target.copy(snapOrbitPanState.snappedTarget);
+}
+
+function startOrbitSnapPan(pointerId) {
+  if (!orbitControls || !snapOrbitToGrid || navMode !== "orbit") return;
+  snapOrbitPanState.active = true;
+  snapOrbitPanState.pointerId = pointerId;
+  resetOrbitSnapTarget();
+}
+
+function stopOrbitSnapPan(pointerId) {
+  if (!snapOrbitPanState.active) return;
+  if (
+    snapOrbitPanState.pointerId !== null &&
+    pointerId !== null &&
+    snapOrbitPanState.pointerId !== pointerId
+  ) {
+    return;
+  }
+  snapOrbitPanState.active = false;
+  snapOrbitPanState.pointerId = null;
+  snapOrbitPanState.pull.set(0, 0, 0);
+}
+
+function stepSnapAxis(axis) {
+  let pull = snapOrbitPanState.pull[axis];
+  while (pull >= ORBIT_SNAP_RESISTANCE) {
+    snapOrbitPanState.snappedTarget[axis] += 1;
+    pull -= 1;
+  }
+  while (pull <= -ORBIT_SNAP_RESISTANCE) {
+    snapOrbitPanState.snappedTarget[axis] -= 1;
+    pull += 1;
+  }
+  snapOrbitPanState.pull[axis] = pull;
+}
+
+function updateOrbitOriginMarkerAndSnap() {
+  if (!orbitOriginMarker) return;
+  if (!orbitControls) {
+    orbitOriginMarker.visible = false;
+    return;
+  }
+
+  if (snapOrbitToGrid) {
+    if (snapOrbitPanState.active) {
+      snapOrbitPanState.pull.x +=
+        orbitControls.target.x - snapOrbitPanState.snappedTarget.x;
+      snapOrbitPanState.pull.y +=
+        orbitControls.target.y - snapOrbitPanState.snappedTarget.y;
+      snapOrbitPanState.pull.z +=
+        orbitControls.target.z - snapOrbitPanState.snappedTarget.z;
+
+      stepSnapAxis("x");
+      stepSnapAxis("y");
+      stepSnapAxis("z");
+      orbitControls.target.copy(snapOrbitPanState.snappedTarget);
+    } else {
+      resetOrbitSnapTarget();
+    }
+  } else if (snapOrbitPanState.active) {
+    stopOrbitSnapPan(null);
+  }
+
+  orbitOriginMarker.visible = true;
+  orbitOriginMarker.position.copy(orbitControls.target);
 }
 
 function setButtonActive(exampleId) {
@@ -2478,6 +3588,29 @@ function handleCanvasPointerLeave() {
   }
 }
 
+function handleCanvasPointerDown(event) {
+  if (event.button !== 2) return;
+  startOrbitSnapPan(event.pointerId ?? null);
+}
+
+function handleGlobalPointerUp(event) {
+  stopOrbitSnapPan(event?.pointerId ?? null);
+}
+
+function handleGlobalPointerCancel(event) {
+  stopOrbitSnapPan(event?.pointerId ?? null);
+}
+
+function handleWindowBlur() {
+  stopOrbitSnapPan(null);
+}
+
+function handleCanvasContextMenu(event) {
+  if (snapOrbitToGrid && navMode === "orbit") {
+    event.preventDefault();
+  }
+}
+
 function cacheRuntimeAnchor(runtime) {
   if (!runtime || runtimeOriginalAnchors.has(runtime)) return;
   const root = getRuntimeRoot(runtime);
@@ -2497,8 +3630,14 @@ function disposeBuilderUiInstance(instance, runtime = activeRuntime) {
   if (!instance) return;
   const uiManager = getRuntimeUIManager(runtime);
   if (uiManager && instance.root) {
+    if (typeof UIHydrate.disposeBindings === "function") {
+      UIHydrate.disposeBindings(instance.root);
+    }
     uiManager.removeRoot(instance.root);
   } else if (instance.root) {
+    if (typeof UIHydrate.disposeBindings === "function") {
+      UIHydrate.disposeBindings(instance.root);
+    }
     instance.root.removeFromParent();
   }
   if (instance.anchorTarget) {
@@ -2546,6 +3685,7 @@ function createBuilderRoot(anchorTarget, opts = {}) {
   const root = UIHydrate.fromSchema(schema, {
     theme: ThemeFactory(),
     events: preview ? undefined : buildNestedTriggerEvents(profileId, opts.instance),
+    bindingRuntime: getRuntimeBindingRuntime(activeRuntime) ?? undefined,
     rootOptions: {
       uiUnitMeters: 0.01,
       depthTest: false,
@@ -2599,6 +3739,9 @@ function rehydrateBuilderUiInstance(instance) {
   nextRoot.visible = prevVisible;
 
   if (prevRoot) {
+    if (typeof UIHydrate.disposeBindings === "function") {
+      UIHydrate.disposeBindings(prevRoot);
+    }
     uiManager.removeRoot(prevRoot);
   }
   uiManager.addRoot(nextRoot);
@@ -2640,6 +3783,9 @@ function switchBuilderUiInstanceProfile(instance, profileId) {
   nextRoot.visible = prevVisible;
 
   if (prevRoot) {
+    if (typeof UIHydrate.disposeBindings === "function") {
+      UIHydrate.disposeBindings(prevRoot);
+    }
     uiManager.removeRoot(prevRoot);
   }
   uiManager.addRoot(nextRoot);
@@ -2929,6 +4075,8 @@ function restoreRuntimeAnchor() {
 }
 
 function disposeNavigationControls() {
+  stopOrbitSnapPan(null);
+
   if (orbitControls) {
     orbitControls.dispose();
     orbitControls = null;
@@ -2974,6 +4122,7 @@ function applyNavigationMode() {
     pointerLockControls.addEventListener("unlock", syncPointerLockButton);
   }
 
+  updateOrbitOriginMarkerAndSnap();
   syncPointerLockButton();
 }
 
@@ -3007,6 +4156,7 @@ function startNavigationLoop() {
     } else if (pointerLockControls) {
       updatePointerLockMovement(dt);
     }
+    updateOrbitOriginMarkerAndSnap();
 
     requestAnimationFrame(frame);
   };
@@ -3041,12 +4191,19 @@ function ensureThree() {
   camera = new PerspectiveCamera(55, width / height, 0.05, 100);
   camera.position.set(0, 1.6, 1);
   camera.lookAt(0, 1.0, -3);
+  orbitOriginMarker = createOrbitOriginMarker();
+  scene.add(orbitOriginMarker);
 
+  renderer.domElement.addEventListener("pointerdown", handleCanvasPointerDown);
   renderer.domElement.addEventListener("pointermove", handleCanvasPointerMove);
   renderer.domElement.addEventListener("pointerleave", handleCanvasPointerLeave);
   renderer.domElement.addEventListener("click", handleCanvasClick);
+  renderer.domElement.addEventListener("contextmenu", handleCanvasContextMenu);
   renderer.domElement.addEventListener("dragover", handleCanvasDragOver);
   renderer.domElement.addEventListener("drop", handleCanvasDrop);
+  window.addEventListener("pointerup", handleGlobalPointerUp);
+  window.addEventListener("pointercancel", handleGlobalPointerCancel);
+  window.addEventListener("blur", handleWindowBlur);
 
   if (typeof ResizeObserver !== "undefined") {
     viewportResizeObserver = new ResizeObserver(() => {
@@ -3065,9 +4222,9 @@ window.addEventListener("keydown", (event) => {
 window.addEventListener("keyup", (event) => {
   pointerLockKeys.delete(event.code);
 });
-window.addEventListener("resize", handleResize);
+window.addEventListener("resize", handleWindowResize);
 if (window.visualViewport) {
-  window.visualViewport.addEventListener("resize", handleResize);
+  window.visualViewport.addEventListener("resize", handleWindowResize);
 }
 
 async function unloadActiveRuntime() {
@@ -3132,6 +4289,9 @@ async function loadExample(exampleId) {
       throw new Error("Example runtime missing start()/animate()");
     }
 
+    syncTuneablesBindingFieldOptions();
+    syncTuneablesBindingFormatterOptions();
+    renderTuneablesDataBindingList();
     status.textContent = def.info;
   } catch (err) {
     console.error("[examples] failed to load example", err);
@@ -3214,6 +4374,14 @@ for (const btn of buttons) {
 navModeSelect.addEventListener("change", () => {
   navMode = navModeSelect.value;
   applyNavigationMode();
+});
+
+snapOrbitGridCheckbox.addEventListener("change", () => {
+  snapOrbitToGrid = snapOrbitGridCheckbox.checked;
+  updateOrbitOriginMarkerAndSnap();
+  status.textContent = snapOrbitToGrid
+    ? "Orbit origin snapping enabled."
+    : "Orbit origin snapping disabled.";
 });
 
 pointerLockBtn.addEventListener("click", () => {
@@ -3343,6 +4511,20 @@ tuneablesTriggerElementInput.addEventListener("keydown", (event) => {
   addNestedTriggerBinding();
 });
 
+tuneablesBindingElementSelect.addEventListener("change", () => {
+  syncTuneablesBindingTargetOptions(activeProfile());
+});
+
+tuneablesAddBindingBtn.addEventListener("click", () => {
+  addTuneablesDataBinding();
+});
+
+tuneablesBindingFallbackInput.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  addTuneablesDataBinding();
+});
+
 profileSelect.addEventListener("change", () => {
   applyProfileToEditor(profileSelect.value);
   persistProfileStore();
@@ -3364,6 +4546,14 @@ profileSaveBtn.addEventListener("click", () => {
   const errors = UIHydrate.validate(schema);
   if (errors.length > 0) {
     status.textContent = `Validation failed: ${errors[0]}`;
+    syncEditorSchemaOutput();
+    return;
+  }
+  const bindingErrors = validateTuneableDataBindingsForProfile(activeProfile(), {
+    enforceFormatter: true,
+  }).errors;
+  if (bindingErrors.length > 0) {
+    status.textContent = `Binding validation failed: ${bindingErrors[0]}`;
     syncEditorSchemaOutput();
     return;
   }
@@ -3464,14 +4654,20 @@ editorClearBtn.addEventListener("click", () => {
 
 editorValidateBtn.addEventListener("click", () => {
   const errors = UIHydrate.validate(buildGridSchema());
+  const bindingErrors = validateTuneableDataBindingsForProfile(activeProfile(), {
+    enforceFormatter: true,
+  }).errors;
   if (errors.length > 0) {
     status.textContent = `Validation failed: ${errors[0]}`;
+  } else if (bindingErrors.length > 0) {
+    status.textContent = `Binding validation failed: ${bindingErrors[0]}`;
   } else {
     status.textContent = "Grid schema is valid.";
   }
   syncEditorSchemaOutput();
 });
 
+initSidebarResizer();
 ensureProfileStore();
 syncProfileSelect();
 applyProfileToEditor(profileStore.activeProfileId ?? profileStore.profiles[0]?.id ?? null);

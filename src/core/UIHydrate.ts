@@ -8,6 +8,7 @@
  *  - Theme application
  *  - Event binding by element id
  *  - "Slots" for dynamic data injection
+ *  - Runtime field bindings for text/value updates
  */
 
 import { UIElement, type LayoutProps, type SizeProps, type StyleProps } from "./UIElement.js";
@@ -36,6 +37,59 @@ import { Tooltip } from "../components/Tooltip.js";
 /* ------------------------------------------------------------------ */
 /*  Schema types                                                       */
 /* ------------------------------------------------------------------ */
+
+export type UIBindingTarget = "text" | "value";
+
+export interface UISchemaBinding {
+  /** Field id in the bound runtime (e.g. telemetry field id). */
+  field: string;
+  /** Target property to update. Defaults by node type when omitted. */
+  target?: UIBindingTarget;
+  /** Optional named formatter from `HydrateOptions.bindingRuntime.formatters`. */
+  formatter?: string;
+  /** Fallback value when source value is missing/invalid. */
+  fallback?: string | number | boolean | null;
+  /**
+   * Optional template for text targets.
+   * `{{value}}` is replaced with bound output.
+   */
+  template?: string;
+}
+
+export interface UIBindingField {
+  value: unknown;
+  status?: string;
+  source?: string;
+  updatedAt?: number;
+  error?: string;
+  meta?: Record<string, unknown>;
+}
+
+export interface UIBindingUpdate {
+  fields: Record<string, UIBindingField | undefined>;
+  changedFieldIds?: string[];
+}
+
+export interface UIBindingFormatterContext {
+  fieldId: string;
+  field?: UIBindingField;
+  binding: UISchemaBinding;
+  element: UIElement;
+}
+
+export type UIBindingFormatter = (
+  value: unknown,
+  ctx: UIBindingFormatterContext
+) => unknown;
+
+export interface UIBindingRuntime {
+  /** Subscribe to field updates. Return an unsubscribe callback. */
+  subscribe(listener: (update: UIBindingUpdate) => void): () => void;
+  /** Optional random access for initial hydration. */
+  getField?(fieldId: string): UIBindingField | undefined;
+  /** Optional named formatters used by schema bindings. */
+  formatters?: Record<string, UIBindingFormatter>;
+}
 
 export interface UISchemaNode {
   /** Element type */
@@ -77,6 +131,9 @@ export interface UISchemaNode {
   /** Size overrides */
   sizing?: Partial<SizeProps>;
 
+  /** Optional live-data bindings for this node. */
+  bindings?: UISchemaBinding[];
+
   /** Nested children */
   children?: UISchemaNode[];
 }
@@ -87,9 +144,25 @@ export interface HydrateOptions {
   events?: Record<string, Record<string, (...args: any[]) => void>>;
   /** Slot values keyed by slot name */
   slots?: Record<string, any>;
+  /** Runtime data-binding context for live field updates. */
+  bindingRuntime?: UIBindingRuntime;
   /** Root options (anchor, fovFit, etc.) */
   rootOptions?: Partial<UIRootOptions>;
 }
+
+interface BuiltBindingRef {
+  element: UIElement;
+  nodeType: UISchemaNode["type"];
+  binding: UISchemaBinding;
+  templateText?: string;
+}
+
+interface BindingRuntimeHandle {
+  unsubscribe: () => void;
+}
+
+const SLOT_TEMPLATE_CACHE: WeakMap<TextBlock, string> = new WeakMap();
+const ROOT_BINDING_HANDLE = Symbol("UIHydrate.rootBindingHandle");
 
 /* ------------------------------------------------------------------ */
 /*  UIHydrate                                                          */
@@ -115,12 +188,24 @@ export class UIHydrate {
       sizing: schema.sizing,
       ...opts.rootOptions,
     });
+    const builtBindings: BuiltBindingRef[] = [];
 
     if (schema.children) {
-      for (const childSchema of schema.children) {
-        const child = UIHydrate._buildNode(childSchema, theme, opts);
+      for (let i = 0; i < schema.children.length; i++) {
+        const childSchema = schema.children[i];
+        const child = UIHydrate._buildNode(
+          childSchema,
+          theme,
+          opts,
+          `root.children[${i}]`,
+          builtBindings
+        );
         root.add(child);
       }
+    }
+
+    if (opts.bindingRuntime && builtBindings.length > 0) {
+      UIHydrate._attachBindings(root, builtBindings, opts.bindingRuntime);
     }
 
     return root;
@@ -141,6 +226,19 @@ export class UIHydrate {
     UIHydrate._walkSlots(root, slots);
   }
 
+  static disposeBindings(root: UIRoot): void {
+    const r = root as UIRoot & {
+      [ROOT_BINDING_HANDLE]?: BindingRuntimeHandle;
+    };
+    const handle = r[ROOT_BINDING_HANDLE];
+    if (!handle) return;
+    try {
+      handle.unsubscribe();
+    } finally {
+      delete r[ROOT_BINDING_HANDLE];
+    }
+  }
+
   /* ---------------------------------------------------------------- */
   /*  Internal builders                                                */
   /* ---------------------------------------------------------------- */
@@ -148,7 +246,9 @@ export class UIHydrate {
   private static _buildNode(
     schema: UISchemaNode,
     theme: UITheme,
-    opts: HydrateOptions
+    opts: HydrateOptions,
+    path: string,
+    builtBindings: BuiltBindingRef[]
   ): UIElement {
     let element: UIElement;
 
@@ -235,10 +335,34 @@ export class UIHydrate {
       }
     }
 
+    const nodeBindings = UIHydrate._normalizeBindings(schema.bindings);
+    if (nodeBindings.length > 0) {
+      for (const binding of nodeBindings) {
+        builtBindings.push({
+          element,
+          nodeType: schema.type,
+          binding,
+          templateText:
+            element instanceof TextBlock
+              ? element.getText()
+              : typeof schema.props?.text === "string"
+                ? schema.props.text
+                : undefined,
+        });
+      }
+    }
+
     // Recurse children
     if (schema.children) {
-      for (const childSchema of schema.children) {
-        const child = UIHydrate._buildNode(childSchema, theme, opts);
+      for (let i = 0; i < schema.children.length; i++) {
+        const childSchema = schema.children[i];
+        const child = UIHydrate._buildNode(
+          childSchema,
+          theme,
+          opts,
+          `${path}.children[${i}]`,
+          builtBindings
+        );
         element.add(child);
       }
     }
@@ -570,6 +694,185 @@ export class UIHydrate {
   }
 
   /* ---------------------------------------------------------------- */
+  /*  Binding runtime                                                  */
+  /* ---------------------------------------------------------------- */
+
+  private static _normalizeBindings(
+    bindings: UISchemaNode["bindings"]
+  ): UISchemaBinding[] {
+    if (!Array.isArray(bindings)) return [];
+    const out: UISchemaBinding[] = [];
+    for (const binding of bindings) {
+      if (!binding || typeof binding !== "object") continue;
+      if (typeof binding.field !== "string" || binding.field.trim().length === 0) {
+        continue;
+      }
+      const normalized: UISchemaBinding = {
+        field: binding.field.trim(),
+      };
+      if (binding.target === "text" || binding.target === "value") {
+        normalized.target = binding.target;
+      }
+      if (
+        typeof binding.formatter === "string" &&
+        binding.formatter.trim().length > 0
+      ) {
+        normalized.formatter = binding.formatter.trim();
+      }
+      if (binding.fallback !== undefined) {
+        normalized.fallback = binding.fallback;
+      }
+      if (typeof binding.template === "string") {
+        normalized.template = binding.template;
+      }
+      out.push(normalized);
+    }
+    return out;
+  }
+
+  private static _attachBindings(
+    root: UIRoot,
+    builtBindings: BuiltBindingRef[],
+    runtime: UIBindingRuntime
+  ): void {
+    UIHydrate.disposeBindings(root);
+
+    const fieldMap = new Map<string, BuiltBindingRef[]>();
+    for (const ref of builtBindings) {
+      if (!fieldMap.has(ref.binding.field)) {
+        fieldMap.set(ref.binding.field, []);
+      }
+      fieldMap.get(ref.binding.field)!.push(ref);
+    }
+
+    const applyRef = (ref: BuiltBindingRef, field?: UIBindingField) => {
+      const target = UIHydrate._resolveBindingTarget(ref.nodeType, ref.binding);
+      if (!target) return;
+
+      let nextValue: unknown = field?.value;
+      if (ref.binding.formatter) {
+        const formatter = runtime.formatters?.[ref.binding.formatter];
+        if (formatter) {
+          nextValue = formatter(nextValue, {
+            fieldId: ref.binding.field,
+            field,
+            binding: ref.binding,
+            element: ref.element,
+          });
+        }
+      }
+
+      if (
+        (nextValue === null ||
+          nextValue === undefined ||
+          (typeof nextValue === "number" && !Number.isFinite(nextValue))) &&
+        ref.binding.fallback !== undefined
+      ) {
+        nextValue = ref.binding.fallback;
+      }
+
+      if (target === "text") {
+        UIHydrate._applyTextBinding(ref, nextValue);
+      } else if (target === "value") {
+        UIHydrate._applyValueBinding(ref, nextValue);
+      }
+    };
+
+    const applyFieldId = (fieldId: string, field?: UIBindingField) => {
+      const refs = fieldMap.get(fieldId);
+      if (!refs || refs.length === 0) return;
+      for (const ref of refs) {
+        applyRef(ref, field);
+      }
+    };
+
+    for (const fieldId of fieldMap.keys()) {
+      const field = runtime.getField?.(fieldId);
+      applyFieldId(fieldId, field);
+    }
+
+    const unsubscribe = runtime.subscribe((update) => {
+      const changedFieldIds =
+        Array.isArray(update.changedFieldIds) && update.changedFieldIds.length > 0
+          ? update.changedFieldIds
+          : Object.keys(update.fields ?? {});
+      for (const fieldId of changedFieldIds) {
+        const field = update.fields[fieldId] ?? runtime.getField?.(fieldId);
+        applyFieldId(fieldId, field);
+      }
+    });
+
+    const r = root as UIRoot & {
+      [ROOT_BINDING_HANDLE]?: BindingRuntimeHandle;
+    };
+    r[ROOT_BINDING_HANDLE] = {
+      unsubscribe,
+    };
+  }
+
+  private static _resolveBindingTarget(
+    nodeType: UISchemaNode["type"],
+    binding: UISchemaBinding
+  ): UIBindingTarget | null {
+    if (nodeType === "text" || nodeType === "data-tag") {
+      if (!binding.target || binding.target === "text") return "text";
+      return null;
+    }
+    if (nodeType === "radial-gauge" || nodeType === "slider") {
+      if (!binding.target || binding.target === "value") return "value";
+      return null;
+    }
+    return null;
+  }
+
+  private static _applyTextBinding(ref: BuiltBindingRef, value: unknown): void {
+    const textValue =
+      value === null || value === undefined ? "" : String(value);
+    const template = ref.binding.template ?? ref.templateText;
+    const output =
+      template && /\{\{\s*value\s*\}\}/.test(template)
+        ? template.replace(/\{\{\s*value\s*\}\}/g, textValue)
+        : textValue;
+
+    if (ref.element instanceof TextBlock) {
+      ref.element.setText(output);
+      return;
+    }
+    if (ref.element instanceof DataTag) {
+      ref.element.setText(output);
+    }
+  }
+
+  private static _applyValueBinding(ref: BuiltBindingRef, value: unknown): void {
+    const n = UIHydrate._coerceNumber(value);
+    if (n === null) return;
+    if (ref.element instanceof RadialGauge) {
+      ref.element.value = n;
+      return;
+    }
+    if (ref.element instanceof SliderLinear) {
+      ref.element.value = n;
+    }
+  }
+
+  private static _coerceNumber(value: unknown): number | null {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === "string") {
+      const direct = Number(value);
+      if (Number.isFinite(direct)) {
+        return direct;
+      }
+      const match = value.match(/[-+]?\d*\.?\d+/);
+      if (!match) return null;
+      const parsed = Number(match[0]);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  }
+
+  /* ---------------------------------------------------------------- */
   /*  Slot interpolation                                               */
   /* ---------------------------------------------------------------- */
 
@@ -581,8 +884,12 @@ export class UIHydrate {
 
   private static _walkSlots(element: UIElement, slots: Record<string, any>): void {
     if (element instanceof TextBlock) {
+      const template = SLOT_TEMPLATE_CACHE.get(element) ?? element.getText();
+      if (!SLOT_TEMPLATE_CACHE.has(element)) {
+        SLOT_TEMPLATE_CACHE.set(element, template);
+      }
       const current = element.getText();
-      const replaced = UIHydrate._interpolateSlots(current, slots);
+      const replaced = UIHydrate._interpolateSlots(template, slots);
       if (replaced !== current) {
         element.setText(replaced);
       }
@@ -627,12 +934,74 @@ export class UIHydrate {
       errors.push(`${path}: menu node missing props.items array`);
     }
 
+    UIHydrate._validateBindings(node, errors, path);
+
     if (node.children) {
       for (let i = 0; i < node.children.length; i++) {
         UIHydrate._validateNode(
           node.children[i],
           errors,
           `${path}.children[${i}]`
+        );
+      }
+    }
+  }
+
+  private static _validateBindings(
+    node: UISchemaNode,
+    errors: string[],
+    path: string
+  ): void {
+    if (node.bindings === undefined) return;
+    if (!Array.isArray(node.bindings)) {
+      errors.push(`${path}.bindings: expected an array`);
+      return;
+    }
+
+    for (let i = 0; i < node.bindings.length; i++) {
+      const raw = node.bindings[i] as any;
+      const bindingPath = `${path}.bindings[${i}]`;
+
+      if (!raw || typeof raw !== "object") {
+        errors.push(`${bindingPath}: expected an object`);
+        continue;
+      }
+
+      if (typeof raw.field !== "string" || raw.field.trim().length === 0) {
+        errors.push(`${bindingPath}.field: must be a non-empty string`);
+      }
+
+      if (
+        raw.target !== undefined &&
+        raw.target !== "text" &&
+        raw.target !== "value"
+      ) {
+        errors.push(`${bindingPath}.target: must be "text" or "value"`);
+      }
+
+      if (
+        raw.formatter !== undefined &&
+        (typeof raw.formatter !== "string" || raw.formatter.trim().length === 0)
+      ) {
+        errors.push(`${bindingPath}.formatter: must be a non-empty string`);
+      }
+
+      if (
+        raw.template !== undefined &&
+        typeof raw.template !== "string"
+      ) {
+        errors.push(`${bindingPath}.template: must be a string`);
+      }
+
+      const normalized = UIHydrate._normalizeBindings([raw])[0];
+      if (!normalized) {
+        continue;
+      }
+      const resolvedTarget = UIHydrate._resolveBindingTarget(node.type, normalized);
+
+      if (!resolvedTarget) {
+        errors.push(
+          `${bindingPath}: node type "${node.type}" does not support bindings`
         );
       }
     }

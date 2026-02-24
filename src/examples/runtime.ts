@@ -1,10 +1,14 @@
 import { Object3D } from "three";
+import type { TelemetryHub } from "../telemetry/TelemetryHub.js";
+import type { TelemetrySnapshot } from "../telemetry/types.js";
 
 export interface ExampleRuntime {
   start(): void;
   stop(): void;
   dispose(): void;
   onResize?(width: number, height: number): void;
+  telemetryHub?: TelemetryHub;
+  getTelemetrySnapshot?(): TelemetrySnapshot;
 }
 
 export function disposeObjectTree(root: Object3D): void {

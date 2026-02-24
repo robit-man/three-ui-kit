@@ -57,8 +57,19 @@ export {
 export {
   UIHydrate,
   type UISchemaNode,
+  type UISchemaBinding,
+  type UIBindingTarget,
+  type UIBindingField,
+  type UIBindingUpdate,
+  type UIBindingFormatterContext,
+  type UIBindingFormatter,
+  type UIBindingRuntime,
   type HydrateOptions,
 } from "./core/UIHydrate.js";
+export {
+  CAMERA_HUD_SCHEMA_IDS,
+  buildDefaultCameraHudProfileSchema,
+} from "./profiles/defaultCameraHudProfile.js";
 
 /* ------------------------------------------------------------------ */
 /*  Primitives                                                         */
@@ -107,6 +118,52 @@ export { XRPointer } from "./input/XRPointer.js";
 
 export { GlowComposer, GLOW_LAYER, type GlowComposerOptions } from "./fx/GlowComposer.js";
 export { GrainPass, type GrainPassOptions } from "./fx/GrainPass.js";
+
+/* ------------------------------------------------------------------ */
+/*  Telemetry                                                          */
+/* ------------------------------------------------------------------ */
+
+export {
+  CAMERA_HUD_MOTION_REFERENCE,
+  CAMERA_HUD_REFRESH_SECONDS,
+  CAMERA_HUD_LEGACY_KEY_TO_FIELD_ID,
+  CAMERA_HUD_READOUT_ROWS,
+  CAMERA_HUD_TELEMETRY_FIELDS,
+  type TelemetryHydrationState,
+  type CameraHudTelemetryFieldId,
+  type CameraHudLegacyReadoutKey,
+  type TelemetryPlaceholderSpec,
+  type CameraHudTelemetryFieldSpec,
+  type CameraHudReadoutRowSpec,
+} from "./telemetry/camera-hud-baseline.js";
+export {
+  type TelemetryFieldId,
+  type TelemetryStatus,
+  type TelemetryFieldSnapshot,
+  type TelemetrySnapshot,
+  type TelemetryEmit,
+  type TelemetryProvider,
+  type TelemetryRegistry,
+  type TelemetryListener,
+} from "./telemetry/types.js";
+export { TelemetryHub } from "./telemetry/TelemetryHub.js";
+export {
+  createCameraMotionProvider,
+  type CameraMotionProviderOptions,
+} from "./telemetry/providers/cameraMotionProvider.js";
+export {
+  createNetworkConnectionProvider,
+  type NetworkConnectionLike,
+} from "./telemetry/providers/networkConnectionProvider.js";
+export {
+  createRttProbeProvider,
+  type RttProbeProviderOptions,
+} from "./telemetry/providers/rttProbeProvider.js";
+export { createBrowserInfoProvider } from "./telemetry/providers/browserInfoProvider.js";
+export {
+  createIpGeoProvider,
+  type IpGeoProviderOptions,
+} from "./telemetry/providers/ipGeoProvider.js";
 
 /* ------------------------------------------------------------------ */
 /*  Utilities                                                          */

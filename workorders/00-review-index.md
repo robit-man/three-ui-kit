@@ -105,3 +105,16 @@ This review targeted the failures described in the request:
 - `WO-008-element-catalog-previews-search-and-filter.md`
 - `WO-009-grid-panel-editor-drag-drop-authoring.md`
 - `WO-010-profile-persistence-and-schema-runtime.md`
+
+## Telemetry Hydration and Sidebar Refactor Workorders
+- `WO-011-telemetry-feed-reverse-engineering-and-baseline.md`
+- `WO-012-telemetry-hydration-contracts-and-provider-registry.md`
+- `WO-013-schema-binding-runtime-and-uihydrate-extension.md`
+- `WO-014-default-camera-hud-migration-to-binding-schema.md`
+- `WO-015-grid-editor-binding-authoring-and-profile-schema.md`
+- `WO-016-resizable-sidebar-and-wrapping-layout.md`
+- `WO-017-validation-observability-and-rollout-safety.md`
+
+## Implementation Status
+- Completed: `WO-011`, `WO-012`, `WO-013`, `WO-014`, `WO-015`, `WO-016`
+- Next: `WO-017`
