@@ -571,8 +571,14 @@ export class UIHydrate {
     theme: UITheme
   ): RadialTickArc {
     const p = schema.props ?? {};
+    const sizeFromSchema =
+      typeof schema.sizing?.width === "number"
+        ? schema.sizing.width
+        : typeof schema.sizing?.height === "number"
+          ? schema.sizing.height
+          : undefined;
     const arc = new RadialTickArc({
-      size: p.size,
+      size: sizeFromSchema ?? p.size,
       radius: p.radius,
       tickCount: p.tickCount,
       tickLength: p.tickLength,
@@ -688,11 +694,22 @@ export class UIHydrate {
     theme: UITheme
   ): RadialGauge {
     const p = schema.props ?? {};
+    const sizeFromSchema =
+      typeof schema.sizing?.width === "number" && typeof schema.sizing?.height === "number"
+        ? Math.min(schema.sizing.width, schema.sizing.height)
+        : typeof schema.sizing?.width === "number"
+          ? schema.sizing.width
+          : typeof schema.sizing?.height === "number"
+            ? schema.sizing.height
+            : undefined;
     const gauge = new RadialGauge({
+      size: sizeFromSchema ?? p.size,
       radius: p.radius,
       thickness: p.thickness,
       value: p.value,
       label: p.label,
+      labelPosition: p.labelPosition,
+      labelOffset: p.labelOffset,
       id: schema.id,
       startAngle: p.startAngle,
       sweepAngle: p.sweepAngle,

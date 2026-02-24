@@ -20,6 +20,8 @@ export interface SliderLinearOptions {
 }
 
 const SPACER_EPSILON = 0.25;
+const COMPACT_HEADER_WIDTH_CUTOFF = 96;
+const COMPACT_HEADER_HEIGHT_CUTOFF = 40;
 
 class SliderHeaderSpacer extends UIElement {
   private _row: UIElement;
@@ -71,8 +73,11 @@ export class SliderLinear extends UIElement {
   constructor(opts: SliderLinearOptions = {}) {
     const tw = opts.width ?? 200;
     const rowH = opts.height ?? 28;
-    const showReadout = opts.showReadout !== false;
-    const hasHeader = Boolean(opts.label || showReadout);
+    const compactMode =
+      tw <= COMPACT_HEADER_WIDTH_CUTOFF && rowH <= COMPACT_HEADER_HEIGHT_CUTOFF;
+    const label = compactMode ? undefined : opts.label;
+    const showReadout = opts.showReadout !== false && !compactMode;
+    const hasHeader = Boolean(label || showReadout);
     const headerGap = hasHeader ? 8 : 0;
 
     super({
@@ -97,9 +102,9 @@ export class SliderLinear extends UIElement {
       });
       this._headerRow = headerRow;
 
-      if (opts.label) {
+      if (label) {
         this._labelText = new TextBlock({
-          text: opts.label,
+          text: label,
           variant: "label",
           colorKey: "text1",
         });

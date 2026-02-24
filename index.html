@@ -2018,7 +2018,14 @@ const BASE_CATALOG_REGISTRY = [
     tags: ["gauge", "dial", "value"],
     schema: {
       type: "radial-gauge",
-      props: { radius: 16, thickness: 2, value: 0.68, label: "OUT" },
+      props: {
+        radius: 16,
+        thickness: 2,
+        value: 0.68,
+        label: "OUT",
+        labelPosition: "bottom",
+        labelOffset: 6,
+      },
     },
   },
   {

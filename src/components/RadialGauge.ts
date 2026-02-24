@@ -1,6 +1,7 @@
 /**
  * RadialGauge - ring/arc gauge for displaying a 0-1 value.
- * Uses a dedicated gauge area with centered readout and optional label row.
+ * Keeps the gauge centered in its own box and can place an optional label
+ * around that center (top/right/bottom/left).
  */
 
 import { Mesh, PlaneGeometry, ShaderMaterial, Vector2 } from "three";
@@ -9,11 +10,16 @@ import { TextBlock } from "../primitives/TextBlock.js";
 import type { UITheme } from "../core/UITheme.js";
 import { clamp } from "../utils/math.js";
 
+export type RadialGaugeLabelPosition = "top" | "right" | "bottom" | "left";
+
 export interface RadialGaugeOptions {
+  size?: number;
   radius?: number;
   thickness?: number;
   value?: number;
   label?: string;
+  labelPosition?: RadialGaugeLabelPosition;
+  labelOffset?: number;
   id?: string;
   startAngle?: number; // radians, default -PI/2 (top)
   sweepAngle?: number; // radians, default 2*PI
@@ -21,9 +27,7 @@ export interface RadialGaugeOptions {
 
 export class RadialGauge extends UIElement {
   private _mesh: Mesh;
-  private _gaugeArea: UIElement;
   private _label?: TextBlock;
-  private _labelRow?: UIElement;
   private _readout: TextBlock;
   private _value: number;
   private _radius: number;
@@ -31,36 +35,49 @@ export class RadialGauge extends UIElement {
   private _startAngle: number;
   private _sweepAngle: number;
   private _gaugeSize: number;
+  private _labelPosition: RadialGaugeLabelPosition;
+  private _labelOffset: number;
   private _readoutBoxWidth: number;
   private _readoutBoxHeight: number;
 
   constructor(opts: RadialGaugeOptions = {}) {
-    const r = opts.radius ?? 60;
-    const gaugeSize = r * 2 + 20; // extra for glow
+    const explicitSize =
+      typeof opts.size === "number" && Number.isFinite(opts.size)
+        ? Math.max(12, opts.size)
+        : undefined;
+    const fallbackRadius =
+      typeof opts.radius === "number" && Number.isFinite(opts.radius)
+        ? Math.max(2, opts.radius)
+        : explicitSize !== undefined
+          ? Math.max(2, explicitSize * 0.5 - 10)
+          : 60;
+    const gaugeSize = explicitSize ?? fallbackRadius * 2 + 20; // extra for glow
+    const maxRadius = Math.max(2, gaugeSize * 0.5 - 2);
+    const ringRadius = Math.min(fallbackRadius, maxRadius);
 
     super({
-      sizing: { width: gaugeSize, height: "auto" },
-      layout: { type: "STACK_Y", gap: opts.label ? 8 : 0, align: "center" },
+      sizing: { width: gaugeSize, height: gaugeSize },
+      layout: { type: "ABSOLUTE" },
       id: opts.id,
     });
 
     this._value = clamp(opts.value ?? 0.65, 0, 1);
-    this._radius = r;
+    this._radius = ringRadius;
     this._thickness = opts.thickness ?? 6;
     this._startAngle = opts.startAngle ?? -Math.PI / 2;
     this._sweepAngle = opts.sweepAngle ?? Math.PI * 2;
     this._gaugeSize = gaugeSize;
+    this._labelPosition = opts.labelPosition ?? "bottom";
+    this._labelOffset =
+      typeof opts.labelOffset === "number" && Number.isFinite(opts.labelOffset)
+        ? Math.max(0, opts.labelOffset)
+        : 6;
     this._readoutBoxWidth = Math.max(40, Math.round(gaugeSize * 0.5));
     this._readoutBoxHeight = 20;
 
-    this._gaugeArea = new UIElement({
-      sizing: { width: gaugeSize, height: gaugeSize },
-    });
-    this.add(this._gaugeArea);
-
     this._mesh = new Mesh(new PlaneGeometry(1, 1));
     this._mesh.name = "radial-gauge";
-    this._gaugeArea.add(this._mesh);
+    this.add(this._mesh);
 
     this._readout = new TextBlock({
       text: this._formatValue(),
@@ -70,22 +87,16 @@ export class RadialGauge extends UIElement {
     });
     this._readout.sizing.width = this._readoutBoxWidth;
     this._readout.sizing.height = this._readoutBoxHeight;
-    this._gaugeArea.add(this._readout);
+    this.add(this._readout);
 
     if (opts.label) {
-      this._labelRow = new UIElement({
-        sizing: { width: gaugeSize, height: "auto" },
-        layout: { type: "STACK_X", gap: 0, align: "center", justify: "center" },
-      });
-
       this._label = new TextBlock({
         text: opts.label,
         variant: "label",
         colorKey: "text1",
         align: "center",
       });
-      this._labelRow.add(this._label);
-      this.add(this._labelRow);
+      this.add(this._label);
     }
   }
 
@@ -204,9 +215,26 @@ export class RadialGauge extends UIElement {
   }
 
   onUpdate(): void {
-    const sz = this._gaugeSize;
+    const boxW = this.computedWidth > 0 ? this.computedWidth : this._gaugeSize;
+    const boxH = this.computedHeight > 0 ? this.computedHeight : this._gaugeSize;
+    const sz = Math.max(1, Math.min(boxW, boxH));
+    const insetX = (boxW - sz) * 0.5;
+    const insetY = (boxH - sz) * 0.5;
+    const ringRadius = Math.max(2, Math.min(this._radius, sz * 0.5 - 2));
+
     this._mesh.scale.set(sz, sz, 1);
-    this._mesh.position.set(sz / 2, -sz / 2, 0);
+    this._mesh.position.set(insetX + sz * 0.5, -(insetY + sz * 0.5), 0);
+
+    const mat = this._mesh.material as ShaderMaterial;
+    if (mat?.uniforms?.uSize) {
+      mat.uniforms.uSize.value.set(sz, sz);
+    }
+    if (mat?.uniforms?.uRadius) {
+      mat.uniforms.uRadius.value = ringRadius;
+    }
+    if (mat?.uniforms?.uThickness) {
+      mat.uniforms.uThickness.value = this._thickness;
+    }
 
     const readoutW =
       this._readout.computedWidth > 0
@@ -216,8 +244,40 @@ export class RadialGauge extends UIElement {
       this._readout.computedHeight > 0
         ? this._readout.computedHeight
         : this._readoutBoxHeight;
-    const readoutX = (sz - readoutW) / 2;
-    const readoutY = (sz - readoutH) / 2;
+    const readoutX = insetX + (sz - readoutW) * 0.5;
+    const readoutY = insetY + (sz - readoutH) * 0.5;
     this._readout.position.set(readoutX, -readoutY, 0.01);
+
+    if (!this._label) return;
+
+    const labelW =
+      this._label.computedWidth > 0 ? this._label.computedWidth : this._label.measure().width;
+    const labelH =
+      this._label.computedHeight > 0 ? this._label.computedHeight : this._label.measure().height;
+    const centerX = insetX + sz * 0.5;
+    const centerY = insetY + sz * 0.5;
+    const radialDistance = ringRadius + this._thickness * 0.5 + this._labelOffset;
+
+    let labelCenterX = centerX;
+    let labelCenterY = centerY;
+    switch (this._labelPosition) {
+      case "top":
+        labelCenterY -= radialDistance;
+        break;
+      case "right":
+        labelCenterX += radialDistance;
+        break;
+      case "left":
+        labelCenterX -= radialDistance;
+        break;
+      case "bottom":
+      default:
+        labelCenterY += radialDistance;
+        break;
+    }
+
+    const labelX = labelCenterX - labelW * 0.5;
+    const labelY = labelCenterY - labelH * 0.5;
+    this._label.position.set(labelX, -labelY, 0.01);
   }
 }
