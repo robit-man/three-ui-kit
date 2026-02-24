@@ -84,6 +84,15 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
+    #sidebar.is-compact #editor-grid-size-controls {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #sidebar.is-compact #editor-grid-size-readout {
+      grid-column: 1 / -1;
+      order: -1;
+    }
+
     #sidebar.is-compact .workspace-header {
       flex-wrap: wrap;
     }
@@ -186,6 +195,13 @@
       border-color: #B88838;
       color: #B88838;
       background: rgba(184,136,56,0.1);
+    }
+
+    .workflow-tab.drag-target {
+      border-color: rgba(184,136,56,0.95);
+      color: #B88838;
+      background: rgba(184,136,56,0.18);
+      box-shadow: 0 0 0 1px rgba(184,136,56,0.38) inset;
     }
 
     .workflow-tab .workflow-step {
@@ -859,6 +875,35 @@
       gap: 4px;
     }
 
+    #editor-grid-size-controls {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+      align-items: center;
+    }
+
+    #editor-grid-size-readout {
+      min-height: 31px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(235,240,245,0.2);
+      border-radius: 4px;
+      background: rgba(9,10,11,0.74);
+      color: rgba(235,240,245,0.92);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0 4px;
+    }
+
+    .grid-size-btn {
+      min-height: 31px;
+      padding: 7px 5px;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+    }
+
     .editor-cell {
       aspect-ratio: 1 / 1;
       border: 1px dashed rgba(235,240,245,0.22);
@@ -1234,6 +1279,13 @@
           <button class="small-btn btn-secondary" id="editor-clear-btn" type="button">Clear Grid</button>
           <button class="small-btn btn-primary" id="editor-validate-btn" type="button">Validate Structure</button>
         </div>
+        <div id="editor-grid-size-controls" aria-label="Grid size controls">
+          <button class="small-btn btn-secondary grid-size-btn" id="editor-cols-dec-btn" type="button" title="Decrease columns">Cols -</button>
+          <button class="small-btn btn-secondary grid-size-btn" id="editor-cols-inc-btn" type="button" title="Increase columns">Cols +</button>
+          <div id="editor-grid-size-readout" class="workspace-state">6 x 8</div>
+          <button class="small-btn btn-secondary grid-size-btn" id="editor-rows-dec-btn" type="button" title="Decrease rows">Rows -</button>
+          <button class="small-btn btn-secondary grid-size-btn" id="editor-rows-inc-btn" type="button" title="Increase rows">Rows +</button>
+        </div>
         <div id="editor-grid"></div>
         <textarea id="editor-schema" readonly></textarea>
       </div>
@@ -1498,6 +1550,11 @@ const editorInjectBtn = document.getElementById("editor-inject-btn");
 const editorGrid = document.getElementById("editor-grid");
 const editorClearBtn = document.getElementById("editor-clear-btn");
 const editorValidateBtn = document.getElementById("editor-validate-btn");
+const editorColsDecBtn = document.getElementById("editor-cols-dec-btn");
+const editorColsIncBtn = document.getElementById("editor-cols-inc-btn");
+const editorRowsDecBtn = document.getElementById("editor-rows-dec-btn");
+const editorRowsIncBtn = document.getElementById("editor-rows-inc-btn");
+const editorGridSizeReadout = document.getElementById("editor-grid-size-readout");
 const editorSchemaOutput = document.getElementById("editor-schema");
 const editorStructureSummaryState = document.getElementById("editor-structure-summary");
 const editorCellSelectionState = document.getElementById("editor-cell-selection");
@@ -1633,8 +1690,11 @@ const CUSTOM_ELEMENTS_STORAGE_KEY = "three-ui-kit-custom-elements-v1";
 const PREVIEW_PIXEL_RATIO_MAX = 1.5;
 const DEFAULT_GRID_COLS = 6;
 const DEFAULT_GRID_ROWS = 8;
+const MIN_GRID_DIMENSION = 2;
+const MAX_GRID_DIMENSION = 24;
 const UNIFIED_EXAMPLE_ID = "hud";
 const EDITOR_CELL_DRAG_PREFIX = "editor-cell:";
+const CATALOG_ITEM_DRAG_MIME = "application/x-three-ui-kit-catalog-key";
 const GRID_CELL_SIZE = 34;
 const GRID_CELL_GAP = 3;
 const GRID_PANEL_PADDING = 6;
@@ -4493,6 +4553,95 @@ function parseDraggedEditorCellIndex(event) {
   return value;
 }
 
+function parseDraggedCatalogKey(event) {
+  if (!event?.dataTransfer) return null;
+  const explicit = event.dataTransfer.getData(CATALOG_ITEM_DRAG_MIME);
+  const plain = event.dataTransfer.getData("text/plain");
+  const value = typeof explicit === "string" && explicit.length > 0 ? explicit : plain;
+  if (!value || value.startsWith(EDITOR_CELL_DRAG_PREFIX)) return null;
+  if (!catalogEntryByKey.has(value)) return null;
+  return value;
+}
+
+function clearWorkflowTabDragTargets() {
+  for (const tab of workflowTabs) {
+    tab.classList.remove("drag-target");
+  }
+}
+
+function syncEditorGridSizeControls() {
+  if (editorGridSizeReadout) {
+    editorGridSizeReadout.textContent = `${editorState.cols} x ${editorState.rows}`;
+  }
+  if (editorColsDecBtn) editorColsDecBtn.disabled = editorState.cols <= MIN_GRID_DIMENSION;
+  if (editorRowsDecBtn) editorRowsDecBtn.disabled = editorState.rows <= MIN_GRID_DIMENSION;
+  if (editorColsIncBtn) editorColsIncBtn.disabled = editorState.cols >= MAX_GRID_DIMENSION;
+  if (editorRowsIncBtn) editorRowsIncBtn.disabled = editorState.rows >= MAX_GRID_DIMENSION;
+}
+
+function resizeEditorGrid(nextCols, nextRows, reason = "manual") {
+  const resolvedCols = Math.max(
+    MIN_GRID_DIMENSION,
+    Math.min(MAX_GRID_DIMENSION, Number(nextCols) || editorState.cols)
+  );
+  const resolvedRows = Math.max(
+    MIN_GRID_DIMENSION,
+    Math.min(MAX_GRID_DIMENSION, Number(nextRows) || editorState.rows)
+  );
+  if (resolvedCols === editorState.cols && resolvedRows === editorState.rows) {
+    syncEditorGridSizeControls();
+    return false;
+  }
+
+  const prevCols = editorState.cols;
+  const prevRows = editorState.rows;
+  const prevCells = editorState.cells.slice();
+  const nextCells = blankCells(resolvedCols, resolvedRows);
+  const copyRows = Math.min(prevRows, resolvedRows);
+  const copyCols = Math.min(prevCols, resolvedCols);
+  for (let row = 0; row < copyRows; row++) {
+    for (let col = 0; col < copyCols; col++) {
+      const fromIndex = row * prevCols + col;
+      const toIndex = row * resolvedCols + col;
+      nextCells[toIndex] = prevCells[fromIndex];
+    }
+  }
+
+  const prevSelected = Number(editorState.selectedCellIndex);
+  if (Number.isInteger(prevSelected) && prevSelected >= 0 && prevSelected < prevCells.length) {
+    const selectedRow = Math.floor(prevSelected / prevCols);
+    const selectedCol = prevSelected % prevCols;
+    editorState.selectedCellIndex =
+      selectedRow < resolvedRows && selectedCol < resolvedCols
+        ? selectedRow * resolvedCols + selectedCol
+        : null;
+  } else {
+    editorState.selectedCellIndex = null;
+  }
+
+  editorState.cols = resolvedCols;
+  editorState.rows = resolvedRows;
+  editorState.cells = nextCells;
+  pushAssemblyAction("resize-grid", {
+    fromCols: prevCols,
+    fromRows: prevRows,
+    toCols: resolvedCols,
+    toRows: resolvedRows,
+    reason,
+  });
+  commitEditorToActiveProfile();
+  persistProfileStore();
+  renderEditorGrid();
+  syncEditorSchemaOutput();
+  return true;
+}
+
+function resizeEditorGridByDelta(deltaCols, deltaRows, reason = "manual") {
+  const nextCols = editorState.cols + (Number(deltaCols) || 0);
+  const nextRows = editorState.rows + (Number(deltaRows) || 0);
+  return resizeEditorGrid(nextCols, nextRows, reason);
+}
+
 function dispatchAssemblyAction(action) {
   if (!action || typeof action !== "object") return false;
   const type = action.type;
@@ -4626,7 +4775,8 @@ function renderEditorGrid() {
         return;
       }
 
-      const dropped = event.dataTransfer?.getData("text/plain") ?? "";
+      const dropped = parseDraggedCatalogKey(event);
+      if (!dropped) return;
       const placed = dispatchAssemblyAction({ type: "place-entry", index: i, key: dropped });
       if (placed) {
         status.textContent = `Placed "${dropped}" in r${Math.floor(i / editorState.cols) + 1} c${(i % editorState.cols) + 1}.`;
@@ -4639,6 +4789,7 @@ function renderEditorGrid() {
     editorGrid.appendChild(cell);
   }
 
+  syncEditorGridSizeControls();
   syncTuneablesBindingElementOptions(activeProfile());
   syncTuneablesBindingTargetOptions(activeProfile());
   renderTuneablesDataBindingList();
@@ -5113,12 +5264,14 @@ function renderCatalog() {
     card.addEventListener("dragstart", (event) => {
       if (!event.dataTransfer) return;
       card.classList.add("dragging");
+      event.dataTransfer.setData(CATALOG_ITEM_DRAG_MIME, entry.key);
       event.dataTransfer.setData("text/plain", entry.key);
       event.dataTransfer.effectAllowed = "copy";
       status.textContent = `Dragging ${entry.label}. Drop into a grid cell.`;
     });
     card.addEventListener("dragend", () => {
       card.classList.remove("dragging");
+      clearWorkflowTabDragTargets();
     });
     card.addEventListener("click", () => {
       setCustomizerFromEntry(entry);
@@ -5748,6 +5901,7 @@ function handleWorkflowTabKeydown(event) {
 
 function initWorkflowShell() {
   for (const tab of workflowTabs) {
+    const boundary = normalizeWorkflowBoundary(tab.dataset.boundary);
     tab.addEventListener("click", () => {
       setActiveWorkflowBoundary(tab.dataset.boundary, {
         persist: true,
@@ -5755,7 +5909,53 @@ function initWorkflowShell() {
       });
     });
     tab.addEventListener("keydown", handleWorkflowTabKeydown);
+    tab.addEventListener("dragenter", (event) => {
+      const draggedKey = parseDraggedCatalogKey(event);
+      if (!draggedKey || boundary !== "assembly") return;
+      event.preventDefault();
+      clearWorkflowTabDragTargets();
+      tab.classList.add("drag-target");
+      if (workflowState.activeBoundary !== "assembly") {
+        setActiveWorkflowBoundary("assembly", {
+          persist: true,
+          focusActiveTab: false,
+        });
+      }
+    });
+    tab.addEventListener("dragover", (event) => {
+      const draggedKey = parseDraggedCatalogKey(event);
+      if (!draggedKey || boundary !== "assembly") return;
+      event.preventDefault();
+      clearWorkflowTabDragTargets();
+      tab.classList.add("drag-target");
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = "copy";
+      }
+      if (workflowState.activeBoundary !== "assembly") {
+        setActiveWorkflowBoundary("assembly", {
+          persist: true,
+          focusActiveTab: false,
+        });
+      }
+    });
+    tab.addEventListener("dragleave", () => {
+      tab.classList.remove("drag-target");
+    });
+    tab.addEventListener("drop", (event) => {
+      const draggedKey = parseDraggedCatalogKey(event);
+      if (!draggedKey || boundary !== "assembly") return;
+      event.preventDefault();
+      clearWorkflowTabDragTargets();
+      setActiveWorkflowBoundary("assembly", {
+        persist: true,
+        focusActiveTab: false,
+      });
+      status.textContent = `Assembly ready. Drop "${draggedKey}" into a grid cell.`;
+    });
   }
+
+  window.addEventListener("dragend", clearWorkflowTabDragTargets);
+  window.addEventListener("drop", clearWorkflowTabDragTargets);
 
   if (workflowBackBtn) {
     workflowBackBtn.addEventListener("click", () => {
@@ -7250,6 +7450,34 @@ editorValidateBtn.addEventListener("click", () => {
   });
   status.textContent = result.message;
   syncEditorSchemaOutput();
+});
+
+editorColsDecBtn?.addEventListener("click", () => {
+  const changed = resizeEditorGridByDelta(-1, 0, "cols-dec");
+  status.textContent = changed
+    ? `Grid resized to ${editorState.cols} x ${editorState.rows}.`
+    : `Grid columns already at minimum (${MIN_GRID_DIMENSION}).`;
+});
+
+editorColsIncBtn?.addEventListener("click", () => {
+  const changed = resizeEditorGridByDelta(1, 0, "cols-inc");
+  status.textContent = changed
+    ? `Grid resized to ${editorState.cols} x ${editorState.rows}.`
+    : `Grid columns already at maximum (${MAX_GRID_DIMENSION}).`;
+});
+
+editorRowsDecBtn?.addEventListener("click", () => {
+  const changed = resizeEditorGridByDelta(0, -1, "rows-dec");
+  status.textContent = changed
+    ? `Grid resized to ${editorState.cols} x ${editorState.rows}.`
+    : `Grid rows already at minimum (${MIN_GRID_DIMENSION}).`;
+});
+
+editorRowsIncBtn?.addEventListener("click", () => {
+  const changed = resizeEditorGridByDelta(0, 1, "rows-inc");
+  status.textContent = changed
+    ? `Grid resized to ${editorState.cols} x ${editorState.rows}.`
+    : `Grid rows already at maximum (${MAX_GRID_DIMENSION}).`;
 });
 
 initSidebarResizer();
