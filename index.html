@@ -1333,10 +1333,16 @@
         <p class="subtle">When enabled, structural output trims unused rows/cols to avoid large empty bordered grids.</p>
         <div class="tuneables-subsection" id="editor-grid-display-panel">
           <h4>Grid Display</h4>
-          <label class="helper-row">
-            <input id="tuneables-grid-border-visible" type="checkbox">
-            <span>Show Grid Border</span>
-          </label>
+          <div class="inline-row">
+            <label class="helper-row">
+              <input id="tuneables-grid-border-visible" type="checkbox">
+              <span>Show Grid Border</span>
+            </label>
+            <label class="helper-row">
+              <input id="tuneables-grid-show-panels" type="checkbox">
+              <span>Show Grid Panels</span>
+            </label>
+          </div>
           <div class="inline-row">
             <label class="tuneable-field">
               <span>Border Color</span>
@@ -1553,6 +1559,9 @@ import {
   WebGLRenderer,
   Object3D,
   Box3,
+  Matrix4,
+  Raycaster,
+  Vector2,
   Vector3,
   BufferGeometry,
   BufferAttribute,
@@ -1635,6 +1644,7 @@ const editorStructureValidationState = document.getElementById("editor-structure
 const editorOpenElementBtn = document.getElementById("editor-open-element-btn");
 const tuneablesAutoResizeGrid = document.getElementById("tuneables-auto-resize-grid");
 const tuneablesGridBorderVisible = document.getElementById("tuneables-grid-border-visible");
+const tuneablesGridShowPanels = document.getElementById("tuneables-grid-show-panels");
 const tuneablesGridBorderColor = document.getElementById("tuneables-grid-border-color");
 const tuneablesGridBorderWidth = document.getElementById("tuneables-grid-border-width");
 const tuneablesGridCornerRadius = document.getElementById("tuneables-grid-corner-radius");
@@ -1692,6 +1702,14 @@ const runtimeGridAnchorTargets = new WeakMap();
 let placedBuilderUiInstance = null;
 let dragBuilderUiInstance = null;
 let builderPlacementArmed = false;
+let componentSceneDragState = {
+  active: false,
+  key: "",
+  previewInstance: null,
+  highlightInstance: null,
+  hoverSlotId: null,
+  fadeRafId: 0,
+};
 
 let navMode = "orbit";
 let orbitControls = null;
@@ -1708,6 +1726,13 @@ const snapOrbitPanState = {
   pointerId: null,
   snappedTarget: new Vector3(),
   pull: new Vector3(),
+};
+const uiSliderDragState = {
+  active: false,
+  pointerId: null,
+  orbitEnabled: true,
+  flyEnabled: true,
+  flyDragToLook: true,
 };
 
 const ORBIT_ORIGIN_MARKER_HALF_LENGTH = 0.1;
@@ -1797,6 +1822,16 @@ const BINDABLE_TARGETS_BY_NODE_TYPE = new Map([
   ["slider", ["value"]],
 ]);
 const BUILTIN_BINDING_FORMATTERS = ["hudMotionFraction"];
+const SCENE_DRAG_COMPONENT_MIME = "application/x-three-ui-kit-scene-component";
+const _sceneDragRaycaster = new Raycaster();
+const _sceneDragNdc = new Vector2();
+const _sceneDragInv = new Matrix4();
+const _sceneDragLocalOrigin = new Vector3();
+const _sceneDragLocalDir = new Vector3();
+const _sceneDragWorldPos = new Vector3();
+const _sceneDragLocalPos = new Vector3();
+const _sceneDragLocalCenter = new Vector3();
+const _sceneDragWorldCenter = new Vector3();
 
 function buildDefaultCameraHudProfileSchema() {
   return buildDefaultCameraHudProfileSchemaLib();
@@ -2211,6 +2246,10 @@ function schemaNodeToCatalogKey(node) {
   if (!node || typeof node !== "object") return null;
   const type = typeof node.type === "string" ? node.type : "";
   if (!type) return null;
+  const id = typeof node.id === "string" ? node.id.trim() : "";
+  if (id === "builder-grid-panel" || id === "builder-preview-root" || id.startsWith("slot-")) {
+    return null;
+  }
   const mapped = SCHEMA_TYPE_TO_CATALOG_KEY.get(type) ?? null;
   if (!mapped) return null;
   if (!catalogEntryByKey.has(mapped)) return null;
@@ -2859,6 +2898,7 @@ function normalizeScenePlacement(input) {
 function defaultGridDisplayTuneables() {
   return {
     showBorder: true,
+    showCellPanels: false,
     borderColor: "#B88838",
     borderWidth: 1,
     cornerRadius: 3,
@@ -2873,6 +2913,7 @@ function normalizeGridDisplayTuneables(input) {
   if (!input || typeof input !== "object") return base;
   return {
     showBorder: input.showBorder !== false,
+    showCellPanels: input.showCellPanels === true,
     borderColor: normalizeHexColor(input.borderColor, base.borderColor),
     borderWidth: clampNumber(input.borderWidth, 0, 8, base.borderWidth),
     cornerRadius: clampNumber(input.cornerRadius, 0, 24, base.cornerRadius),
@@ -3848,6 +3889,9 @@ function syncGridDisplayTuneablesUI(gridDisplayInput) {
   if (tuneablesGridBorderVisible) {
     tuneablesGridBorderVisible.checked = gridDisplay.showBorder;
   }
+  if (tuneablesGridShowPanels) {
+    tuneablesGridShowPanels.checked = gridDisplay.showCellPanels === true;
+  }
   if (tuneablesGridBorderColor) {
     tuneablesGridBorderColor.value = gridDisplay.borderColor;
   }
@@ -3872,6 +3916,7 @@ function syncGridDisplayTuneablesUI(gridDisplayInput) {
 function readGridDisplayTuneablesFromUI() {
   return normalizeGridDisplayTuneables({
     showBorder: Boolean(tuneablesGridBorderVisible?.checked),
+    showCellPanels: Boolean(tuneablesGridShowPanels?.checked),
     borderColor: tuneablesGridBorderColor?.value,
     borderWidth: tuneablesGridBorderWidth?.value,
     cornerRadius: tuneablesGridCornerRadius?.value,
@@ -4227,6 +4272,29 @@ function applyTuneableDataBindingsToSchema(schema, tuneables) {
   return schema;
 }
 
+function buildGridSlotPanelSchema(globalIndex, childNode, gridDisplay) {
+  const showPanels = gridDisplay?.showCellPanels === true;
+  const baseStrokeAlpha = showPanels ? 0.32 : 0;
+  const baseStrokeWidth = showPanels ? 0.75 : 0;
+  const baseFillAlpha = showPanels ? 0.035 : 0;
+  return {
+    type: "panel",
+    id: `slot-${globalIndex}`,
+    sizing: { width: GRID_CELL_SIZE, height: GRID_CELL_SIZE },
+    layout: { type: "STACK_Y", justify: "center", align: "center" },
+    style: {
+      fillColor: gridDisplay?.backgroundColor ?? "#050607",
+      fillAlpha: baseFillAlpha,
+      strokeColor: gridDisplay?.borderColor ?? "#B88838",
+      strokeAlpha: baseStrokeAlpha,
+      strokeWidth: baseStrokeWidth,
+      cornerRadius: showPanels ? Math.max(1.5, (gridDisplay?.cornerRadius ?? 3) * 0.58) : 0,
+      innerGlow: showPanels ? 0.08 : 0,
+    },
+    children: childNode ? [childNode] : [],
+  };
+}
+
 function buildGridSchema(opts = {}) {
   const cols = Math.max(1, Number(opts.cols ?? editorState.cols) || DEFAULT_GRID_COLS);
   const rows = Math.max(1, Number(opts.rows ?? editorState.rows) || DEFAULT_GRID_ROWS);
@@ -4249,6 +4317,7 @@ function buildGridSchema(opts = {}) {
       const globalCol = bounds.minCol + localCol;
       const globalIndex = globalRow * cols + globalCol;
       const key = cells[globalIndex];
+      let childNode = null;
       if (typeof key === "string" && catalogEntryByKey.has(key)) {
         const entry = catalogEntryByKey.get(key);
         const node = cloneDeep(entry.schema);
@@ -4256,15 +4325,9 @@ function buildGridSchema(opts = {}) {
         node.sizing = node.sizing || {};
         if (typeof node.sizing.width !== "number") node.sizing.width = GRID_CELL_SIZE;
         if (typeof node.sizing.height !== "number") node.sizing.height = GRID_CELL_SIZE;
-        children.push(node);
-      } else {
-        children.push({
-          type: "panel",
-          id: `slot-${globalIndex}`,
-          sizing: { width: GRID_CELL_SIZE, height: GRID_CELL_SIZE },
-          style: { fillAlpha: 0, strokeAlpha: 0, strokeWidth: 0 },
-        });
+        childNode = node;
       }
+      children.push(buildGridSlotPanelSchema(globalIndex, childNode, gridDisplay));
     }
   }
 
@@ -5638,12 +5701,20 @@ function renderCatalog() {
       if (!event.dataTransfer) return;
       card.classList.add("dragging");
       event.dataTransfer.setData(CATALOG_ITEM_DRAG_MIME, entry.key);
+      event.dataTransfer.setData(SCENE_DRAG_COMPONENT_MIME, entry.key);
       event.dataTransfer.setData("text/plain", entry.key);
       event.dataTransfer.effectAllowed = "copy";
+      const sceneDragStarted = startSceneComponentDrag(entry.key);
       status.textContent = `Dragging ${entry.label}. Drop into a grid cell.`;
+      if (sceneDragStarted) {
+        status.textContent = `Dragging ${entry.label}. Drop on an existing scene grid cell to place it.`;
+      }
     });
     card.addEventListener("dragend", () => {
       card.classList.remove("dragging");
+      if (!componentSceneDragState.fadeRafId) {
+        clearSceneComponentDragState({ resetWorkflowTabs: false });
+      }
       clearWorkflowTabDragTargets();
     });
     card.addEventListener("click", () => {
@@ -6328,8 +6399,22 @@ function initWorkflowShell() {
     });
   }
 
-  window.addEventListener("dragend", clearWorkflowTabDragTargets);
-  window.addEventListener("drop", clearWorkflowTabDragTargets);
+  window.addEventListener("dragend", () => {
+    if (!componentSceneDragState.fadeRafId) {
+      clearSceneComponentDragState({ resetWorkflowTabs: false });
+    }
+    clearWorkflowTabDragTargets();
+  });
+  window.addEventListener("drop", (event) => {
+    if (renderer && event.target === renderer.domElement) {
+      clearWorkflowTabDragTargets();
+      return;
+    }
+    if (!componentSceneDragState.fadeRafId) {
+      clearSceneComponentDragState({ resetWorkflowTabs: false });
+    }
+    clearWorkflowTabDragTargets();
+  });
 
   if (workflowBackBtn) {
     workflowBackBtn.addEventListener("click", () => {
@@ -6540,6 +6625,76 @@ function updateBackdropRayFromClient(event) {
   return true;
 }
 
+function isSliderUiElement(element) {
+  if (!element || typeof element !== "object") return false;
+  const elementId =
+    typeof element.elementId === "string" ? element.elementId.trim().toLowerCase() : "";
+  if (elementId.includes("slider")) return true;
+
+  if (typeof element.traverse === "function") {
+    let found = false;
+    element.traverse((node) => {
+      if (found) return;
+      const name = typeof node?.name === "string" ? node.name : "";
+      if (
+        name === "slider-track" ||
+        name === "slider-fill" ||
+        name === "slider-thumb-ring" ||
+        name === "slider-thumb-core" ||
+        name === "slider-thumb"
+      ) {
+        found = true;
+      }
+    });
+    if (found) return true;
+  }
+  return false;
+}
+
+function beginSliderDragSceneBypass(pointerId = null) {
+  if (uiSliderDragState.active) return;
+  uiSliderDragState.active = true;
+  uiSliderDragState.pointerId = pointerId;
+
+  if (orbitControls) {
+    uiSliderDragState.orbitEnabled = orbitControls.enabled !== false;
+    orbitControls.enabled = false;
+  }
+  if (flyControls) {
+    uiSliderDragState.flyDragToLook = flyControls.dragToLook !== false;
+    uiSliderDragState.flyEnabled =
+      typeof flyControls.enabled === "boolean" ? flyControls.enabled : true;
+    flyControls.dragToLook = false;
+    if (typeof flyControls.enabled === "boolean") {
+      flyControls.enabled = false;
+    }
+  }
+}
+
+function endSliderDragSceneBypass(pointerId = null) {
+  if (!uiSliderDragState.active) return;
+  if (
+    uiSliderDragState.pointerId !== null &&
+    pointerId !== null &&
+    uiSliderDragState.pointerId !== pointerId
+  ) {
+    return;
+  }
+
+  if (orbitControls) {
+    orbitControls.enabled = uiSliderDragState.orbitEnabled;
+  }
+  if (flyControls) {
+    flyControls.dragToLook = uiSliderDragState.flyDragToLook;
+    if (typeof flyControls.enabled === "boolean") {
+      flyControls.enabled = uiSliderDragState.flyEnabled;
+    }
+  }
+
+  uiSliderDragState.active = false;
+  uiSliderDragState.pointerId = null;
+}
+
 function handleCanvasPointerMove(event) {
   updateBackdropRayFromClient(event);
 }
@@ -6552,19 +6707,32 @@ function handleCanvasPointerLeave() {
 }
 
 function handleCanvasPointerDown(event) {
+  if (event.button === 0) {
+    const uiManager = getRuntimeUIManager();
+    const hovered = uiManager && typeof uiManager.getHovered === "function"
+      ? uiManager.getHovered("mouse-0") ?? uiManager.getHovered()
+      : null;
+    if (isSliderUiElement(hovered)) {
+      beginSliderDragSceneBypass(event.pointerId ?? null);
+      return;
+    }
+  }
   if (event.button !== 2) return;
   startOrbitSnapPan(event.pointerId ?? null);
 }
 
 function handleGlobalPointerUp(event) {
+  endSliderDragSceneBypass(event?.pointerId ?? null);
   stopOrbitSnapPan(event?.pointerId ?? null);
 }
 
 function handleGlobalPointerCancel(event) {
+  endSliderDragSceneBypass(event?.pointerId ?? null);
   stopOrbitSnapPan(event?.pointerId ?? null);
 }
 
 function handleWindowBlur() {
+  endSliderDragSceneBypass(null);
   stopOrbitSnapPan(null);
 }
 
@@ -6618,6 +6786,360 @@ function clearBuilderUiPlacements(runtime = activeRuntime) {
     dragBuilderUiInstance = null;
   }
   builderPlacementArmed = false;
+  clearSceneComponentDragState({ resetWorkflowTabs: false });
+}
+
+function parseSceneDraggedComponentKey(event) {
+  if (!event?.dataTransfer) return "";
+  const explicit = event.dataTransfer.getData(SCENE_DRAG_COMPONENT_MIME);
+  const fallback = event.dataTransfer.getData(CATALOG_ITEM_DRAG_MIME);
+  const plain = event.dataTransfer.getData("text/plain");
+  const key = explicit || fallback || plain;
+  if (!key || !catalogEntryByKey.has(key)) return "";
+  return key;
+}
+
+function createSceneDragComponentPreviewInstance(key) {
+  const runtime = activeRuntime;
+  const uiManager = getRuntimeUIManager(runtime);
+  if (!runtime || !uiManager) return null;
+  const entry = catalogEntryByKey.get(key);
+  if (!entry) return null;
+
+  const anchorTarget = new Object3D();
+  anchorTarget.name = "scene-drag-component-preview-anchor";
+  scene.add(anchorTarget);
+
+  const schema = {
+    type: "root",
+    layout: { type: "STACK_Y" },
+    sizing: { width: "auto", height: "auto" },
+    children: [cloneDeep(entry.schema)],
+  };
+  const root = UIHydrate.fromSchema(schema, {
+    theme: ThemeFactory(),
+    rootOptions: {
+      uiUnitMeters: 0.01,
+      depthTest: false,
+      renderOrder: 145,
+      pivot: "CENTER",
+      anchor: {
+        target: anchorTarget,
+        mode: "object",
+        facing: "BILLBOARD_YAW",
+        smoothingHz: 0,
+      },
+    },
+  });
+  root.visible = false;
+  uiManager.addRoot(root);
+  applyDebugStateToRuntime(runtime);
+  return {
+    root,
+    anchorTarget,
+  };
+}
+
+function createSceneGridHoverHighlightInstance() {
+  const runtime = activeRuntime;
+  const uiManager = getRuntimeUIManager(runtime);
+  if (!runtime || !uiManager) return null;
+
+  const anchorTarget = new Object3D();
+  anchorTarget.name = "scene-drag-grid-hover-highlight-anchor";
+  scene.add(anchorTarget);
+
+  const schema = {
+    type: "root",
+    layout: { type: "STACK_Y" },
+    sizing: { width: "auto", height: "auto" },
+    children: [
+      {
+        type: "panel",
+        id: "scene-drag-grid-highlight",
+        props: { glow: true },
+        sizing: { width: GRID_CELL_SIZE, height: GRID_CELL_SIZE },
+        style: {
+          fillColor: "#ffae00",
+          fillAlpha: 0.08,
+          strokeColor: "#ffae00",
+          strokeAlpha: 0.96,
+          strokeWidth: 1.4,
+          cornerRadius: 2,
+          innerGlow: 0.45,
+        },
+      },
+    ],
+  };
+  const root = UIHydrate.fromSchema(schema, {
+    theme: ThemeFactory(),
+    rootOptions: {
+      uiUnitMeters: 0.01,
+      depthTest: false,
+      renderOrder: 146,
+      pivot: "CENTER",
+      anchor: {
+        target: anchorTarget,
+        mode: "object",
+        facing: "BILLBOARD_YAW",
+        smoothingHz: 0,
+      },
+    },
+  });
+  root.visible = false;
+  uiManager.addRoot(root);
+  applyDebugStateToRuntime(runtime);
+  return {
+    root,
+    anchorTarget,
+  };
+}
+
+function clearSceneComponentDragFade() {
+  if (componentSceneDragState.fadeRafId) {
+    cancelAnimationFrame(componentSceneDragState.fadeRafId);
+    componentSceneDragState.fadeRafId = 0;
+  }
+}
+
+function setSceneDragRootFade(root, alpha) {
+  if (!root || typeof root.traverse !== "function") return;
+  const clamped = Math.max(0, Math.min(1, Number(alpha) || 0));
+  root.traverse((node) => {
+    const material = node.material;
+    if (!material) return;
+    const mats = Array.isArray(material) ? material : [material];
+    for (const mat of mats) {
+      if (!mat || typeof mat !== "object") continue;
+      if (!mat.userData) mat.userData = {};
+      if (!mat.userData.__sceneDragFadeBase) {
+        mat.userData.__sceneDragFadeBase = {
+          opacity: typeof mat.opacity === "number" ? mat.opacity : null,
+          uAlpha:
+            mat.uniforms && mat.uniforms.uAlpha && typeof mat.uniforms.uAlpha.value === "number"
+              ? mat.uniforms.uAlpha.value
+              : null,
+          uFillAlpha:
+            mat.uniforms && mat.uniforms.uFillAlpha && typeof mat.uniforms.uFillAlpha.value === "number"
+              ? mat.uniforms.uFillAlpha.value
+              : null,
+          uStrokeAlpha:
+            mat.uniforms && mat.uniforms.uStrokeAlpha && typeof mat.uniforms.uStrokeAlpha.value === "number"
+              ? mat.uniforms.uStrokeAlpha.value
+              : null,
+        };
+      }
+      const base = mat.userData.__sceneDragFadeBase;
+      if (base.opacity !== null) {
+        mat.transparent = true;
+        mat.opacity = base.opacity * clamped;
+      }
+      if (mat.uniforms?.uAlpha && base.uAlpha !== null) {
+        mat.uniforms.uAlpha.value = base.uAlpha * clamped;
+      }
+      if (mat.uniforms?.uFillAlpha && base.uFillAlpha !== null) {
+        mat.uniforms.uFillAlpha.value = base.uFillAlpha * clamped;
+      }
+      if (mat.uniforms?.uStrokeAlpha && base.uStrokeAlpha !== null) {
+        mat.uniforms.uStrokeAlpha.value = base.uStrokeAlpha * clamped;
+      }
+      mat.needsUpdate = true;
+    }
+  });
+}
+
+function resetSceneDragRootFade(root) {
+  if (!root || typeof root.traverse !== "function") return;
+  root.traverse((node) => {
+    const material = node.material;
+    if (!material) return;
+    const mats = Array.isArray(material) ? material : [material];
+    for (const mat of mats) {
+      if (!mat || typeof mat !== "object" || !mat.userData?.__sceneDragFadeBase) continue;
+      const base = mat.userData.__sceneDragFadeBase;
+      if (base.opacity !== null) {
+        mat.opacity = base.opacity;
+      }
+      if (mat.uniforms?.uAlpha && base.uAlpha !== null) {
+        mat.uniforms.uAlpha.value = base.uAlpha;
+      }
+      if (mat.uniforms?.uFillAlpha && base.uFillAlpha !== null) {
+        mat.uniforms.uFillAlpha.value = base.uFillAlpha;
+      }
+      if (mat.uniforms?.uStrokeAlpha && base.uStrokeAlpha !== null) {
+        mat.uniforms.uStrokeAlpha.value = base.uStrokeAlpha;
+      }
+      delete mat.userData.__sceneDragFadeBase;
+      mat.needsUpdate = true;
+    }
+  });
+}
+
+function clearSceneComponentDragState(opts = {}) {
+  clearSceneComponentDragFade();
+  const runtime = activeRuntime;
+  const preview = componentSceneDragState.previewInstance;
+  const highlight = componentSceneDragState.highlightInstance;
+
+  if (preview) {
+    resetSceneDragRootFade(preview.root);
+    preview.root.scale.setScalar(1);
+    disposeBuilderUiInstance(preview, runtime);
+  }
+  if (highlight) {
+    disposeBuilderUiInstance(highlight, runtime);
+  }
+
+  componentSceneDragState.active = false;
+  componentSceneDragState.key = "";
+  componentSceneDragState.previewInstance = null;
+  componentSceneDragState.highlightInstance = null;
+  componentSceneDragState.hoverSlotId = null;
+  if (opts.resetWorkflowTabs !== false) {
+    clearWorkflowTabDragTargets();
+  }
+}
+
+function startSceneComponentDrag(key) {
+  clearSceneComponentDragState({ resetWorkflowTabs: false });
+  const preview = createSceneDragComponentPreviewInstance(key);
+  const highlight = createSceneGridHoverHighlightInstance();
+  if (!preview || !highlight) {
+    clearSceneComponentDragState({ resetWorkflowTabs: false });
+    return false;
+  }
+
+  componentSceneDragState.active = true;
+  componentSceneDragState.key = key;
+  componentSceneDragState.previewInstance = preview;
+  componentSceneDragState.highlightInstance = highlight;
+  componentSceneDragState.hoverSlotId = null;
+  return true;
+}
+
+function animateSceneComponentPreviewFadeOut(onDone) {
+  const preview = componentSceneDragState.previewInstance;
+  if (!preview || !preview.root) {
+    if (typeof onDone === "function") onDone();
+    return;
+  }
+  clearSceneComponentDragFade();
+
+  const start = performance.now();
+  const duration = 180;
+  const tick = (ts) => {
+    const t = Math.max(0, Math.min(1, (ts - start) / duration));
+    const alpha = 1 - t;
+    const scale = 1 - t * 0.16;
+    preview.root.scale.setScalar(scale);
+    setSceneDragRootFade(preview.root, alpha);
+    if (t < 1) {
+      componentSceneDragState.fadeRafId = requestAnimationFrame(tick);
+      return;
+    }
+    componentSceneDragState.fadeRafId = 0;
+    if (typeof onDone === "function") onDone();
+  };
+  componentSceneDragState.fadeRafId = requestAnimationFrame(tick);
+}
+
+function resolveSceneGridSlotHitFromClient(event) {
+  if (!event || !renderer || !camera || !placedBuilderUiInstance?.root) return null;
+
+  const rect = renderer.domElement.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) return null;
+
+  _sceneDragNdc.set(
+    ((event.clientX - rect.left) / rect.width) * 2 - 1,
+    -((event.clientY - rect.top) / rect.height) * 2 + 1
+  );
+  _sceneDragRaycaster.setFromCamera(_sceneDragNdc, camera);
+
+  const root = placedBuilderUiInstance.root;
+  root.updateMatrixWorld(true);
+  _sceneDragInv.copy(root.matrixWorld).invert();
+
+  _sceneDragLocalOrigin.copy(_sceneDragRaycaster.ray.origin).applyMatrix4(_sceneDragInv);
+  _sceneDragLocalDir
+    .copy(_sceneDragRaycaster.ray.direction)
+    .transformDirection(_sceneDragInv)
+    .normalize();
+  if (Math.abs(_sceneDragLocalDir.z) < 1e-6) return null;
+  const t = -_sceneDragLocalOrigin.z / _sceneDragLocalDir.z;
+  if (t < 0) return null;
+
+  const lx = _sceneDragLocalOrigin.x + _sceneDragLocalDir.x * t;
+  const ly = _sceneDragLocalOrigin.y + _sceneDragLocalDir.y * t;
+
+  let best = null;
+  root.traverse((node) => {
+    const id = typeof node?.elementId === "string" ? node.elementId : "";
+    if (!id.startsWith("slot-")) return;
+    if (!Number.isFinite(node.computedWidth) || !Number.isFinite(node.computedHeight)) return;
+    const w = Number(node.computedWidth);
+    const h = Number(node.computedHeight);
+    if (w <= 0 || h <= 0) return;
+
+    node.getWorldPosition(_sceneDragWorldPos);
+    _sceneDragLocalPos.copy(_sceneDragWorldPos).applyMatrix4(_sceneDragInv);
+
+    const rx = _sceneDragLocalPos.x;
+    const ry = _sceneDragLocalPos.y - h;
+    if (lx < rx || lx > rx + w || ly < ry || ly > ry + h) return;
+
+    _sceneDragLocalCenter.set(rx + w * 0.5, _sceneDragLocalPos.y - h * 0.5, _sceneDragLocalPos.z);
+    _sceneDragWorldCenter.copy(_sceneDragLocalCenter).applyMatrix4(root.matrixWorld);
+    const slotIndex = Number.parseInt(id.slice(5), 10);
+    if (!Number.isInteger(slotIndex) || slotIndex < 0) return;
+    best = {
+      slotId: id,
+      slotIndex,
+      worldCenter: _sceneDragWorldCenter.clone(),
+      worldTopLeft: _sceneDragWorldPos.clone(),
+    };
+  });
+
+  return best;
+}
+
+function syncSceneComponentDragVisuals(event) {
+  if (!componentSceneDragState.active) return null;
+  updateBackdropRayFromClient(event);
+  const hit = resolveSceneGridSlotHitFromClient(event);
+  const preview = componentSceneDragState.previewInstance;
+  const highlight = componentSceneDragState.highlightInstance;
+
+  if (!hit) {
+    componentSceneDragState.hoverSlotId = null;
+    const backdrop = getRuntimeBackdrop();
+    const fallbackPoint =
+      backdrop && typeof backdrop.getHoveredGridPoint === "function"
+        ? backdrop.getHoveredGridPoint(false)
+        : null;
+    if (preview?.anchorTarget && preview?.root && fallbackPoint) {
+      preview.anchorTarget.position.copy(fallbackPoint);
+      preview.root.visible = true;
+      setSceneDragRootFade(preview.root, 0.78);
+      preview.root.scale.setScalar(0.94);
+    } else if (preview?.root) {
+      preview.root.visible = false;
+    }
+    if (highlight?.root) highlight.root.visible = false;
+    return null;
+  }
+
+  componentSceneDragState.hoverSlotId = hit.slotId;
+  if (preview?.anchorTarget && preview?.root) {
+    preview.anchorTarget.position.copy(hit.worldCenter);
+    preview.root.visible = true;
+    setSceneDragRootFade(preview.root, 1);
+    preview.root.scale.setScalar(1);
+  }
+  if (highlight?.anchorTarget && highlight?.root) {
+    highlight.anchorTarget.position.copy(hit.worldCenter);
+    highlight.root.visible = true;
+  }
+  return hit;
 }
 
 function buildNestedTriggerEvents(profileId, instance) {
@@ -7000,6 +7522,20 @@ function handleAddBuiltUiDragStart(event) {
 }
 
 function handleCanvasDragOver(event) {
+  const sceneComponentKey = parseSceneDraggedComponentKey(event);
+  if (componentSceneDragState.active || sceneComponentKey) {
+    if (!componentSceneDragState.active && sceneComponentKey) {
+      startSceneComponentDrag(sceneComponentKey);
+    }
+    if (!componentSceneDragState.active) return;
+    event.preventDefault();
+    const slotHit = syncSceneComponentDragVisuals(event);
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = slotHit ? "copy" : "none";
+    }
+    return;
+  }
+
   if (!dragBuilderUiInstance) return;
   event.preventDefault();
 
@@ -7024,6 +7560,33 @@ function handleCanvasDragOver(event) {
 }
 
 function handleCanvasDrop(event) {
+  if (componentSceneDragState.active) {
+    event.preventDefault();
+    const hit = syncSceneComponentDragVisuals(event);
+    const droppedKey = componentSceneDragState.key || parseSceneDraggedComponentKey(event);
+    if (hit && droppedKey && catalogEntryByKey.has(droppedKey)) {
+      const placed = dispatchAssemblyAction({
+        type: "place-entry",
+        index: hit.slotIndex,
+        key: droppedKey,
+      });
+      clearSceneComponentDragState({ resetWorkflowTabs: false });
+      if (placed) {
+        status.textContent =
+          `Placed "${droppedKey}" on ${hit.slotId}.`;
+      } else {
+        status.textContent = "Component drop failed to apply.";
+      }
+      return;
+    }
+
+    animateSceneComponentPreviewFadeOut(() => {
+      clearSceneComponentDragState({ resetWorkflowTabs: false });
+      status.textContent = "please drop on existing grid!";
+    });
+    return;
+  }
+
   if (!dragBuilderUiInstance) return;
   event.preventDefault();
   placeBuilderUiFromHover(event, false);
@@ -7119,6 +7682,7 @@ function restoreRuntimeAnchor() {
 }
 
 function disposeNavigationControls() {
+  endSliderDragSceneBypass(null);
   stopOrbitSnapPan(null);
 
   if (orbitControls) {
@@ -7274,6 +7838,7 @@ if (window.visualViewport) {
 async function unloadActiveRuntime() {
   if (!activeRuntime) return;
 
+  endSliderDragSceneBypass(null);
   clearBuilderUiPlacements(activeRuntime);
 
   const anchorTarget = runtimeGridAnchorTargets.get(activeRuntime);
@@ -7661,6 +8226,7 @@ tuneablesAutoResizeGrid.addEventListener("change", () => {
 
 for (const input of [
   tuneablesGridBorderVisible,
+  tuneablesGridShowPanels,
   tuneablesGridBorderColor,
   tuneablesGridBorderWidth,
   tuneablesGridCornerRadius,
