@@ -70,6 +70,15 @@ export { Stroke, type StrokeOptions } from "./primitives/Stroke.js";
 export { Divider, type DividerOptions } from "./primitives/Divider.js";
 export { Icon, type IconOptions } from "./primitives/Icon.js";
 export { MarkerPlus, type MarkerPlusOptions } from "./primitives/MarkerPlus.js";
+export { TriChevron, type TriChevronOptions } from "./primitives/TriChevron.js";
+export {
+  SegmentedHexRing,
+  type SegmentedHexRingOptions,
+} from "./primitives/SegmentedHexRing.js";
+export { ReticleCorners, type ReticleCornersOptions } from "./primitives/ReticleCorners.js";
+export { RadialTickArc, type RadialTickArcOptions } from "./primitives/RadialTickArc.js";
+export { NodeLinkGraph, type NodeLinkGraphOptions } from "./primitives/NodeLinkGraph.js";
+export { DataTag, type DataTagOptions } from "./primitives/DataTag.js";
 
 /* ------------------------------------------------------------------ */
 /*  Components                                                         */

@@ -12,11 +12,6 @@ import {
   PerspectiveCamera,
   WebGLRenderer,
   Clock,
-  IcosahedronGeometry,
-  OctahedronGeometry,
-  EdgesGeometry,
-  LineSegments,
-  LineBasicMaterial,
   Quaternion,
   Vector3,
 } from "three";
@@ -34,7 +29,7 @@ import {
   ThemeFactory,
   GlowComposer,
 } from "../index.js";
-import { type ExampleRuntime, removeAndDispose } from "./runtime.js";
+import { type ExampleRuntime } from "./runtime.js";
 import { AstralBackdrop } from "./astral-backdrop.js";
 
 const SPACER_EPSILON = 0.25;
@@ -238,27 +233,6 @@ export function createCameraHudExample(
   backdrop: AstralBackdrop;
 } {
   const backdrop = new AstralBackdrop({ scene });
-
-  const icoGeo = new IcosahedronGeometry(0.6, 1);
-  const icoEdges = new EdgesGeometry(icoGeo);
-  const ico = new LineSegments(icoEdges, new LineBasicMaterial({ color: 0x4488aa }));
-  ico.position.set(0, 1.2, -4);
-  scene.add(ico);
-
-  const octGeo = new OctahedronGeometry(0.4);
-  const octEdges = new EdgesGeometry(octGeo);
-  const oct = new LineSegments(octEdges, new LineBasicMaterial({ color: 0x886644 }));
-  oct.position.set(-1.5, 0.8, -3.5);
-  scene.add(oct);
-
-  const cubeEdges = new EdgesGeometry(new OctahedronGeometry(0.25));
-  const cube = new LineSegments(cubeEdges, new LineBasicMaterial({ color: 0x557766 }));
-  cube.position.set(1.8, 1.0, -5);
-  scene.add(cube);
-
-  (ico.material as LineBasicMaterial).transparent = true;
-  (oct.material as LineBasicMaterial).transparent = true;
-  (cube.material as LineBasicMaterial).transparent = true;
 
   const theme = ThemeFactory();
 
@@ -486,8 +460,6 @@ export function createCameraHudExample(
   const currCamPos = new Vector3();
   const currCamQuat = new Quaternion();
 
-  const sceneObjects = [ico, oct, cube];
-
   function setReadout(key: string, value: string): void {
     readoutTexts.get(key)?.setText(value);
   }
@@ -620,12 +592,6 @@ export function createCameraHudExample(
     const dt = clock.getDelta();
     const t = clock.elapsedTime;
 
-    ico.rotation.y += dt * 0.3;
-    ico.rotation.x += dt * 0.1;
-    oct.rotation.y -= dt * 0.4;
-    cube.rotation.y += dt * 0.5;
-    cube.rotation.z += dt * 0.2;
-
     updateCameraMotion(dt);
 
     pingAccumulator += dt;
@@ -699,7 +665,6 @@ export function createCameraHudExample(
     uiManager.dispose();
     backdrop.dispose();
     glowComposer.dispose();
-    removeAndDispose(sceneObjects);
   }
 
   return {

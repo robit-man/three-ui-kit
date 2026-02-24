@@ -101,7 +101,11 @@
 
     #camera-controls,
     #helper-controls,
-    #debug-panel {
+    #debug-panel,
+    #profile-controls,
+    #catalog-panel,
+    #customizer-panel,
+    #editor-panel {
       border: 1px solid rgba(235,240,245,0.12);
       border-radius: 4px;
       background: rgba(8,9,10,0.9);
@@ -112,11 +116,332 @@
     }
 
     #camera-controls h2,
-    #debug-panel h2 {
+    #debug-panel h2,
+    #profile-controls h2,
+    #catalog-panel h2,
+    #customizer-panel h2,
+    #editor-panel h2 {
       font-size: 11px;
       letter-spacing: 0.08em;
       font-weight: 400;
       color: rgba(184,136,56,0.95);
+    }
+
+    .section-head {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+    }
+
+    .inline-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      width: 100%;
+    }
+
+    .small-btn {
+      width: 100%;
+      text-align: center;
+      padding: 7px 6px;
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: rgba(235,240,245,0.85);
+      background: rgba(11,12,13,0.95);
+      border: 1px solid rgba(184,136,56,0.28);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .small-btn:hover {
+      border-color: #B88838;
+      color: #B88838;
+    }
+
+    .small-btn.trash-target {
+      border-color: rgba(255, 112, 64, 0.8);
+      color: rgba(255, 185, 138, 0.95);
+      background: rgba(96, 26, 16, 0.58);
+    }
+
+    .small-btn.trash-target.drop-hover-trash {
+      border-color: rgba(255, 144, 94, 0.96);
+      color: rgba(255, 224, 204, 0.98);
+      background: rgba(136, 30, 16, 0.75);
+    }
+
+    #editor-inject-btn {
+      width: auto;
+      min-width: 84px;
+      border-style: dashed;
+      border-color: rgba(184,136,56,0.78);
+      color: rgba(235,240,245,0.92);
+      background: rgba(13, 12, 8, 0.86);
+    }
+
+    #editor-inject-btn:hover {
+      border-color: #B88838;
+      color: #B88838;
+    }
+
+    #profile-select,
+    #catalog-search,
+    #catalog-type,
+    #customizer-key,
+    #customizer-label,
+    #customizer-kind,
+    #customizer-tags,
+    #tuneables-trigger-event,
+    #tuneables-trigger-profile,
+    #tuneables-trigger-element {
+      width: 100%;
+      font-family: inherit;
+      font-size: 11px;
+      color: rgba(235,240,245,0.9);
+      background: rgba(11,12,13,0.95);
+      border: 1px solid rgba(184,136,56,0.28);
+      border-radius: 4px;
+      padding: 7px 8px;
+      outline: none;
+    }
+
+    #catalog-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 104px;
+      gap: 6px;
+    }
+
+    #customizer-source {
+      font-size: 10px;
+      color: rgba(235,240,245,0.58);
+      line-height: 1.3;
+    }
+
+    #customizer-schema {
+      min-height: 130px;
+      max-height: 220px;
+      resize: vertical;
+      width: 100%;
+      border: 1px solid rgba(235,240,245,0.16);
+      border-radius: 4px;
+      background: rgba(5,6,7,0.85);
+      color: rgba(235,240,245,0.72);
+      font-family: inherit;
+      font-size: 10px;
+      line-height: 1.35;
+      padding: 8px;
+      outline: none;
+    }
+
+    #editor-tuneables {
+      border-top: 1px solid rgba(235,240,245,0.1);
+      margin-top: 4px;
+      padding-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #editor-tuneables h3 {
+      margin: 0;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      font-weight: 400;
+      color: rgba(184,136,56,0.95);
+    }
+
+    #tuneables-trigger-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 140px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    #tuneables-trigger-list::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
+
+    .tuneables-trigger-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 54px;
+      gap: 6px;
+      align-items: center;
+      border: 1px solid rgba(235,240,245,0.14);
+      border-radius: 4px;
+      padding: 5px 6px;
+      background: rgba(5,6,7,0.6);
+      font-size: 10px;
+      color: rgba(235,240,245,0.8);
+      line-height: 1.3;
+    }
+
+    .tuneables-trigger-remove {
+      width: 100%;
+      padding: 5px 4px;
+      font-family: inherit;
+      font-size: 9px;
+      border: 1px solid rgba(255, 120, 92, 0.62);
+      border-radius: 4px;
+      color: rgba(255, 202, 184, 0.95);
+      background: rgba(96, 26, 16, 0.52);
+      cursor: pointer;
+    }
+
+    .tuneables-trigger-remove:hover {
+      border-color: rgba(255, 144, 94, 0.9);
+      color: rgba(255, 224, 204, 0.98);
+      background: rgba(136, 30, 16, 0.72);
+    }
+
+    #catalog-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 280px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    #catalog-list::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
+
+    .catalog-card {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      border: 1px solid rgba(235,240,245,0.14);
+      border-radius: 4px;
+      background: rgba(6,7,8,0.94);
+      padding: 6px;
+      cursor: grab;
+    }
+
+    .catalog-card:hover {
+      border-color: rgba(184,136,56,0.7);
+    }
+
+    .catalog-card.dragging {
+      opacity: 0.7;
+      border-color: #B88838;
+    }
+
+    .catalog-card.selected {
+      border-color: #B88838;
+      box-shadow: 0 0 0 1px rgba(184,136,56,0.35) inset;
+    }
+
+    .catalog-preview {
+      width: 76px;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      border: 1px solid rgba(184,136,56,0.28);
+      border-radius: 4px;
+      background:
+        radial-gradient(circle at 50% 25%, rgba(184,136,56,0.08), transparent 60%),
+        rgba(5,6,7,0.96);
+      overflow: hidden;
+    }
+
+    .catalog-meta {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .catalog-name {
+      font-size: 11px;
+      color: rgba(235,240,245,0.92);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .catalog-kind {
+      font-size: 9px;
+      color: rgba(184,136,56,0.88);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .catalog-tags {
+      font-size: 9px;
+      color: rgba(235,240,245,0.58);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #editor-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 4px;
+    }
+
+    .editor-cell {
+      aspect-ratio: 1 / 1;
+      border: 1px dashed rgba(235,240,245,0.22);
+      border-radius: 4px;
+      background: rgba(5,6,7,0.75);
+      color: rgba(235,240,245,0.52);
+      font-size: 9px;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      user-select: none;
+    }
+
+    .editor-cell.drop-hover {
+      border-color: #B88838;
+      background: rgba(184,136,56,0.14);
+    }
+
+    .editor-cell.filled {
+      border-style: solid;
+      border-color: rgba(184,136,56,0.7);
+      color: rgba(235,240,245,0.9);
+      background: rgba(184,136,56,0.1);
+      cursor: pointer;
+    }
+
+    #editor-schema {
+      min-height: 120px;
+      max-height: 190px;
+      resize: vertical;
+      width: 100%;
+      border: 1px solid rgba(235,240,245,0.16);
+      border-radius: 4px;
+      background: rgba(5,6,7,0.85);
+      color: rgba(235,240,245,0.72);
+      font-family: inherit;
+      font-size: 9px;
+      line-height: 1.4;
+      padding: 8px;
+      outline: none;
     }
 
     #nav-mode {
@@ -243,14 +568,94 @@
 <div id="app">
   <aside id="sidebar">
     <h1>+ THREE-UI-KIT</h1>
-    <p class="subtle">Menu system demos. Switch examples at any time.</p>
+    <p class="subtle">Unified camera HUD scene with schema-driven UI builder placement.</p>
 
     <div id="example-list">
-      <button class="example-btn" data-example="1">1 - Object-Anchored Loadout Panel</button>
-      <button class="example-btn" data-example="2">2 - Camera HUD: Radial Dial + Readouts</button>
-      <button class="example-btn" data-example="3">3 - VR Wrist Menu</button>
-      <button class="example-btn" data-example="4">4 - Phone Touch Overlay</button>
+      <button class="example-btn" data-example="hud">Unified Scene - Camera HUD + Builder</button>
     </div>
+
+    <section id="profile-controls" aria-label="Profile controls">
+      <h2>Builder Profiles</h2>
+      <select id="profile-select"></select>
+      <div class="inline-row">
+        <button class="small-btn" id="profile-new-btn" type="button">New</button>
+        <button class="small-btn" id="profile-save-btn" type="button">Save</button>
+      </div>
+      <div class="inline-row">
+        <button class="small-btn" id="profile-delete-btn" type="button">Delete</button>
+        <button class="small-btn" id="profile-export-btn" type="button">Export</button>
+      </div>
+      <button class="small-btn" id="profile-import-btn" type="button">Import</button>
+      <input id="profile-import-file" type="file" accept="application/json" hidden>
+    </section>
+
+    <section id="catalog-panel" aria-label="Element catalog">
+      <h2>Element Catalog</h2>
+      <div id="catalog-toolbar">
+        <input id="catalog-search" type="search" placeholder="Search elements">
+        <select id="catalog-type">
+          <option value="all">All Types</option>
+          <option value="primitive">Primitive</option>
+          <option value="component">Component</option>
+          <option value="composite">Composite</option>
+        </select>
+      </div>
+      <div id="catalog-list"></div>
+    </section>
+
+    <section id="customizer-panel" aria-label="Element customizer">
+      <h2>Element Customizer</h2>
+      <p id="customizer-source">Select a catalog element to customize.</p>
+      <input id="customizer-key" type="text" placeholder="Element key (unique)">
+      <input id="customizer-label" type="text" placeholder="Element label">
+      <select id="customizer-kind">
+        <option value="primitive">Primitive</option>
+        <option value="component">Component</option>
+        <option value="composite">Composite</option>
+      </select>
+      <input id="customizer-tags" type="text" placeholder="Tags (comma separated)">
+      <textarea id="customizer-schema" spellcheck="false" placeholder='{"type":"text","props":{"text":"NEW"}}'></textarea>
+      <div class="inline-row">
+        <button class="small-btn" id="customizer-save-btn" type="button">Save Element</button>
+        <button class="small-btn" id="customizer-reset-btn" type="button">Reset</button>
+      </div>
+      <button class="small-btn" id="customizer-delete-btn" type="button">Delete Custom Element</button>
+    </section>
+
+    <section id="editor-panel" aria-label="Grid editor">
+      <div class="section-head">
+        <h2>Grid Editor</h2>
+        <button class="small-btn" id="editor-inject-btn" type="button" draggable="true">Inject</button>
+      </div>
+      <p class="subtle">Drag catalog elements into cells. Click a filled cell to inspect/customize. Drag filled cells to move or delete via trash.</p>
+      <div class="inline-row">
+        <button class="small-btn" id="editor-clear-btn" type="button">Clear Grid</button>
+        <button class="small-btn" id="editor-validate-btn" type="button">Validate</button>
+      </div>
+      <div id="editor-grid"></div>
+      <textarea id="editor-schema" readonly></textarea>
+      <section id="editor-tuneables" aria-label="Grid tuneables">
+        <h3>Tuneables</h3>
+        <label class="helper-row">
+          <input id="tuneables-auto-resize-grid" type="checkbox">
+          <span>Auto Resize Grid Output</span>
+        </label>
+        <p class="subtle">When enabled, scene output trims unused rows/cols to avoid large empty bordered grids.</p>
+        <div class="inline-row">
+          <input id="tuneables-trigger-element" type="text" placeholder="Trigger element id (e.g. button-7)">
+          <select id="tuneables-trigger-event">
+            <option value="click">click</option>
+            <option value="change">change</option>
+            <option value="select">select</option>
+          </select>
+        </div>
+        <div class="inline-row">
+          <select id="tuneables-trigger-profile"></select>
+          <button class="small-btn" id="tuneables-add-trigger-btn" type="button">Add Trigger</button>
+        </div>
+        <div id="tuneables-trigger-list"></div>
+      </section>
+    </section>
 
     <section id="camera-controls" aria-label="Camera navigation controls">
       <h2>Camera Navigation</h2>
@@ -287,6 +692,7 @@
         <input id="toggle-layout-bounds" type="checkbox">
         <span>Layout Bounds</span>
       </label>
+      <button class="helper-action-btn" id="add-built-ui-btn" type="button" draggable="true">Add Built UI To Scene</button>
       <button class="helper-action-btn" id="attach-grid-btn" type="button">Attach UI To Hover Grid</button>
       <button class="helper-action-btn" id="restore-anchor-btn" type="button">Restore UI Anchor</button>
     </section>
@@ -296,7 +702,7 @@
       <pre id="debug-output">No active example.</pre>
     </section>
 
-    <div id="status">Select an example.</div>
+    <div id="status">Loading unified camera HUD scene...</div>
   </aside>
 
   <main id="viewport-wrap">
@@ -328,6 +734,7 @@ import {
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { FlyControls } from "three/examples/jsm/controls/FlyControls.js";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
+import { ThemeFactory, UIHydrate } from "./dist/index.js";
 
 const viewport = document.getElementById("viewport");
 const status = document.getElementById("status");
@@ -342,30 +749,46 @@ const toggleElementAxes = document.getElementById("toggle-element-axes");
 const toggleGridCoords = document.getElementById("toggle-grid-coords");
 const toggleHitRegions = document.getElementById("toggle-hit-regions");
 const toggleLayoutBounds = document.getElementById("toggle-layout-bounds");
+const addBuiltUiBtn = document.getElementById("add-built-ui-btn");
 const attachGridBtn = document.getElementById("attach-grid-btn");
 const restoreAnchorBtn = document.getElementById("restore-anchor-btn");
 const debugOutput = document.getElementById("debug-output");
+const profileSelect = document.getElementById("profile-select");
+const profileNewBtn = document.getElementById("profile-new-btn");
+const profileSaveBtn = document.getElementById("profile-save-btn");
+const profileDeleteBtn = document.getElementById("profile-delete-btn");
+const profileExportBtn = document.getElementById("profile-export-btn");
+const profileImportBtn = document.getElementById("profile-import-btn");
+const profileImportFile = document.getElementById("profile-import-file");
+const catalogSearch = document.getElementById("catalog-search");
+const catalogType = document.getElementById("catalog-type");
+const catalogList = document.getElementById("catalog-list");
+const customizerSource = document.getElementById("customizer-source");
+const customizerKeyInput = document.getElementById("customizer-key");
+const customizerLabelInput = document.getElementById("customizer-label");
+const customizerKindSelect = document.getElementById("customizer-kind");
+const customizerTagsInput = document.getElementById("customizer-tags");
+const customizerSchemaInput = document.getElementById("customizer-schema");
+const customizerSaveBtn = document.getElementById("customizer-save-btn");
+const customizerResetBtn = document.getElementById("customizer-reset-btn");
+const customizerDeleteBtn = document.getElementById("customizer-delete-btn");
+const editorInjectBtn = document.getElementById("editor-inject-btn");
+const editorGrid = document.getElementById("editor-grid");
+const editorClearBtn = document.getElementById("editor-clear-btn");
+const editorValidateBtn = document.getElementById("editor-validate-btn");
+const editorSchemaOutput = document.getElementById("editor-schema");
+const tuneablesAutoResizeGrid = document.getElementById("tuneables-auto-resize-grid");
+const tuneablesTriggerElementInput = document.getElementById("tuneables-trigger-element");
+const tuneablesTriggerEventSelect = document.getElementById("tuneables-trigger-event");
+const tuneablesTriggerProfileSelect = document.getElementById("tuneables-trigger-profile");
+const tuneablesAddTriggerBtn = document.getElementById("tuneables-add-trigger-btn");
+const tuneablesTriggerList = document.getElementById("tuneables-trigger-list");
 
 const EXAMPLES = {
-  "1": {
-    factory: "createLoadoutPanelExample",
-    load: () => import("./dist/examples/example1-loadout-panel.js"),
-    info: "Example 1 - Object-anchored Loadout Panel - BILLBOARD_YAW facing",
-  },
-  "2": {
+  hud: {
     factory: "createCameraHudExample",
     load: () => import("./dist/examples/example2-camera-hud.js"),
-    info: "Example 2 - Camera HUD - FOV-fit responsive, slider controls brightness",
-  },
-  "3": {
-    factory: "createVRWristMenuExample",
-    load: () => import("./dist/examples/example3-vr-wrist-menu.js"),
-    info: "Example 3 - VR Wrist Menu - LOCK_UP + yaw-toward-head facing",
-  },
-  "4": {
-    factory: "createPhoneTouchExample",
-    load: () => import("./dist/examples/example4-phone-touch.js"),
-    info: "Example 4 - Phone Touch - 44px hit targets, film grain toggle",
+    info: "Unified scene loaded: Camera HUD + schema builder placement.",
   },
 };
 
@@ -385,6 +808,9 @@ const debugState = {
 
 const runtimeOriginalAnchors = new WeakMap();
 const runtimeGridAnchorTargets = new WeakMap();
+let placedBuilderUiInstance = null;
+let dragBuilderUiInstance = null;
+let builderPlacementArmed = false;
 
 let navMode = "orbit";
 let orbitControls = null;
@@ -397,6 +823,1538 @@ let viewportResizeObserver = null;
 
 if (navModeSelect) {
   navModeSelect.value = navMode;
+}
+
+const PROFILE_STORAGE_KEY = "three-ui-kit-builder-profiles-v1";
+const PROFILE_VERSION = 1;
+const CUSTOM_ELEMENTS_STORAGE_KEY = "three-ui-kit-custom-elements-v1";
+const PREVIEW_PIXEL_RATIO_MAX = 1.5;
+const DEFAULT_GRID_COLS = 6;
+const DEFAULT_GRID_ROWS = 8;
+const UNIFIED_EXAMPLE_ID = "hud";
+const EDITOR_CELL_DRAG_PREFIX = "editor-cell:";
+const GRID_CELL_SIZE = 34;
+const GRID_CELL_GAP = 3;
+const GRID_PANEL_PADDING = 6;
+const GRID_ROOT_PADDING = 4;
+
+function buildDefaultCameraHudProfileSchema() {
+  const readoutRow = (id, label, value) => ({
+    type: "panel",
+    id: `hud-readout-row-${id}`,
+    sizing: { width: 240, height: 20 },
+    layout: { type: "STACK_X", gap: 6, align: "center", justify: "start", padding: 0 },
+    style: { fillAlpha: 0, strokeWidth: 0 },
+    children: [
+      {
+        type: "text",
+        id: `hud-readout-label-${id}`,
+        props: { text: label, variant: "label", colorKey: "text1", align: "left" },
+        sizing: { width: 76, height: 16 },
+      },
+      {
+        type: "panel",
+        id: `hud-readout-spacer-${id}`,
+        sizing: { width: 4, height: 1 },
+        style: { fillAlpha: 0, strokeAlpha: 0, strokeWidth: 0 },
+      },
+      {
+        type: "text",
+        id: `hud-readout-value-${id}`,
+        props: { text: value, variant: "readout", colorKey: "accentA", align: "right" },
+        sizing: { width: 152, height: 16 },
+      },
+    ],
+  });
+
+  return {
+    type: "root",
+    id: "camera-hud-default-profile-root",
+    layout: { type: "STACK_X", gap: 12, padding: 10, align: "start" },
+    sizing: { width: 440, height: 304 },
+    children: [
+      {
+        type: "panel",
+        id: "hud-left-panel",
+        sizing: { width: 160, height: 188 },
+        layout: { type: "STACK_Y", gap: 8, padding: 8, align: "center", justify: "start" },
+        style: {
+          fillColor: "#050607",
+          fillAlpha: 0.04,
+          strokeColor: "#B88838",
+          strokeAlpha: 0.35,
+          strokeWidth: 1,
+          cornerRadius: 4,
+        },
+        children: [
+          {
+            type: "text",
+            id: "hud-gauge-title",
+            props: { text: "CAMERA", variant: "label", colorKey: "text1", align: "center" },
+            sizing: { width: 140, height: 16 },
+          },
+          {
+            type: "radial-gauge",
+            id: "hud-gauge-motion",
+            props: {
+              radius: 44,
+              thickness: 3,
+              value: 0.42,
+              label: "MOTION",
+              startAngle: -Math.PI * 0.75,
+              sweepAngle: Math.PI * 1.5,
+            },
+          },
+          {
+            type: "text",
+            id: "hud-gauge-value",
+            props: { text: "0.42", variant: "readout", colorKey: "accentA", align: "center" },
+            sizing: { width: 140, height: 16 },
+          },
+        ],
+      },
+      {
+        type: "panel",
+        id: "hud-right-panel",
+        sizing: { width: 260, height: 282 },
+        layout: { type: "STACK_Y", gap: 4, padding: 10, align: "start", justify: "start" },
+        style: {
+          fillColor: "#050607",
+          fillAlpha: 0.04,
+          strokeColor: "#B88838",
+          strokeAlpha: 0.35,
+          strokeWidth: 1,
+          cornerRadius: 4,
+        },
+        children: [
+          {
+            type: "panel",
+            id: "hud-title-row",
+            sizing: { width: 240, height: 22 },
+            layout: { type: "STACK_X", gap: 6, align: "center", justify: "start" },
+            style: { fillAlpha: 0, strokeWidth: 0 },
+            children: [
+              { type: "marker-plus", id: "hud-title-mark", props: { size: 7, colorKey: "accentA" } },
+              {
+                type: "text",
+                id: "hud-title-text",
+                props: { text: "LIVE TELEMETRY", variant: "title", colorKey: "accentA" },
+              },
+            ],
+          },
+          { type: "divider", id: "hud-divider-top", props: { length: 240 } },
+          readoutRow("speed", "SPEED", "0.00 m/s"),
+          readoutRow("rtt", "RTT", "-- ms"),
+          readoutRow("down", "DOWN", "-- Mbps"),
+          readoutRow("net", "NET", "unknown"),
+          readoutRow("browser", "BROWSER", "detecting..."),
+          readoutRow("geo", "GEO", "locating..."),
+          { type: "divider", id: "hud-divider-bottom", props: { length: 240 } },
+          {
+            type: "slider",
+            id: "hud-bloom-slider",
+            props: { label: "BLOOM", value: 0.45, showReadout: true },
+            sizing: { width: 240, height: 16 },
+          },
+        ],
+      },
+    ],
+  };
+}
+
+const BASE_CATALOG_REGISTRY = [
+  {
+    key: "panel",
+    label: "Panel",
+    kind: "primitive",
+    tags: ["frame", "container", "surface"],
+    schema: {
+      type: "panel",
+      sizing: { width: 52, height: 34 },
+      style: {
+        fillColor: "#050607",
+        fillAlpha: 0.04,
+        strokeColor: "#B88838",
+        strokeAlpha: 0.35,
+        strokeWidth: 1,
+        cornerRadius: 3,
+      },
+    },
+  },
+  {
+    key: "text",
+    label: "TextBlock",
+    kind: "primitive",
+    tags: ["label", "readout", "text"],
+    schema: {
+      type: "text",
+      props: {
+        text: "STATUS",
+        variant: "label",
+        colorKey: "accentA",
+        align: "center",
+      },
+      sizing: { width: 56, height: 16 },
+    },
+  },
+  {
+    key: "stroke",
+    label: "Stroke",
+    kind: "primitive",
+    tags: ["line", "primitive", "segment"],
+    schema: {
+      type: "stroke",
+      props: { x1: -20, y1: 0, x2: 20, y2: 0, thickness: 1.2, colorKey: "line1" },
+      sizing: { width: 42, height: 10 },
+    },
+  },
+  {
+    key: "divider",
+    label: "Divider",
+    kind: "primitive",
+    tags: ["line", "separator", "primitive"],
+    schema: {
+      type: "divider",
+      props: { length: 42, thickness: 1, colorKey: "line1" },
+      sizing: { width: 44, height: 10 },
+    },
+  },
+  {
+    key: "icon",
+    label: "Icon",
+    kind: "primitive",
+    tags: ["icon", "glyph", "symbol"],
+    schema: {
+      type: "icon",
+      props: { glyph: "x", size: 18, colorKey: "accentA" },
+      sizing: { width: 24, height: 24 },
+    },
+  },
+  {
+    key: "marker-plus",
+    label: "MarkerPlus",
+    kind: "primitive",
+    tags: ["crosshair", "marker"],
+    schema: {
+      type: "marker-plus",
+      props: { size: 22, colorKey: "accentA" },
+    },
+  },
+  {
+    key: "tri-chevron",
+    label: "TriChevron",
+    kind: "primitive",
+    tags: ["triangle", "chevron", "motif"],
+    schema: {
+      type: "tri-chevron",
+      props: { size: 36, colorKey: "accentA" },
+    },
+  },
+  {
+    key: "segmented-hex-ring",
+    label: "SegmentedHexRing",
+    kind: "primitive",
+    tags: ["hex", "ring", "segmented"],
+    schema: {
+      type: "segmented-hex-ring",
+      props: { size: 62, segments: 18, colorKey: "accentA" },
+    },
+  },
+  {
+    key: "reticle-corners",
+    label: "ReticleCorners",
+    kind: "primitive",
+    tags: ["reticle", "targeting", "corners"],
+    schema: {
+      type: "reticle-corners",
+      sizing: { width: 58, height: 42 },
+      props: { armLength: 10, colorKey: "line1" },
+    },
+  },
+  {
+    key: "radial-tick-arc",
+    label: "RadialTickArc",
+    kind: "primitive",
+    tags: ["ticks", "arc", "dial"],
+    schema: {
+      type: "radial-tick-arc",
+      props: { size: 70, tickCount: 26, colorKey: "line1" },
+    },
+  },
+  {
+    key: "node-link-graph",
+    label: "NodeLinkGraph",
+    kind: "primitive",
+    tags: ["graph", "nodes", "links"],
+    schema: {
+      type: "node-link-graph",
+      sizing: { width: 68, height: 48 },
+      props: { nodeCount: 9, seed: 13, nodeColorKey: "accentA" },
+    },
+  },
+  {
+    key: "data-tag",
+    label: "DataTag",
+    kind: "primitive",
+    tags: ["tag", "label", "badge"],
+    schema: {
+      type: "data-tag",
+      props: { text: "AR02", colorKey: "accentA" },
+      sizing: { width: 72, height: 24 },
+    },
+  },
+  {
+    key: "button",
+    label: "Button",
+    kind: "component",
+    tags: ["action", "input"],
+    schema: {
+      type: "button",
+      props: { label: "RUN", variant: "primary" },
+      sizing: { width: 62, height: 20 },
+    },
+  },
+  {
+    key: "toggle",
+    label: "Toggle",
+    kind: "component",
+    tags: ["switch", "state"],
+    schema: {
+      type: "toggle",
+      props: { label: "HUD", value: true },
+      sizing: { width: 70, height: 20 },
+    },
+  },
+  {
+    key: "slider",
+    label: "SliderLinear",
+    kind: "component",
+    tags: ["range", "value", "track"],
+    schema: {
+      type: "slider",
+      props: { label: "GAIN", value: 0.55, showReadout: true },
+      sizing: { width: 76, height: 16 },
+    },
+  },
+  {
+    key: "radial-gauge",
+    label: "RadialGauge",
+    kind: "component",
+    tags: ["gauge", "dial", "value"],
+    schema: {
+      type: "radial-gauge",
+      props: { radius: 16, thickness: 2, value: 0.68, label: "OUT" },
+    },
+  },
+  {
+    key: "menu",
+    label: "Menu",
+    kind: "composite",
+    tags: ["menu", "list", "selection"],
+    schema: {
+      type: "menu",
+      props: {
+        width: 74,
+        itemHeight: 14,
+        items: [
+          { id: "a", label: "A" },
+          { id: "b", label: "B" },
+        ],
+      },
+    },
+  },
+  {
+    key: "tooltip",
+    label: "Tooltip",
+    kind: "composite",
+    tags: ["tooltip", "hint"],
+    schema: {
+      type: "tooltip",
+      props: { text: "INFO", maxWidth: 80 },
+    },
+  },
+];
+
+const previewRuntimes = [];
+let previewLoopStarted = false;
+let previewLastTime = performance.now();
+let customCatalogEntries = [];
+let activeCatalogRegistry = [];
+let catalogEntryByKey = new Map();
+let customizerState = {
+  sourceKey: null,
+  isCustom: false,
+};
+let editorTrashMode = false;
+
+const SCHEMA_TYPE_TO_CATALOG_KEY = new Map([
+  ["panel", "panel"],
+  ["text", "text"],
+  ["stroke", "stroke"],
+  ["divider", "divider"],
+  ["icon", "icon"],
+  ["marker-plus", "marker-plus"],
+  ["tri-chevron", "tri-chevron"],
+  ["segmented-hex-ring", "segmented-hex-ring"],
+  ["reticle-corners", "reticle-corners"],
+  ["radial-tick-arc", "radial-tick-arc"],
+  ["node-link-graph", "node-link-graph"],
+  ["data-tag", "data-tag"],
+  ["button", "button"],
+  ["toggle", "toggle"],
+  ["slider", "slider"],
+  ["radial-gauge", "radial-gauge"],
+  ["menu", "menu"],
+  ["tooltip", "tooltip"],
+]);
+
+const editorState = {
+  cols: DEFAULT_GRID_COLS,
+  rows: DEFAULT_GRID_ROWS,
+  cells: Array(DEFAULT_GRID_COLS * DEFAULT_GRID_ROWS).fill(null),
+  activeProfileId: null,
+};
+
+let profileStore = {
+  version: PROFILE_VERSION,
+  activeProfileId: null,
+  profiles: [],
+};
+
+function cloneDeep(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function makeId(prefix) {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return `${prefix}-${window.crypto.randomUUID()}`;
+  }
+  return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function blankCells(cols, rows) {
+  return Array(cols * rows).fill(null);
+}
+
+function sanitizeCatalogEntry(input, fallbackKey = "custom-element") {
+  if (!input || typeof input !== "object") return null;
+  const keyBase =
+    typeof input.key === "string" && input.key.trim().length > 0
+      ? input.key.trim()
+      : fallbackKey;
+  const key = keyBase.toLowerCase().replace(/[^a-z0-9-_]+/g, "-");
+  if (!key) return null;
+
+  const label =
+    typeof input.label === "string" && input.label.trim().length > 0
+      ? input.label.trim()
+      : key;
+  const kind = ["primitive", "component", "composite"].includes(input.kind)
+    ? input.kind
+    : "primitive";
+  const tags = Array.isArray(input.tags)
+    ? input.tags
+        .filter((tag) => typeof tag === "string")
+        .map((tag) => tag.trim())
+        .filter(Boolean)
+    : [];
+  const schema = input.schema && typeof input.schema === "object" ? cloneDeep(input.schema) : null;
+  if (!schema || typeof schema.type !== "string") return null;
+
+  return {
+    key,
+    label,
+    kind,
+    tags,
+    schema,
+    custom: input.custom === true,
+  };
+}
+
+function loadCustomCatalogEntries() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_ELEMENTS_STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return false;
+    const clean = [];
+    for (const item of parsed) {
+      const entry = sanitizeCatalogEntry(item);
+      if (!entry) continue;
+      entry.custom = true;
+      clean.push(entry);
+    }
+    customCatalogEntries = clean;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function persistCustomCatalogEntries() {
+  localStorage.setItem(CUSTOM_ELEMENTS_STORAGE_KEY, JSON.stringify(customCatalogEntries));
+}
+
+function rebuildCatalogRegistry() {
+  const merged = [];
+  const seen = new Set();
+  for (const entry of BASE_CATALOG_REGISTRY.concat(customCatalogEntries)) {
+    const clean = sanitizeCatalogEntry(entry, makeId("catalog"));
+    if (!clean) continue;
+    if (seen.has(clean.key)) continue;
+    seen.add(clean.key);
+    merged.push(clean);
+  }
+  activeCatalogRegistry = merged;
+  catalogEntryByKey = new Map(activeCatalogRegistry.map((entry) => [entry.key, entry]));
+}
+
+function ensureCatalogRegistry() {
+  loadCustomCatalogEntries();
+  rebuildCatalogRegistry();
+}
+
+function isGridEmpty(cells = editorState.cells) {
+  return !cells.some((cell) => typeof cell === "string" && catalogEntryByKey.has(cell));
+}
+
+function schemaNodeToCatalogKey(node) {
+  if (!node || typeof node !== "object") return null;
+  const type = typeof node.type === "string" ? node.type : "";
+  if (!type) return null;
+  const mapped = SCHEMA_TYPE_TO_CATALOG_KEY.get(type) ?? null;
+  if (!mapped) return null;
+  if (!catalogEntryByKey.has(mapped)) return null;
+  return mapped;
+}
+
+function collectCatalogKeysFromSchema(schema, out = []) {
+  if (!schema || typeof schema !== "object") return out;
+  const key = schemaNodeToCatalogKey(schema);
+  if (key) out.push(key);
+  if (Array.isArray(schema.children)) {
+    for (const child of schema.children) {
+      collectCatalogKeysFromSchema(child, out);
+    }
+  }
+  return out;
+}
+
+function deriveGridCellsFromSceneSchema(schema, cols, rows) {
+  const total = cols * rows;
+  const cells = blankCells(cols, rows);
+  if (!schema || typeof schema !== "object") return cells;
+  const keys = collectCatalogKeysFromSchema(schema);
+  for (let i = 0; i < total && i < keys.length; i++) {
+    const key = keys[i];
+    cells[i] = typeof key === "string" && catalogEntryByKey.has(key) ? key : null;
+  }
+  return cells;
+}
+
+function defaultProfileTuneables() {
+  return {
+    autoResizeGrid: true,
+    nestedTriggers: [],
+  };
+}
+
+function normalizeProfileTuneables(input) {
+  const base = defaultProfileTuneables();
+  if (!input || typeof input !== "object") return base;
+
+  const nestedTriggers = Array.isArray(input.nestedTriggers)
+    ? input.nestedTriggers
+        .map((binding) => {
+          if (!binding || typeof binding !== "object") return null;
+          const elementId =
+            typeof binding.elementId === "string" ? binding.elementId.trim() : "";
+          const event =
+            typeof binding.event === "string" ? binding.event.trim().toLowerCase() : "";
+          const profileId =
+            typeof binding.profileId === "string" ? binding.profileId.trim() : "";
+          if (!elementId || !profileId) return null;
+          if (!["click", "change", "select"].includes(event)) return null;
+          return {
+            id:
+              typeof binding.id === "string" && binding.id.trim().length > 0
+                ? binding.id
+                : makeId("trigger"),
+            elementId,
+            event,
+            profileId,
+          };
+        })
+        .filter(Boolean)
+    : [];
+
+  return {
+    autoResizeGrid: input.autoResizeGrid !== false,
+    nestedTriggers,
+  };
+}
+
+function ensureProfileTuneables(profile) {
+  if (!profile || typeof profile !== "object") return defaultProfileTuneables();
+  profile.tuneables = normalizeProfileTuneables(profile.tuneables);
+  return profile.tuneables;
+}
+
+function tuneablesForProfile(profile) {
+  if (!profile || typeof profile !== "object") return defaultProfileTuneables();
+  return ensureProfileTuneables(profile);
+}
+
+function tuneablesForActiveProfile() {
+  const profile = activeProfile();
+  return tuneablesForProfile(profile);
+}
+
+function createProfile(name = "Profile", opts = {}) {
+  const now = new Date().toISOString();
+  const cols = editorState.cols;
+  const rows = editorState.rows;
+  const sceneSchema = opts.seedDefaultSceneSchema
+    ? buildDefaultCameraHudProfileSchema()
+    : null;
+  const seededCells = sceneSchema
+    ? deriveGridCellsFromSceneSchema(sceneSchema, cols, rows)
+    : blankCells(cols, rows);
+  const profile = {
+    id: makeId("profile"),
+    version: PROFILE_VERSION,
+    name,
+    createdAt: now,
+    updatedAt: now,
+    grid: {
+      cols,
+      rows,
+      cells: seededCells,
+    },
+    tuneables: defaultProfileTuneables(),
+  };
+  if (sceneSchema) {
+    profile.sceneSchema = sceneSchema;
+  }
+  return profile;
+}
+
+function loadProfileStore() {
+  try {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return false;
+    if (!Array.isArray(parsed.profiles)) return false;
+    profileStore = {
+      version: PROFILE_VERSION,
+      activeProfileId:
+        typeof parsed.activeProfileId === "string" ? parsed.activeProfileId : null,
+      profiles: parsed.profiles.filter((profile) => {
+        return (
+          profile &&
+          typeof profile === "object" &&
+          typeof profile.id === "string" &&
+          profile.grid &&
+          Array.isArray(profile.grid.cells)
+        );
+      }),
+    };
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function persistProfileStore() {
+  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileStore));
+}
+
+function ensureProfileStore() {
+  ensureCatalogRegistry();
+
+  if (!loadProfileStore() || profileStore.profiles.length === 0) {
+    const defaultProfile = createProfile("Default Camera HUD Profile", {
+      seedDefaultSceneSchema: true,
+    });
+    profileStore.profiles = [defaultProfile];
+    profileStore.activeProfileId = defaultProfile.id;
+    persistProfileStore();
+    return;
+  }
+
+  const hasDefaultSceneProfile = profileStore.profiles.some((profile) => {
+    return (
+      typeof profile.name === "string" &&
+      profile.name.toLowerCase().includes("camera hud") &&
+      profile.sceneSchema &&
+      typeof profile.sceneSchema === "object"
+    );
+  });
+
+  if (!hasDefaultSceneProfile) {
+    const seeded = createProfile("Default Camera HUD Profile", {
+      seedDefaultSceneSchema: true,
+    });
+    profileStore.profiles.unshift(seeded);
+    if (!profileStore.activeProfileId) {
+      profileStore.activeProfileId = seeded.id;
+    }
+    persistProfileStore();
+  }
+
+  let storeChanged = false;
+  for (const profile of profileStore.profiles) {
+    const prevTuneablesRaw = JSON.stringify(profile.tuneables ?? null);
+    ensureProfileTuneables(profile);
+    if (JSON.stringify(profile.tuneables) !== prevTuneablesRaw) {
+      storeChanged = true;
+    }
+
+    const cols = Math.max(2, Number(profile.grid?.cols) || DEFAULT_GRID_COLS);
+    const rows = Math.max(2, Number(profile.grid?.rows) || DEFAULT_GRID_ROWS);
+    const total = cols * rows;
+    if (!profile.grid || !Array.isArray(profile.grid.cells)) {
+      profile.grid = { cols, rows, cells: blankCells(cols, rows) };
+      storeChanged = true;
+    } else if (profile.grid.cells.length !== total) {
+      profile.grid.cells = profile.grid.cells.concat(blankCells(cols, rows)).slice(0, total);
+      storeChanged = true;
+    }
+
+    const hasScene = profile.sceneSchema && typeof profile.sceneSchema === "object";
+    if (hasScene && isGridEmpty(profile.grid.cells)) {
+      profile.grid.cells = deriveGridCellsFromSceneSchema(profile.sceneSchema, cols, rows);
+      storeChanged = true;
+    }
+  }
+
+  if (storeChanged) {
+    persistProfileStore();
+  }
+}
+
+function activeProfile() {
+  return profileStore.profiles.find((profile) => profile.id === profileStore.activeProfileId) ?? null;
+}
+
+function syncProfileSelect() {
+  if (!profileSelect) return;
+  profileSelect.innerHTML = "";
+  for (const profile of profileStore.profiles) {
+    const opt = document.createElement("option");
+    opt.value = profile.id;
+    opt.textContent = profile.name;
+    profileSelect.appendChild(opt);
+  }
+  if (profileStore.activeProfileId) {
+    profileSelect.value = profileStore.activeProfileId;
+  }
+}
+
+function syncTuneablesTargetProfileSelect() {
+  if (!tuneablesTriggerProfileSelect) return;
+  const currentProfile = activeProfile();
+  const prevValue = tuneablesTriggerProfileSelect.value;
+  tuneablesTriggerProfileSelect.innerHTML = "";
+  for (const profile of profileStore.profiles) {
+    if (currentProfile && profile.id === currentProfile.id) continue;
+    const opt = document.createElement("option");
+    opt.value = profile.id;
+    opt.textContent = profile.name;
+    tuneablesTriggerProfileSelect.appendChild(opt);
+  }
+  if (tuneablesTriggerProfileSelect.options.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "No other profiles";
+    tuneablesTriggerProfileSelect.appendChild(opt);
+  }
+  if (prevValue && Array.from(tuneablesTriggerProfileSelect.options).some((o) => o.value === prevValue)) {
+    tuneablesTriggerProfileSelect.value = prevValue;
+  }
+}
+
+function renderTuneablesTriggerList() {
+  if (!tuneablesTriggerList) return;
+  tuneablesTriggerList.innerHTML = "";
+  const profile = activeProfile();
+  if (!profile) return;
+  const tuneables = tuneablesForProfile(profile);
+  if (!Array.isArray(tuneables.nestedTriggers) || tuneables.nestedTriggers.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "subtle";
+    empty.textContent = "No nested triggers configured.";
+    tuneablesTriggerList.appendChild(empty);
+    return;
+  }
+
+  for (const binding of tuneables.nestedTriggers) {
+    const row = document.createElement("div");
+    row.className = "tuneables-trigger-row";
+
+    const targetName =
+      profileStore.profiles.find((p) => p.id === binding.profileId)?.name ?? "(missing profile)";
+    const text = document.createElement("div");
+    text.textContent = `${binding.elementId} -> ${binding.event} -> ${targetName}`;
+    row.appendChild(text);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "tuneables-trigger-remove";
+    removeBtn.textContent = "Remove";
+    removeBtn.addEventListener("click", () => {
+      tuneables.nestedTriggers = tuneables.nestedTriggers.filter((item) => item.id !== binding.id);
+      profile.updatedAt = new Date().toISOString();
+      persistProfileStore();
+      renderTuneablesTriggerList();
+      syncEditorSchemaOutput();
+      syncLiveBuilderUiFromEditor();
+      status.textContent = `Removed nested trigger "${binding.elementId}:${binding.event}".`;
+    });
+    row.appendChild(removeBtn);
+
+    tuneablesTriggerList.appendChild(row);
+  }
+}
+
+function syncTuneablesUIFromActiveProfile() {
+  const profile = activeProfile();
+  const tuneables = tuneablesForProfile(profile);
+  if (tuneablesAutoResizeGrid) {
+    tuneablesAutoResizeGrid.checked = tuneables.autoResizeGrid !== false;
+  }
+  syncTuneablesTargetProfileSelect();
+  renderTuneablesTriggerList();
+}
+
+function addNestedTriggerBinding() {
+  const profile = activeProfile();
+  if (!profile) return false;
+  const tuneables = tuneablesForProfile(profile);
+  const elementId = tuneablesTriggerElementInput.value.trim();
+  const eventName = tuneablesTriggerEventSelect.value;
+  const targetProfileId = tuneablesTriggerProfileSelect.value;
+
+  if (!elementId) {
+    status.textContent = "Trigger element id is required.";
+    return false;
+  }
+  if (!["click", "change", "select"].includes(eventName)) {
+    status.textContent = "Trigger event must be click, change, or select.";
+    return false;
+  }
+  if (!targetProfileId) {
+    status.textContent = "Select a target profile.";
+    return false;
+  }
+  if (!getProfileById(targetProfileId)) {
+    status.textContent = "Target profile no longer exists.";
+    return false;
+  }
+
+  const duplicate = tuneables.nestedTriggers.find(
+    (binding) =>
+      binding.elementId === elementId &&
+      binding.event === eventName &&
+      binding.profileId === targetProfileId
+  );
+  if (duplicate) {
+    status.textContent = "That trigger mapping already exists.";
+    return false;
+  }
+
+  tuneables.nestedTriggers.push({
+    id: makeId("trigger"),
+    elementId,
+    event: eventName,
+    profileId: targetProfileId,
+  });
+  profile.updatedAt = new Date().toISOString();
+  persistProfileStore();
+  renderTuneablesTriggerList();
+  syncEditorSchemaOutput();
+  syncLiveBuilderUiFromEditor();
+  status.textContent = `Added nested trigger ${elementId} -> ${eventName}.`;
+  return true;
+}
+
+function applyProfileToEditor(profileId) {
+  const profile = profileStore.profiles.find((p) => p.id === profileId);
+  if (!profile) return;
+  ensureProfileTuneables(profile);
+  let derivedFromScene = false;
+
+  profileStore.activeProfileId = profile.id;
+  editorState.activeProfileId = profile.id;
+  editorState.cols = Math.max(2, Number(profile.grid?.cols) || DEFAULT_GRID_COLS);
+  editorState.rows = Math.max(2, Number(profile.grid?.rows) || DEFAULT_GRID_ROWS);
+  const expected = editorState.cols * editorState.rows;
+  const incoming = Array.isArray(profile.grid?.cells) ? profile.grid.cells.slice(0, expected) : [];
+  editorState.cells = incoming.concat(blankCells(editorState.cols, editorState.rows)).slice(0, expected);
+  if (
+    isGridEmpty(editorState.cells) &&
+    profile.sceneSchema &&
+    typeof profile.sceneSchema === "object"
+  ) {
+    editorState.cells = deriveGridCellsFromSceneSchema(
+      profile.sceneSchema,
+      editorState.cols,
+      editorState.rows
+    );
+    profile.grid.cells = editorState.cells.slice();
+    derivedFromScene = true;
+  }
+
+  syncProfileSelect();
+  syncTuneablesUIFromActiveProfile();
+  renderEditorGrid();
+  syncEditorSchemaOutput();
+  syncLiveBuilderUiFromEditor();
+  if (derivedFromScene) {
+    persistProfileStore();
+  }
+}
+
+function commitEditorToActiveProfile() {
+  const profile = activeProfile();
+  if (!profile) return;
+  ensureProfileTuneables(profile);
+  profile.updatedAt = new Date().toISOString();
+  profile.grid = {
+    cols: editorState.cols,
+    rows: editorState.rows,
+    cells: editorState.cells.slice(),
+  };
+  profile.sceneSchema = buildGridSchema();
+  syncLiveBuilderUiFromEditor();
+}
+
+function getProfileById(profileId) {
+  if (!profileId) return null;
+  return profileStore.profiles.find((profile) => profile.id === profileId) ?? null;
+}
+
+function resolveGridBounds(cells, cols, rows, autoResize) {
+  if (!autoResize) {
+    return { minRow: 0, maxRow: rows - 1, minCol: 0, maxCol: cols - 1 };
+  }
+
+  let minRow = rows;
+  let maxRow = -1;
+  let minCol = cols;
+  let maxCol = -1;
+  for (let i = 0; i < cells.length; i++) {
+    const key = cells[i];
+    if (typeof key !== "string" || !catalogEntryByKey.has(key)) continue;
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    if (row < minRow) minRow = row;
+    if (row > maxRow) maxRow = row;
+    if (col < minCol) minCol = col;
+    if (col > maxCol) maxCol = col;
+  }
+
+  if (maxRow < 0 || maxCol < 0) {
+    return { minRow: 0, maxRow: 0, minCol: 0, maxCol: 0 };
+  }
+  return { minRow, maxRow, minCol, maxCol };
+}
+
+function buildGridSchema(opts = {}) {
+  const cols = Math.max(1, Number(opts.cols ?? editorState.cols) || DEFAULT_GRID_COLS);
+  const rows = Math.max(1, Number(opts.rows ?? editorState.rows) || DEFAULT_GRID_ROWS);
+  const total = cols * rows;
+  const cellsInput = Array.isArray(opts.cells) ? opts.cells.slice(0, total) : editorState.cells.slice(0, total);
+  const cells = cellsInput.concat(blankCells(cols, rows)).slice(0, total);
+  const tuneables = opts.tuneables ?? tuneablesForActiveProfile();
+  const autoResize = opts.autoResize ?? (tuneables?.autoResizeGrid !== false);
+
+  const bounds = resolveGridBounds(cells, cols, rows, autoResize);
+  const usedRows = Math.max(1, bounds.maxRow - bounds.minRow + 1);
+  const usedCols = Math.max(1, bounds.maxCol - bounds.minCol + 1);
+  const children = [];
+
+  for (let localRow = 0; localRow < usedRows; localRow++) {
+    for (let localCol = 0; localCol < usedCols; localCol++) {
+      const globalRow = bounds.minRow + localRow;
+      const globalCol = bounds.minCol + localCol;
+      const globalIndex = globalRow * cols + globalCol;
+      const key = cells[globalIndex];
+      if (typeof key === "string" && catalogEntryByKey.has(key)) {
+        const entry = catalogEntryByKey.get(key);
+        const node = cloneDeep(entry.schema);
+        node.id = `${key}-${globalIndex}`;
+        node.sizing = node.sizing || {};
+        if (typeof node.sizing.width !== "number") node.sizing.width = GRID_CELL_SIZE;
+        if (typeof node.sizing.height !== "number") node.sizing.height = GRID_CELL_SIZE;
+        children.push(node);
+      } else {
+        children.push({
+          type: "panel",
+          id: `slot-${globalIndex}`,
+          sizing: { width: GRID_CELL_SIZE, height: GRID_CELL_SIZE },
+          style: { fillAlpha: 0, strokeAlpha: 0, strokeWidth: 0 },
+        });
+      }
+    }
+  }
+
+  const panelWidthAuto =
+    usedCols * GRID_CELL_SIZE + Math.max(0, usedCols - 1) * GRID_CELL_GAP + GRID_PANEL_PADDING * 2;
+  const panelWidth = autoResize ? panelWidthAuto : 292;
+  const rootWidth = autoResize ? panelWidth + GRID_ROOT_PADDING * 2 : 300;
+
+  return {
+    type: "root",
+    id: "builder-preview-root",
+    layout: { type: "STACK_Y", padding: GRID_ROOT_PADDING },
+    sizing: { width: rootWidth, height: "auto" },
+    children: [
+      {
+        type: "panel",
+        id: "builder-grid-panel",
+        sizing: { width: panelWidth, height: "auto" },
+        layout: {
+          type: "GRID",
+          cols: usedCols,
+          rowGap: GRID_CELL_GAP,
+          colGap: GRID_CELL_GAP,
+          padding: GRID_PANEL_PADDING,
+        },
+        style: {
+          fillColor: "#050607",
+          fillAlpha: 0.03,
+          strokeColor: "#B88838",
+          strokeAlpha: 0.35,
+          strokeWidth: 1,
+          cornerRadius: 3,
+        },
+        children,
+      },
+    ],
+  };
+}
+
+function buildSceneSchemaForProfile(profileId) {
+  const profile = getProfileById(profileId) ?? activeProfile();
+  if (!profile) {
+    return buildGridSchema();
+  }
+  const tuneables = tuneablesForProfile(profile);
+  if (profile.sceneSchema && typeof profile.sceneSchema === "object" && profile.sceneSchema.type === "root") {
+    return cloneDeep(profile.sceneSchema);
+  }
+  if (profile.grid && Array.isArray(profile.grid.cells)) {
+    return buildGridSchema({
+      cols: profile.grid.cols,
+      rows: profile.grid.rows,
+      cells: profile.grid.cells,
+      tuneables,
+      autoResize: tuneables.autoResizeGrid !== false,
+    });
+  }
+  return buildGridSchema();
+}
+
+function buildActiveSceneSchema() {
+  return buildSceneSchemaForProfile(profileStore.activeProfileId);
+}
+
+function syncEditorSchemaOutput() {
+  if (!editorSchemaOutput) return;
+  const schema = buildGridSchema();
+  const sceneSchema = buildActiveSceneSchema();
+  const errors = UIHydrate.validate(schema);
+  const sceneErrors = UIHydrate.validate(sceneSchema);
+  const tuneables = tuneablesForActiveProfile();
+  editorSchemaOutput.value = JSON.stringify(
+    {
+      version: PROFILE_VERSION,
+      profileId: profileStore.activeProfileId,
+      tuneables,
+      errors,
+      sceneErrors,
+      schema,
+      sceneSchema,
+    },
+    null,
+    2
+  );
+}
+
+function setEditorTrashMode(enabled) {
+  if (editorTrashMode === enabled) return;
+  editorTrashMode = enabled;
+  if (!editorClearBtn) return;
+  if (enabled) {
+    editorClearBtn.textContent = "Trash Drop Zone";
+    editorClearBtn.classList.add("trash-target");
+  } else {
+    editorClearBtn.textContent = "Clear Grid";
+    editorClearBtn.classList.remove("trash-target");
+    editorClearBtn.classList.remove("drop-hover-trash");
+  }
+}
+
+function parseDraggedEditorCellIndex(event) {
+  const raw = event.dataTransfer?.getData("text/plain") ?? "";
+  if (!raw.startsWith(EDITOR_CELL_DRAG_PREFIX)) return null;
+  const value = Number(raw.slice(EDITOR_CELL_DRAG_PREFIX.length));
+  if (!Number.isInteger(value)) return null;
+  if (value < 0 || value >= editorState.cells.length) return null;
+  return value;
+}
+
+function renderEditorGrid() {
+  if (!editorGrid) return;
+  editorGrid.innerHTML = "";
+  editorGrid.style.gridTemplateColumns = `repeat(${editorState.cols}, minmax(0, 1fr))`;
+
+  for (let i = 0; i < editorState.cells.length; i++) {
+    const key = editorState.cells[i];
+    const entry = typeof key === "string" ? catalogEntryByKey.get(key) : null;
+    const cell = document.createElement("div");
+    cell.className = `editor-cell${entry ? " filled" : ""}`;
+    cell.dataset.index = String(i);
+    cell.textContent = entry ? entry.label : "+";
+    if (entry) {
+      cell.draggable = true;
+      cell.addEventListener("dragstart", (event) => {
+        if (!event.dataTransfer) return;
+        event.dataTransfer.setData("text/plain", `${EDITOR_CELL_DRAG_PREFIX}${i}`);
+        event.dataTransfer.effectAllowed = "move";
+        setEditorTrashMode(true);
+      });
+      cell.addEventListener("dragend", () => {
+        setEditorTrashMode(false);
+      });
+    }
+
+    cell.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      cell.classList.add("drop-hover");
+      if (event.dataTransfer) {
+        const draggedCellIndex = parseDraggedEditorCellIndex(event);
+        event.dataTransfer.dropEffect = draggedCellIndex !== null ? "move" : "copy";
+      }
+    });
+    cell.addEventListener("dragleave", () => {
+      cell.classList.remove("drop-hover");
+    });
+    cell.addEventListener("drop", (event) => {
+      event.preventDefault();
+      cell.classList.remove("drop-hover");
+      const draggedCellIndex = parseDraggedEditorCellIndex(event);
+      if (draggedCellIndex !== null) {
+        if (draggedCellIndex === i) return;
+        const sourceKey = editorState.cells[draggedCellIndex];
+        if (typeof sourceKey !== "string" || !catalogEntryByKey.has(sourceKey)) return;
+        const targetKey = editorState.cells[i];
+        editorState.cells[i] = sourceKey;
+        editorState.cells[draggedCellIndex] =
+          typeof targetKey === "string" && catalogEntryByKey.has(targetKey) ? targetKey : null;
+        commitEditorToActiveProfile();
+        persistProfileStore();
+        renderEditorGrid();
+        syncEditorSchemaOutput();
+        setEditorTrashMode(false);
+        return;
+      }
+
+      const dropped = event.dataTransfer?.getData("text/plain") ?? "";
+      if (!catalogEntryByKey.has(dropped)) return;
+      editorState.cells[i] = dropped;
+      commitEditorToActiveProfile();
+      persistProfileStore();
+      renderEditorGrid();
+      syncEditorSchemaOutput();
+    });
+    cell.addEventListener("click", () => {
+      if (!entry) return;
+      if (tuneablesTriggerElementInput) {
+        tuneablesTriggerElementInput.value = `${key}-${i}`;
+      }
+      setCustomizerFromEntry(entry);
+      renderCatalog();
+    });
+
+    editorGrid.appendChild(cell);
+  }
+}
+
+function disposeCatalogPreviews() {
+  for (const runtime of previewRuntimes) {
+    runtime.dispose();
+  }
+  previewRuntimes.length = 0;
+}
+
+function resizeCatalogPreviews() {
+  for (const runtime of previewRuntimes) {
+    runtime.resize();
+  }
+}
+
+function createCatalogPreview(canvas, entry) {
+  const renderer = new WebGLRenderer({
+    canvas,
+    alpha: true,
+    antialias: true,
+  });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, PREVIEW_PIXEL_RATIO_MAX));
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new Scene();
+  const camera = new PerspectiveCamera(44, 1, 0.01, 10);
+  camera.position.set(0, 0, 2.25);
+  camera.lookAt(0, 0, 0);
+
+  const schema = {
+    type: "root",
+    layout: { type: "STACK_X", justify: "center", align: "center", padding: 8 },
+    sizing: { width: 88, height: 88 },
+    children: [cloneDeep(entry.schema)],
+  };
+
+  const root = UIHydrate.fromSchema(schema, {
+    theme: ThemeFactory(),
+    rootOptions: { uiUnitMeters: 0.01, depthTest: false },
+  });
+  scene.add(root);
+
+  const runtime = {
+    canvas,
+    renderer,
+    scene,
+    camera,
+    root,
+    spin: entry.kind === "component" ? 0.25 : 0.38,
+    resize() {
+      const width = Math.max(1, canvas.clientWidth);
+      const height = Math.max(1, canvas.clientHeight);
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    },
+    update(dt) {
+      root.rotation.y += dt * this.spin;
+      root.rotation.z += dt * 0.08;
+      root.update(dt, camera);
+      renderer.render(scene, camera);
+    },
+    dispose() {
+      root.removeFromParent();
+      renderer.dispose();
+    },
+  };
+
+  runtime.resize();
+  return runtime;
+}
+
+function startCatalogPreviewLoop() {
+  if (previewLoopStarted) return;
+  previewLoopStarted = true;
+  const tick = (ts) => {
+    const dt = Math.max(0, Math.min(0.05, (ts - previewLastTime) / 1000));
+    previewLastTime = ts;
+    for (const runtime of previewRuntimes) {
+      runtime.update(dt);
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+function setCustomizerFromEntry(entry) {
+  if (!entry) return;
+  customizerState.sourceKey = entry.key;
+  customizerState.isCustom = entry.custom === true;
+
+  customizerSource.textContent = `Selected: ${entry.label} (${entry.key})`;
+  customizerKeyInput.value = entry.key;
+  customizerLabelInput.value = entry.label;
+  customizerKindSelect.value = entry.kind;
+  customizerTagsInput.value = (entry.tags ?? []).join(", ");
+  customizerSchemaInput.value = JSON.stringify(entry.schema, null, 2);
+  customizerDeleteBtn.disabled = entry.custom !== true;
+}
+
+function resetCustomizerDraft() {
+  if (customizerState.sourceKey && catalogEntryByKey.has(customizerState.sourceKey)) {
+    setCustomizerFromEntry(catalogEntryByKey.get(customizerState.sourceKey));
+    return;
+  }
+
+  const fallback = activeCatalogRegistry[0];
+  if (fallback) {
+    setCustomizerFromEntry(fallback);
+    return;
+  }
+
+  customizerSource.textContent = "Select a catalog element to customize.";
+  customizerKeyInput.value = "";
+  customizerLabelInput.value = "";
+  customizerKindSelect.value = "primitive";
+  customizerTagsInput.value = "";
+  customizerSchemaInput.value = "";
+  customizerDeleteBtn.disabled = true;
+}
+
+function readCustomizerDraft() {
+  const key = customizerKeyInput.value.trim().toLowerCase().replace(/[^a-z0-9-_]+/g, "-");
+  const label = customizerLabelInput.value.trim();
+  const tags = customizerTagsInput.value
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+
+  if (!key) {
+    throw new Error("Customizer key is required.");
+  }
+  if (!label) {
+    throw new Error("Customizer label is required.");
+  }
+
+  let schema;
+  try {
+    schema = JSON.parse(customizerSchemaInput.value);
+  } catch {
+    throw new Error("Customizer schema is not valid JSON.");
+  }
+  if (!schema || typeof schema !== "object" || typeof schema.type !== "string") {
+    throw new Error("Customizer schema must be an object with a valid type.");
+  }
+  if (schema.type === "root") {
+    throw new Error("Customizer schema type cannot be root. Use an element/component node.");
+  }
+
+  const schemaValidation = UIHydrate.validate({
+    type: "root",
+    children: [schema],
+  });
+  if (schemaValidation.length > 0) {
+    throw new Error(`Schema invalid: ${schemaValidation[0]}`);
+  }
+
+  return {
+    key,
+    label,
+    kind: customizerKindSelect.value,
+    tags,
+    schema,
+    custom: true,
+  };
+}
+
+function saveCustomizerDraft() {
+  const draft = sanitizeCatalogEntry(readCustomizerDraft(), makeId("custom"));
+  if (!draft) {
+    throw new Error("Unable to sanitize custom element.");
+  }
+  draft.custom = true;
+
+  const baseHasKey = BASE_CATALOG_REGISTRY.some((entry) => entry.key === draft.key);
+  if (baseHasKey && (!customizerState.isCustom || customizerState.sourceKey !== draft.key)) {
+    throw new Error(`"${draft.key}" already exists as a built-in element key.`);
+  }
+
+  const existingIdx = customCatalogEntries.findIndex((entry) => entry.key === draft.key);
+  if (existingIdx >= 0) {
+    customCatalogEntries[existingIdx] = draft;
+  } else {
+    customCatalogEntries.push(draft);
+  }
+
+  persistCustomCatalogEntries();
+  rebuildCatalogRegistry();
+  customizerState.sourceKey = draft.key;
+  customizerState.isCustom = true;
+  renderCatalog();
+  syncEditorSchemaOutput();
+  syncLiveBuilderUiFromEditor();
+}
+
+function deleteCustomizerDraft() {
+  const key = customizerKeyInput.value.trim();
+  if (!key) return false;
+  const before = customCatalogEntries.length;
+  customCatalogEntries = customCatalogEntries.filter((entry) => entry.key !== key);
+  if (customCatalogEntries.length === before) {
+    return false;
+  }
+
+  for (let i = 0; i < editorState.cells.length; i++) {
+    if (editorState.cells[i] === key) {
+      editorState.cells[i] = null;
+    }
+  }
+  for (const profile of profileStore.profiles) {
+    if (!profile.grid || !Array.isArray(profile.grid.cells)) continue;
+    profile.grid.cells = profile.grid.cells.map((cell) => (cell === key ? null : cell));
+  }
+  commitEditorToActiveProfile();
+  persistProfileStore();
+
+  persistCustomCatalogEntries();
+  rebuildCatalogRegistry();
+  customizerState.sourceKey = null;
+  customizerState.isCustom = false;
+  renderEditorGrid();
+  renderCatalog();
+  syncEditorSchemaOutput();
+  return true;
+}
+
+function filteredCatalogEntries() {
+  const search = (catalogSearch?.value ?? "").trim().toLowerCase();
+  const kind = catalogType?.value ?? "all";
+  return activeCatalogRegistry.filter((entry) => {
+    if (kind !== "all" && entry.kind !== kind) return false;
+    if (!search) return true;
+    const hay = `${entry.key} ${entry.label} ${entry.tags.join(" ")}`.toLowerCase();
+    return hay.includes(search);
+  });
+}
+
+function renderCatalog() {
+  if (!catalogList) return;
+  disposeCatalogPreviews();
+  catalogList.innerHTML = "";
+
+  const list = filteredCatalogEntries();
+  for (const entry of list) {
+    const card = document.createElement("article");
+    card.className = "catalog-card";
+    if (entry.key === customizerState.sourceKey) {
+      card.classList.add("selected");
+    }
+    card.draggable = true;
+    card.dataset.key = entry.key;
+
+    const preview = document.createElement("canvas");
+    preview.className = "catalog-preview";
+    card.appendChild(preview);
+
+    const meta = document.createElement("div");
+    meta.className = "catalog-meta";
+    meta.innerHTML = `
+      <div class="catalog-name">${entry.label}</div>
+      <div class="catalog-kind">${entry.kind}</div>
+      <div class="catalog-tags">${entry.tags.join(" · ")}</div>
+    `;
+    card.appendChild(meta);
+
+    card.addEventListener("dragstart", (event) => {
+      if (!event.dataTransfer) return;
+      card.classList.add("dragging");
+      event.dataTransfer.setData("text/plain", entry.key);
+      event.dataTransfer.effectAllowed = "copy";
+      status.textContent = `Dragging ${entry.label}. Drop into a grid cell.`;
+    });
+    card.addEventListener("dragend", () => {
+      card.classList.remove("dragging");
+    });
+    card.addEventListener("click", () => {
+      setCustomizerFromEntry(entry);
+      renderCatalog();
+    });
+
+    catalogList.appendChild(card);
+    previewRuntimes.push(createCatalogPreview(preview, entry));
+  }
+
+  resizeCatalogPreviews();
+  if (!customizerState.sourceKey && list.length > 0) {
+    setCustomizerFromEntry(list[0]);
+  } else if (list.length === 0) {
+    customizerSource.textContent = "No catalog elements match current filters.";
+  }
+}
+
+function exportActiveProfile() {
+  const profile = activeProfile();
+  if (!profile) return;
+  const usedKeys = new Set(
+    (profile.grid?.cells ?? []).filter((cell) => typeof cell === "string")
+  );
+  const exportedCustomElements = customCatalogEntries.filter((entry) => usedKeys.has(entry.key));
+  const payload = {
+    version: PROFILE_VERSION,
+    exportedAt: new Date().toISOString(),
+    profile,
+    schema: buildGridSchema(),
+    customElements: exportedCustomElements,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${profile.name.replace(/\s+/g, "-").toLowerCase()}-profile.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importProfilePayload(payload) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Invalid profile payload");
+  }
+
+  if (Array.isArray(payload.customElements)) {
+    for (const raw of payload.customElements) {
+      const entry = sanitizeCatalogEntry(raw);
+      if (!entry) continue;
+      entry.custom = true;
+      const idx = customCatalogEntries.findIndex((it) => it.key === entry.key);
+      if (idx >= 0) {
+        customCatalogEntries[idx] = entry;
+      } else {
+        customCatalogEntries.push(entry);
+      }
+    }
+    persistCustomCatalogEntries();
+    rebuildCatalogRegistry();
+  }
+
+  const incoming = payload.profile && typeof payload.profile === "object"
+    ? payload.profile
+    : payload;
+  if (!incoming.grid || !Array.isArray(incoming.grid.cells)) {
+    throw new Error("Missing grid cells in profile");
+  }
+  const profile = {
+    id: makeId("profile"),
+    version: PROFILE_VERSION,
+    name: typeof incoming.name === "string" ? incoming.name : "Imported Profile",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    grid: {
+      cols: Math.max(2, Number(incoming.grid.cols) || DEFAULT_GRID_COLS),
+      rows: Math.max(2, Number(incoming.grid.rows) || DEFAULT_GRID_ROWS),
+      cells: incoming.grid.cells.map((cell) =>
+        typeof cell === "string" && catalogEntryByKey.has(cell) ? cell : null
+      ),
+    },
+    tuneables: normalizeProfileTuneables(incoming.tuneables),
+  };
+  if (
+    incoming.sceneSchema &&
+    typeof incoming.sceneSchema === "object" &&
+    incoming.sceneSchema.type === "root"
+  ) {
+    profile.sceneSchema = cloneDeep(incoming.sceneSchema);
+  }
+
+  profileStore.profiles.push(profile);
+  profileStore.activeProfileId = profile.id;
+  persistProfileStore();
+  applyProfileToEditor(profile.id);
+  renderCatalog();
 }
 
 function getRuntimeUIManager(runtime = activeRuntime) {
@@ -535,7 +2493,265 @@ function cacheRuntimeAnchor(runtime) {
   });
 }
 
+function disposeBuilderUiInstance(instance, runtime = activeRuntime) {
+  if (!instance) return;
+  const uiManager = getRuntimeUIManager(runtime);
+  if (uiManager && instance.root) {
+    uiManager.removeRoot(instance.root);
+  } else if (instance.root) {
+    instance.root.removeFromParent();
+  }
+  if (instance.anchorTarget) {
+    instance.anchorTarget.removeFromParent();
+  }
+}
+
+function clearBuilderUiPlacements(runtime = activeRuntime) {
+  if (placedBuilderUiInstance) {
+    disposeBuilderUiInstance(placedBuilderUiInstance, runtime);
+    placedBuilderUiInstance = null;
+  }
+  if (dragBuilderUiInstance) {
+    disposeBuilderUiInstance(dragBuilderUiInstance, runtime);
+    dragBuilderUiInstance = null;
+  }
+  builderPlacementArmed = false;
+}
+
+function buildNestedTriggerEvents(profileId, instance) {
+  const profile = getProfileById(profileId);
+  const tuneables = tuneablesForProfile(profile);
+  const events = {};
+  for (const binding of tuneables.nestedTriggers) {
+    if (!binding || !binding.elementId || !binding.event || !binding.profileId) continue;
+    if (!events[binding.elementId]) {
+      events[binding.elementId] = {};
+    }
+    events[binding.elementId][binding.event] = () => {
+      switchBuilderUiInstanceProfile(instance, binding.profileId);
+    };
+  }
+  return events;
+}
+
+function createBuilderRoot(anchorTarget, opts = {}) {
+  const preview = opts.preview === true;
+  const profileId = opts.profileId ?? profileStore.activeProfileId;
+  const schema = buildSceneSchemaForProfile(profileId);
+  const errors = UIHydrate.validate(schema);
+  if (errors.length > 0) {
+    throw new Error(`Schema validation failed: ${errors[0]}`);
+  }
+
+  const root = UIHydrate.fromSchema(schema, {
+    theme: ThemeFactory(),
+    events: preview ? undefined : buildNestedTriggerEvents(profileId, opts.instance),
+    rootOptions: {
+      uiUnitMeters: 0.01,
+      depthTest: false,
+      renderOrder: 120,
+      pivot: "BOTTOM_CENTER",
+      anchor: {
+        target: anchorTarget,
+        mode: "object",
+        facing: "BILLBOARD_YAW",
+        smoothingHz: preview ? 0 : 10,
+      },
+    },
+  });
+  if (root.anchor) {
+    root.anchor.offsetPos.set(0, 0.22, 0);
+    root.anchor.offsetRot.identity();
+  }
+  root.visible = !preview;
+  return root;
+}
+
+function rehydrateBuilderUiInstance(instance) {
+  const runtime = activeRuntime;
+  const uiManager = getRuntimeUIManager(runtime);
+  if (!runtime || !uiManager || !instance || !instance.anchorTarget) return;
+  const activeProfileId = profileStore.activeProfileId;
+  if (activeProfileId && instance.currentProfileId && instance.currentProfileId !== activeProfileId) {
+    return;
+  }
+
+  const prevRoot = instance.root ?? null;
+  const prevVisible = prevRoot ? prevRoot.visible : true;
+  const prevSmoothing = prevRoot?.anchor?.smoothingHz;
+
+  let nextRoot;
+  try {
+    nextRoot = createBuilderRoot(instance.anchorTarget, {
+      preview: instance.preview === true,
+      profileId: instance.currentProfileId ?? activeProfileId,
+      instance,
+    });
+  } catch (err) {
+    console.error("[builder-ui] rehydrate failed", err);
+    status.textContent = err instanceof Error ? err.message : "Failed to sync live scene UI.";
+    return;
+  }
+
+  if (nextRoot.anchor && typeof prevSmoothing === "number") {
+    nextRoot.anchor.smoothingHz = prevSmoothing;
+  }
+  nextRoot.visible = prevVisible;
+
+  if (prevRoot) {
+    uiManager.removeRoot(prevRoot);
+  }
+  uiManager.addRoot(nextRoot);
+  instance.root = nextRoot;
+  applyDebugStateToRuntime(runtime);
+}
+
+function switchBuilderUiInstanceProfile(instance, profileId) {
+  const runtime = activeRuntime;
+  const uiManager = getRuntimeUIManager(runtime);
+  const targetProfile = getProfileById(profileId);
+  if (!runtime || !uiManager || !instance || !instance.anchorTarget || !targetProfile) {
+    return;
+  }
+  if (instance.currentProfileId === targetProfile.id) {
+    return;
+  }
+
+  const prevRoot = instance.root ?? null;
+  const prevVisible = prevRoot ? prevRoot.visible : true;
+  const prevSmoothing = prevRoot?.anchor?.smoothingHz;
+
+  let nextRoot;
+  try {
+    nextRoot = createBuilderRoot(instance.anchorTarget, {
+      preview: instance.preview === true,
+      profileId: targetProfile.id,
+      instance,
+    });
+  } catch (err) {
+    console.error("[builder-ui] nested trigger load failed", err);
+    status.textContent = err instanceof Error ? err.message : "Failed to load nested profile UI.";
+    return;
+  }
+
+  if (nextRoot.anchor && typeof prevSmoothing === "number") {
+    nextRoot.anchor.smoothingHz = prevSmoothing;
+  }
+  nextRoot.visible = prevVisible;
+
+  if (prevRoot) {
+    uiManager.removeRoot(prevRoot);
+  }
+  uiManager.addRoot(nextRoot);
+  instance.root = nextRoot;
+  instance.currentProfileId = targetProfile.id;
+  applyDebugStateToRuntime(runtime);
+  status.textContent = `Nested profile "${targetProfile.name}" triggered.`;
+}
+
+function syncLiveBuilderUiFromEditor() {
+  if (placedBuilderUiInstance) {
+    rehydrateBuilderUiInstance(placedBuilderUiInstance);
+  }
+  if (dragBuilderUiInstance) {
+    rehydrateBuilderUiInstance(dragBuilderUiInstance);
+  }
+}
+
+function createBuilderUiInstance(preview = false) {
+  const runtime = activeRuntime;
+  const uiManager = getRuntimeUIManager(runtime);
+  if (!runtime || !uiManager) {
+    throw new Error("No active runtime UI manager.");
+  }
+
+  const anchorTarget = new Object3D();
+  anchorTarget.name = preview
+    ? "builder-ui-grid-anchor-preview"
+    : "builder-ui-grid-anchor-final";
+  scene.add(anchorTarget);
+
+  const instance = {
+    root: null,
+    anchorTarget,
+    preview,
+    currentProfileId: profileStore.activeProfileId,
+  };
+  const root = createBuilderRoot(anchorTarget, {
+    preview,
+    profileId: instance.currentProfileId,
+    instance,
+  });
+  instance.root = root;
+  uiManager.addRoot(root);
+  applyDebugStateToRuntime(runtime);
+  return instance;
+}
+
+function placeBuilderUiFromHover(event, fromClick = false) {
+  const runtime = activeRuntime;
+  const backdrop = getRuntimeBackdrop(runtime);
+  if (!runtime || !backdrop) {
+    status.textContent = "No active runtime/backdrop available for placement.";
+    return false;
+  }
+
+  updateBackdropRayFromClient(event);
+  if (typeof backdrop.getHoveredGridPoint !== "function") {
+    status.textContent = "Backdrop does not expose hovered grid point placement.";
+    return false;
+  }
+
+  const point = backdrop.getHoveredGridPoint(false);
+  if (!point) {
+    status.textContent = fromClick
+      ? "No grid point hovered. Move over an asterisk and click again."
+      : "Drop over an asterisk grid point to place UI.";
+    return false;
+  }
+
+  if (placedBuilderUiInstance) {
+    disposeBuilderUiInstance(placedBuilderUiInstance, runtime);
+    placedBuilderUiInstance = null;
+  }
+
+  let instance = dragBuilderUiInstance;
+  if (!instance) {
+    try {
+      instance = createBuilderUiInstance(false);
+    } catch (err) {
+      console.error("[builder-ui] create failed", err);
+      status.textContent = err instanceof Error ? err.message : "Failed to build scene UI.";
+      return false;
+    }
+  }
+
+  instance.anchorTarget.position.copy(point);
+  instance.root.visible = true;
+  if (instance.root.anchor) {
+    instance.root.anchor.smoothingHz = 10;
+  }
+
+  placedBuilderUiInstance = instance;
+  dragBuilderUiInstance = null;
+
+  const snapshot =
+    typeof backdrop.getHoveredGridSnapshot === "function"
+      ? backdrop.getHoveredGridSnapshot(false)
+      : null;
+  status.textContent = snapshot
+    ? `Built UI placed at ${snapshot.label}.`
+    : `Built UI placed at (${formatNum(point.x)}, ${formatNum(point.y)}, ${formatNum(point.z)}).`;
+  return true;
+}
+
 function handleCanvasClick(event) {
+  if (builderPlacementArmed) {
+    builderPlacementArmed = false;
+    placeBuilderUiFromHover(event, true);
+    return;
+  }
+
   const backdrop = getRuntimeBackdrop();
   if (!backdrop) return;
 
@@ -553,6 +2769,83 @@ function handleCanvasClick(event) {
   }
 }
 
+function handleAddBuiltUiClick() {
+  if (!activeRuntime) {
+    status.textContent = "No active runtime to place into.";
+    return;
+  }
+  builderPlacementArmed = true;
+  status.textContent =
+    "Placement armed. Hover an asterisk grid point, then click to place built UI.";
+}
+
+function handleAddBuiltUiDragStart(event) {
+  builderPlacementArmed = false;
+  if (!activeRuntime) {
+    event.preventDefault();
+    status.textContent = "No active runtime to place into.";
+    return;
+  }
+
+  if (dragBuilderUiInstance) {
+    disposeBuilderUiInstance(dragBuilderUiInstance, activeRuntime);
+    dragBuilderUiInstance = null;
+  }
+
+  try {
+    dragBuilderUiInstance = createBuilderUiInstance(true);
+    dragBuilderUiInstance.root.visible = false;
+    status.textContent = "Drag over the scene. Release on an asterisk grid point to place UI.";
+  } catch (err) {
+    event.preventDefault();
+    console.error("[builder-ui] drag create failed", err);
+    status.textContent = err instanceof Error ? err.message : "Failed to start drag placement.";
+    return;
+  }
+
+  if (event.dataTransfer) {
+    event.dataTransfer.setData("text/plain", "builder-ui-placement");
+    event.dataTransfer.effectAllowed = "copy";
+  }
+}
+
+function handleCanvasDragOver(event) {
+  if (!dragBuilderUiInstance) return;
+  event.preventDefault();
+
+  updateBackdropRayFromClient(event);
+  const backdrop = getRuntimeBackdrop();
+  const point =
+    backdrop && typeof backdrop.getHoveredGridPoint === "function"
+      ? backdrop.getHoveredGridPoint(false)
+      : null;
+
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = point ? "copy" : "none";
+  }
+
+  if (!point) {
+    dragBuilderUiInstance.root.visible = false;
+    return;
+  }
+
+  dragBuilderUiInstance.anchorTarget.position.copy(point);
+  dragBuilderUiInstance.root.visible = true;
+}
+
+function handleCanvasDrop(event) {
+  if (!dragBuilderUiInstance) return;
+  event.preventDefault();
+  placeBuilderUiFromHover(event, false);
+}
+
+function handleAddBuiltUiDragEnd() {
+  if (!dragBuilderUiInstance) return;
+  disposeBuilderUiInstance(dragBuilderUiInstance, activeRuntime);
+  dragBuilderUiInstance = null;
+  status.textContent = "Drag placement cancelled.";
+}
+
 function attachRootToSelectedGridPoint() {
   const runtime = activeRuntime;
   const root = getRuntimeRoot(runtime);
@@ -562,14 +2855,25 @@ function attachRootToSelectedGridPoint() {
     return;
   }
 
-  if (typeof backdrop.getSelectedGridPoint !== "function") {
-    status.textContent = "Backdrop does not support selected grid point snapping.";
+  if (
+    typeof backdrop.getHoveredGridPoint !== "function" &&
+    typeof backdrop.getSelectedGridPoint !== "function"
+  ) {
+    status.textContent = "Backdrop does not support hover/selected grid point snapping.";
     return;
   }
 
-  const groundedPoint = backdrop.getSelectedGridPoint(true);
-  if (!groundedPoint) {
-    status.textContent = "Click a grid point to select it first, then attach UI.";
+  const hoveredPoint =
+    typeof backdrop.getHoveredGridPoint === "function"
+      ? backdrop.getHoveredGridPoint(false)
+      : null;
+  const selectedPoint =
+    typeof backdrop.getSelectedGridPoint === "function"
+      ? backdrop.getSelectedGridPoint(false)
+      : null;
+  const targetPoint = hoveredPoint ?? selectedPoint;
+  if (!targetPoint) {
+    status.textContent = "Hover (or select) a grid point first, then attach UI.";
     return;
   }
 
@@ -580,7 +2884,7 @@ function attachRootToSelectedGridPoint() {
     scene.add(anchorTarget);
     runtimeGridAnchorTargets.set(runtime, anchorTarget);
   }
-  anchorTarget.position.copy(groundedPoint);
+  anchorTarget.position.copy(targetPoint);
 
   root.anchor.target = anchorTarget;
   root.anchor.mode = "object";
@@ -590,7 +2894,7 @@ function attachRootToSelectedGridPoint() {
   root.anchor.smoothingHz = 12;
   root.anchor.customFacing = undefined;
 
-  status.textContent = `UI attached to selected grid point (${Math.round(groundedPoint.x)}, 0, ${Math.round(groundedPoint.z)}).`;
+  status.textContent = `UI attached at (${formatNum(targetPoint.x)}, ${formatNum(targetPoint.y)}, ${formatNum(targetPoint.z)}).`;
 }
 
 function restoreRuntimeAnchor() {
@@ -720,6 +3024,8 @@ function handleResize() {
   if (activeRuntime && typeof activeRuntime.onResize === "function") {
     activeRuntime.onResize(width, height);
   }
+
+  resizeCatalogPreviews();
 }
 
 function ensureThree() {
@@ -739,6 +3045,8 @@ function ensureThree() {
   renderer.domElement.addEventListener("pointermove", handleCanvasPointerMove);
   renderer.domElement.addEventListener("pointerleave", handleCanvasPointerLeave);
   renderer.domElement.addEventListener("click", handleCanvasClick);
+  renderer.domElement.addEventListener("dragover", handleCanvasDragOver);
+  renderer.domElement.addEventListener("drop", handleCanvasDrop);
 
   if (typeof ResizeObserver !== "undefined") {
     viewportResizeObserver = new ResizeObserver(() => {
@@ -764,6 +3072,8 @@ if (window.visualViewport) {
 
 async function unloadActiveRuntime() {
   if (!activeRuntime) return;
+
+  clearBuilderUiPlacements(activeRuntime);
 
   const anchorTarget = runtimeGridAnchorTargets.get(activeRuntime);
   if (anchorTarget) {
@@ -959,13 +3269,221 @@ toggleLayoutBounds.addEventListener("change", () => {
   applyDebugStateToRuntime();
 });
 
+addBuiltUiBtn.addEventListener("click", handleAddBuiltUiClick);
+addBuiltUiBtn.addEventListener("dragstart", handleAddBuiltUiDragStart);
+addBuiltUiBtn.addEventListener("dragend", handleAddBuiltUiDragEnd);
+editorInjectBtn.addEventListener("click", handleAddBuiltUiClick);
+editorInjectBtn.addEventListener("dragstart", handleAddBuiltUiDragStart);
+editorInjectBtn.addEventListener("dragend", handleAddBuiltUiDragEnd);
+
 attachGridBtn.addEventListener("click", attachRootToSelectedGridPoint);
 restoreAnchorBtn.addEventListener("click", restoreRuntimeAnchor);
+
+catalogSearch.addEventListener("input", () => {
+  renderCatalog();
+});
+
+catalogType.addEventListener("change", () => {
+  renderCatalog();
+});
+
+customizerSaveBtn.addEventListener("click", () => {
+  try {
+    saveCustomizerDraft();
+    status.textContent = `Saved custom element "${customizerLabelInput.value.trim()}".`;
+  } catch (err) {
+    status.textContent = err instanceof Error ? err.message : "Failed to save custom element.";
+  }
+});
+
+customizerResetBtn.addEventListener("click", () => {
+  resetCustomizerDraft();
+  status.textContent = "Customizer reset.";
+});
+
+customizerDeleteBtn.addEventListener("click", () => {
+  const key = customizerKeyInput.value.trim();
+  if (!key) return;
+  const ok = window.confirm(`Delete custom element "${key}"?`);
+  if (!ok) return;
+  const deleted = deleteCustomizerDraft();
+  if (deleted) {
+    status.textContent = `Deleted custom element "${key}".`;
+  } else {
+    status.textContent = `No custom element found for key "${key}".`;
+  }
+});
+
+tuneablesAutoResizeGrid.addEventListener("change", () => {
+  const profile = activeProfile();
+  if (!profile) return;
+  const tuneables = tuneablesForProfile(profile);
+  tuneables.autoResizeGrid = tuneablesAutoResizeGrid.checked;
+  profile.updatedAt = new Date().toISOString();
+  profile.sceneSchema = buildGridSchema({
+    cols: profile.grid?.cols ?? editorState.cols,
+    rows: profile.grid?.rows ?? editorState.rows,
+    cells: profile.grid?.cells ?? editorState.cells,
+    tuneables,
+    autoResize: tuneables.autoResizeGrid !== false,
+  });
+  persistProfileStore();
+  syncEditorSchemaOutput();
+  syncLiveBuilderUiFromEditor();
+  status.textContent = `Auto resize ${tuneables.autoResizeGrid ? "enabled" : "disabled"}.`;
+});
+
+tuneablesAddTriggerBtn.addEventListener("click", () => {
+  addNestedTriggerBinding();
+});
+
+tuneablesTriggerElementInput.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  addNestedTriggerBinding();
+});
+
+profileSelect.addEventListener("change", () => {
+  applyProfileToEditor(profileSelect.value);
+  persistProfileStore();
+});
+
+profileNewBtn.addEventListener("click", () => {
+  const name = window.prompt("Profile name", "New Profile");
+  if (!name) return;
+  const profile = createProfile(name.trim() || "New Profile");
+  profileStore.profiles.push(profile);
+  profileStore.activeProfileId = profile.id;
+  persistProfileStore();
+  applyProfileToEditor(profile.id);
+  status.textContent = `Created profile "${profile.name}".`;
+});
+
+profileSaveBtn.addEventListener("click", () => {
+  const schema = buildGridSchema();
+  const errors = UIHydrate.validate(schema);
+  if (errors.length > 0) {
+    status.textContent = `Validation failed: ${errors[0]}`;
+    syncEditorSchemaOutput();
+    return;
+  }
+
+  commitEditorToActiveProfile();
+  persistProfileStore();
+  syncEditorSchemaOutput();
+  status.textContent = "Profile saved.";
+});
+
+profileDeleteBtn.addEventListener("click", () => {
+  if (profileStore.profiles.length <= 1) {
+    status.textContent = "At least one profile must remain.";
+    return;
+  }
+  const profile = activeProfile();
+  if (!profile) return;
+  const ok = window.confirm(`Delete profile "${profile.name}"?`);
+  if (!ok) return;
+
+  profileStore.profiles = profileStore.profiles.filter((p) => p.id !== profile.id);
+  profileStore.activeProfileId = profileStore.profiles[0]?.id ?? null;
+  persistProfileStore();
+  applyProfileToEditor(profileStore.activeProfileId);
+  status.textContent = `Deleted profile "${profile.name}".`;
+});
+
+profileExportBtn.addEventListener("click", () => {
+  exportActiveProfile();
+  status.textContent = "Exported active profile.";
+});
+
+profileImportBtn.addEventListener("click", () => {
+  profileImportFile.value = "";
+  profileImportFile.click();
+});
+
+profileImportFile.addEventListener("change", async () => {
+  const file = profileImportFile.files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const payload = JSON.parse(text);
+    importProfilePayload(payload);
+    status.textContent = `Imported profile from ${file.name}.`;
+  } catch (err) {
+    console.error("[profiles] import failed", err);
+    status.textContent = `Profile import failed (${file.name}).`;
+  }
+});
+
+editorClearBtn.addEventListener("dragover", (event) => {
+  const draggedIndex = parseDraggedEditorCellIndex(event);
+  if (draggedIndex === null) return;
+  event.preventDefault();
+  editorClearBtn.classList.add("drop-hover-trash");
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+  }
+});
+
+editorClearBtn.addEventListener("dragleave", () => {
+  editorClearBtn.classList.remove("drop-hover-trash");
+});
+
+editorClearBtn.addEventListener("drop", (event) => {
+  const draggedIndex = parseDraggedEditorCellIndex(event);
+  if (draggedIndex === null) return;
+  event.preventDefault();
+  editorClearBtn.classList.remove("drop-hover-trash");
+  if (
+    draggedIndex < 0 ||
+    draggedIndex >= editorState.cells.length ||
+    editorState.cells[draggedIndex] === null
+  ) {
+    setEditorTrashMode(false);
+    return;
+  }
+
+  editorState.cells[draggedIndex] = null;
+  commitEditorToActiveProfile();
+  persistProfileStore();
+  renderEditorGrid();
+  syncEditorSchemaOutput();
+  setEditorTrashMode(false);
+  status.textContent = "Grid item deleted.";
+});
+
+editorClearBtn.addEventListener("click", () => {
+  if (editorTrashMode) return;
+  editorState.cells = blankCells(editorState.cols, editorState.rows);
+  commitEditorToActiveProfile();
+  persistProfileStore();
+  renderEditorGrid();
+  syncEditorSchemaOutput();
+  status.textContent = "Grid cleared.";
+});
+
+editorValidateBtn.addEventListener("click", () => {
+  const errors = UIHydrate.validate(buildGridSchema());
+  if (errors.length > 0) {
+    status.textContent = `Validation failed: ${errors[0]}`;
+  } else {
+    status.textContent = "Grid schema is valid.";
+  }
+  syncEditorSchemaOutput();
+});
+
+ensureProfileStore();
+syncProfileSelect();
+applyProfileToEditor(profileStore.activeProfileId ?? profileStore.profiles[0]?.id ?? null);
+renderCatalog();
+startCatalogPreviewLoop();
+syncEditorSchemaOutput();
 
 syncDebugControls();
 syncPointerLockButton();
 startNavigationLoop();
 renderDebugPanel();
+loadExample(UNIFIED_EXAMPLE_ID);
 </script>
 </body>
 </html>

@@ -19,6 +19,12 @@ import { Stroke } from "../primitives/Stroke.js";
 import { Divider } from "../primitives/Divider.js";
 import { Icon } from "../primitives/Icon.js";
 import { MarkerPlus } from "../primitives/MarkerPlus.js";
+import { TriChevron } from "../primitives/TriChevron.js";
+import { SegmentedHexRing } from "../primitives/SegmentedHexRing.js";
+import { ReticleCorners } from "../primitives/ReticleCorners.js";
+import { RadialTickArc } from "../primitives/RadialTickArc.js";
+import { NodeLinkGraph } from "../primitives/NodeLinkGraph.js";
+import { DataTag } from "../primitives/DataTag.js";
 import { Button } from "../components/Button.js";
 import { Toggle } from "../components/Toggle.js";
 import { SliderLinear } from "../components/SliderLinear.js";
@@ -42,6 +48,12 @@ export interface UISchemaNode {
     | "divider"
     | "icon"
     | "marker-plus"
+    | "tri-chevron"
+    | "segmented-hex-ring"
+    | "reticle-corners"
+    | "radial-tick-arc"
+    | "node-link-graph"
+    | "data-tag"
     | "button"
     | "toggle"
     | "slider"
@@ -158,6 +170,24 @@ export class UIHydrate {
         break;
       case "marker-plus":
         element = UIHydrate._buildMarkerPlus(schema, theme);
+        break;
+      case "tri-chevron":
+        element = UIHydrate._buildTriChevron(schema, theme);
+        break;
+      case "segmented-hex-ring":
+        element = UIHydrate._buildSegmentedHexRing(schema, theme);
+        break;
+      case "reticle-corners":
+        element = UIHydrate._buildReticleCorners(schema, theme);
+        break;
+      case "radial-tick-arc":
+        element = UIHydrate._buildRadialTickArc(schema, theme);
+        break;
+      case "node-link-graph":
+        element = UIHydrate._buildNodeLinkGraph(schema, theme);
+        break;
+      case "data-tag":
+        element = UIHydrate._buildDataTag(schema, theme);
         break;
       case "button":
         element = UIHydrate._buildButton(schema, theme, opts);
@@ -307,6 +337,112 @@ export class UIHydrate {
     });
     m.applyTheme(theme);
     return m;
+  }
+
+  private static _buildTriChevron(schema: UISchemaNode, theme: UITheme): TriChevron {
+    const p = schema.props ?? {};
+    const tri = new TriChevron({
+      size: p.size,
+      thickness: p.thickness,
+      inset: p.inset,
+      colorKey: p.colorKey,
+      id: schema.id,
+    });
+    tri.applyTheme(theme);
+    return tri;
+  }
+
+  private static _buildSegmentedHexRing(
+    schema: UISchemaNode,
+    theme: UITheme
+  ): SegmentedHexRing {
+    const p = schema.props ?? {};
+    const ring = new SegmentedHexRing({
+      size: p.size,
+      segments: p.segments,
+      segmentLength: p.segmentLength,
+      thickness: p.thickness,
+      radius: p.radius,
+      colorKey: p.colorKey,
+      id: schema.id,
+    });
+    ring.applyTheme(theme);
+    return ring;
+  }
+
+  private static _buildReticleCorners(
+    schema: UISchemaNode,
+    theme: UITheme
+  ): ReticleCorners {
+    const p = schema.props ?? {};
+    const reticle = new ReticleCorners({
+      width: schema.sizing?.width as number ?? p.width,
+      height: schema.sizing?.height as number ?? p.height,
+      armLength: p.armLength,
+      thickness: p.thickness,
+      colorKey: p.colorKey,
+      id: schema.id,
+    });
+    reticle.applyTheme(theme);
+    return reticle;
+  }
+
+  private static _buildRadialTickArc(
+    schema: UISchemaNode,
+    theme: UITheme
+  ): RadialTickArc {
+    const p = schema.props ?? {};
+    const arc = new RadialTickArc({
+      size: p.size,
+      radius: p.radius,
+      tickCount: p.tickCount,
+      tickLength: p.tickLength,
+      thickness: p.thickness,
+      startAngle: p.startAngle,
+      sweepAngle: p.sweepAngle,
+      majorEvery: p.majorEvery,
+      majorScale: p.majorScale,
+      colorKey: p.colorKey,
+      id: schema.id,
+    });
+    arc.applyTheme(theme);
+    return arc;
+  }
+
+  private static _buildNodeLinkGraph(
+    schema: UISchemaNode,
+    theme: UITheme
+  ): NodeLinkGraph {
+    const p = schema.props ?? {};
+    const graph = new NodeLinkGraph({
+      width: schema.sizing?.width as number ?? p.width,
+      height: schema.sizing?.height as number ?? p.height,
+      nodeCount: p.nodeCount,
+      nodeSize: p.nodeSize,
+      linkProbability: p.linkProbability,
+      linkThickness: p.linkThickness,
+      seed: p.seed,
+      nodeColorKey: p.nodeColorKey,
+      linkColorKey: p.linkColorKey,
+      id: schema.id,
+    });
+    graph.applyTheme(theme);
+    return graph;
+  }
+
+  private static _buildDataTag(schema: UISchemaNode, theme: UITheme): DataTag {
+    const p = schema.props ?? {};
+    const tag = new DataTag({
+      text: p.text,
+      variant: p.variant,
+      width: schema.sizing?.width as number ?? p.width,
+      height: schema.sizing?.height as number ?? p.height,
+      colorKey: p.colorKey,
+      textColorKey: p.textColorKey,
+      id: schema.id,
+    });
+    tag.applyTheme(theme);
+    return tag;
   }
 
   /* ---------------------------------------------------------------- */
@@ -473,8 +609,10 @@ export class UIHydrate {
   ): void {
     const validTypes = [
       "root", "element", "panel", "text", "stroke", "divider",
-      "icon", "marker-plus", "button", "toggle", "slider",
-      "radial-gauge", "menu", "submenu", "tooltip",
+      "icon", "marker-plus", "tri-chevron", "segmented-hex-ring",
+      "reticle-corners", "radial-tick-arc", "node-link-graph",
+      "data-tag", "button", "toggle", "slider", "radial-gauge",
+      "menu", "submenu", "tooltip",
     ];
 
     if (!validTypes.includes(node.type)) {
