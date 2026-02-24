@@ -31,6 +31,13 @@
 - Existing profiles continue to load through migration shims.
 - No material frame-time regression under expected update cadences.
 
+## Rollout Checklist
+- Keep `ROLLOUT_FLAGS.dataBindings` enabled only while migration compatibility notes remain empty in active profiles.
+- Keep `ROLLOUT_FLAGS.telemetryDiagnostics` enabled during rollout to observe provider and binding health in debug panel.
+- Keep `ROLLOUT_FLAGS.strictFutureBindingImport` enabled to block unsafe import of newer binding-enabled profiles.
+- Validate `npm run smoke:wo017` passes before release packaging.
+- Preserve backward compatibility window for v1/v2 profiles and monitor compatibility warnings in debug output.
+
 ## Affected and Included Files (Line Evidence)
 - `index.html`
   - `1892-1905`: schema diagnostics output currently lacks provider/binding health data.
@@ -40,4 +47,3 @@
   - `599-639`: current validation scope is type-level only.
 - `src/examples/example2-camera-hud.ts`
   - `526-556`: async telemetry refresh logic with no shared observability hooks.
-

@@ -64,12 +64,17 @@
       min-width: 0;
     }
 
+    #sidebar-sections > section[hidden] {
+      display: none !important;
+    }
+
     #sidebar.is-wide #sidebar-sections {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    #sidebar.is-wide #catalog-panel,
+    #sidebar.is-wide #components-workspace,
     #sidebar.is-wide #editor-panel,
+    #sidebar.is-wide #hydration-panel,
     #sidebar.is-wide #debug-panel {
       grid-column: 1 / -1;
     }
@@ -79,13 +84,33 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
-    #sidebar.is-compact .section-head {
+    #sidebar.is-compact .workspace-header {
       flex-wrap: wrap;
     }
 
     #sidebar.is-compact #editor-inject-btn {
       width: 100%;
       min-width: 0;
+    }
+
+    #sidebar.is-compact .workflow-tab .workflow-label {
+      display: none;
+    }
+
+    #sidebar.is-compact .workflow-tab {
+      padding: 8px 4px;
+    }
+
+    #sidebar.is-compact .components-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    #sidebar.is-compact .hydration-inventory-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    #sidebar:not(.is-wide) .components-layout {
+      grid-template-columns: minmax(0, 1fr);
     }
 
     #sidebar::-webkit-scrollbar {
@@ -111,6 +136,80 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+    }
+
+    #workflow-shell {
+      width: 100%;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid rgba(235,240,245,0.12);
+      border-radius: 4px;
+      background: rgba(8,9,10,0.9);
+      padding: 8px;
+    }
+
+    #workflow-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+      width: 100%;
+    }
+
+    .workflow-tab {
+      width: 100%;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 6px;
+      border: 1px solid rgba(184,136,56,0.28);
+      border-radius: 4px;
+      background: rgba(11,12,13,0.95);
+      color: rgba(235,240,245,0.86);
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .workflow-tab:hover {
+      border-color: #B88838;
+      color: #B88838;
+    }
+
+    .workflow-tab.active {
+      border-color: #B88838;
+      color: #B88838;
+      background: rgba(184,136,56,0.1);
+    }
+
+    .workflow-tab .workflow-step {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(184,136,56,0.45);
+      font-size: 8px;
+      line-height: 1;
+    }
+
+    .workflow-tab.active .workflow-step {
+      border-color: rgba(184,136,56,0.95);
+      background: rgba(184,136,56,0.16);
+    }
+
+    #workflow-boundary-meta {
+      font-size: 10px;
+      line-height: 1.35;
+      color: rgba(235,240,245,0.56);
+      min-height: 14px;
     }
 
     .example-btn {
@@ -141,13 +240,7 @@
       background: rgba(184,136,56,0.08);
     }
 
-    #camera-controls,
-    #helper-controls,
-    #debug-panel,
-    #profile-controls,
-    #catalog-panel,
-    #customizer-panel,
-    #editor-panel {
+    .workspace-surface {
       border: 1px solid rgba(235,240,245,0.12);
       border-radius: 4px;
       background: rgba(8,9,10,0.9);
@@ -155,30 +248,133 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      min-width: 0;
     }
 
-    #camera-controls h2,
-    #debug-panel h2,
-    #profile-controls h2,
-    #catalog-panel h2,
-    #customizer-panel h2,
-    #editor-panel h2 {
+    .workspace-header {
+      width: 100%;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .workspace-header h2 {
+      margin: 0;
       font-size: 11px;
       letter-spacing: 0.08em;
       font-weight: 400;
       color: rgba(184,136,56,0.95);
     }
 
-    .section-head {
+    .workspace-header h3 {
+      margin: 0;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      font-weight: 400;
+      color: rgba(184,136,56,0.9);
+      text-transform: uppercase;
+    }
+
+    .workspace-main,
+    .workspace-inspector,
+    .workspace-panel-footer {
       width: 100%;
+      min-width: 0;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
       gap: 8px;
     }
 
-    .section-head h2 {
-      margin: 0;
+    .workspace-inspector {
+      border-top: 1px solid rgba(235,240,245,0.1);
+      padding-top: 8px;
+    }
+
+    .workspace-state {
+      border: 1px solid rgba(235,240,245,0.12);
+      border-radius: 4px;
+      background: rgba(5,6,7,0.58);
+      color: rgba(235,240,245,0.72);
+      font-size: 10px;
+      line-height: 1.35;
+      padding: 6px 8px;
+      word-break: break-word;
+    }
+
+    .workspace-state.is-empty {
+      border-style: dashed;
+      color: rgba(235,240,245,0.58);
+    }
+
+    .workspace-state.is-loading {
+      border-color: rgba(184,136,56,0.42);
+      color: rgba(235,240,245,0.84);
+    }
+
+    .workspace-state.is-error {
+      border-color: rgba(255, 124, 94, 0.76);
+      color: rgba(255, 214, 196, 0.98);
+      background: rgba(70, 20, 12, 0.45);
+    }
+
+    #components-workspace {
+      gap: 10px;
+    }
+
+    .components-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr);
+      gap: 10px;
+      align-items: start;
+    }
+
+    .components-rail,
+    .components-inspector {
+      border: 1px solid rgba(235,240,245,0.1);
+      border-radius: 4px;
+      background: rgba(5,6,7,0.46);
+      padding: 8px;
+      min-width: 0;
+    }
+
+    .components-draft-pill {
+      border: 1px solid rgba(235,240,245,0.18);
+      border-radius: 999px;
+      padding: 3px 7px;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      color: rgba(235,240,245,0.76);
+      background: rgba(5,6,7,0.7);
+      text-transform: uppercase;
+    }
+
+    .components-draft-pill.is-clean {
+      border-color: rgba(112, 188, 132, 0.62);
+      color: rgba(177, 230, 192, 0.96);
+    }
+
+    .components-draft-pill.is-dirty {
+      border-color: rgba(184,136,56,0.82);
+      color: rgba(255, 223, 168, 0.98);
+    }
+
+    .components-draft-pill.is-invalid {
+      border-color: rgba(255, 124, 94, 0.82);
+      color: rgba(255, 204, 188, 0.98);
+    }
+
+    .components-draft-pill.is-saved {
+      border-color: rgba(127, 214, 193, 0.7);
+      color: rgba(194, 237, 228, 0.98);
+    }
+
+    .components-draft-pill.is-empty {
+      border-style: dashed;
+      color: rgba(235,240,245,0.58);
     }
 
     .inline-row {
@@ -206,6 +402,40 @@
     .small-btn:hover {
       border-color: #B88838;
       color: #B88838;
+    }
+
+    .small-btn.btn-primary {
+      border-color: rgba(184,136,56,0.8);
+      color: rgba(235,240,245,0.96);
+      background: rgba(24, 20, 12, 0.92);
+    }
+
+    .small-btn.btn-primary:hover {
+      border-color: #B88838;
+      color: #B88838;
+    }
+
+    .small-btn.btn-destructive {
+      border-color: rgba(255, 120, 92, 0.62);
+      color: rgba(255, 202, 184, 0.95);
+      background: rgba(96, 26, 16, 0.52);
+    }
+
+    .small-btn.btn-destructive:hover {
+      border-color: rgba(255, 144, 94, 0.92);
+      color: rgba(255, 224, 204, 0.98);
+      background: rgba(136, 30, 16, 0.72);
+    }
+
+    .small-btn.btn-quiet {
+      border-color: rgba(235,240,245,0.2);
+      color: rgba(235,240,245,0.74);
+      background: rgba(9,10,11,0.82);
+    }
+
+    .small-btn.btn-quiet:hover {
+      border-color: rgba(235,240,245,0.36);
+      color: rgba(235,240,245,0.9);
     }
 
     .small-btn.trash-target {
@@ -248,7 +478,8 @@
     #tuneables-binding-target,
     #tuneables-binding-field,
     #tuneables-binding-formatter,
-    #tuneables-binding-fallback {
+    #tuneables-binding-fallback,
+    #tuneables-binding-template {
       width: 100%;
       font-family: inherit;
       font-size: 11px;
@@ -289,9 +520,7 @@
     }
 
     #editor-tuneables {
-      border-top: 1px solid rgba(235,240,245,0.1);
       margin-top: 4px;
-      padding-top: 8px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -319,6 +548,100 @@
       letter-spacing: 0.06em;
       font-weight: 400;
       color: rgba(184,136,56,0.9);
+    }
+
+    .tuneables-subsection h5 {
+      margin: 0;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      font-weight: 400;
+      color: rgba(235,240,245,0.72);
+      text-transform: uppercase;
+    }
+
+    #hydration-actions {
+      width: auto;
+      min-width: 210px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .hydration-inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .hydration-inventory-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    #hydration-field-inventory,
+    #hydration-provider-inventory {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 160px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    #hydration-field-inventory::-webkit-scrollbar,
+    #hydration-provider-inventory::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
+
+    .hydration-field-row,
+    .hydration-provider-row {
+      border: 1px solid rgba(235,240,245,0.14);
+      border-radius: 4px;
+      background: rgba(5,6,7,0.6);
+      padding: 6px;
+      font-size: 10px;
+      line-height: 1.3;
+      color: rgba(235,240,245,0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .hydration-field-head,
+    .hydration-provider-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      align-items: baseline;
+    }
+
+    .hydration-field-id,
+    .hydration-provider-id {
+      font-size: 10px;
+      color: rgba(235,240,245,0.9);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .hydration-field-status,
+    .hydration-provider-state {
+      font-size: 9px;
+      color: rgba(184,136,56,0.92);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+    }
+
+    .hydration-field-meta,
+    .hydration-provider-meta {
+      font-size: 9px;
+      color: rgba(235,240,245,0.62);
+      word-break: break-word;
     }
 
     #tuneables-trigger-list {
@@ -566,6 +889,24 @@
       cursor: pointer;
     }
 
+    .editor-cell.is-selected {
+      border-color: rgba(184, 136, 56, 0.96);
+      box-shadow: 0 0 0 1px rgba(184,136,56,0.45) inset;
+      background: rgba(184,136,56,0.18);
+    }
+
+    #editor-open-element-btn:disabled {
+      cursor: not-allowed;
+      color: rgba(235,240,245,0.45);
+      border-color: rgba(235,240,245,0.16);
+      background: rgba(11,12,13,0.7);
+    }
+
+    #hydration-validate-btn {
+      width: auto;
+      min-width: 132px;
+    }
+
     #editor-schema {
       min-height: 120px;
       max-height: 190px;
@@ -674,6 +1015,24 @@
       line-height: 1.5;
     }
 
+    #workflow-footer {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    #workflow-next-btn {
+      border-style: dashed;
+      border-color: rgba(184,136,56,0.78);
+    }
+
+    #workflow-next-btn:hover {
+      border-color: #B88838;
+      color: #B88838;
+    }
+
     #sidebar-resizer {
       position: absolute;
       top: 0;
@@ -769,74 +1128,160 @@
       <button class="example-btn" data-example="hud">Unified Scene - Camera HUD + Builder</button>
     </div>
 
+    <section id="workflow-shell" aria-label="Workflow boundaries">
+      <div id="workflow-tabs" role="tablist" aria-label="Builder workflow">
+        <button class="workflow-tab active" id="workflow-tab-components" type="button" role="tab" data-boundary="components" aria-selected="true" tabindex="0">
+          <span class="workflow-step">1</span>
+          <span class="workflow-label">Components</span>
+        </button>
+        <button class="workflow-tab" id="workflow-tab-assembly" type="button" role="tab" data-boundary="assembly" aria-selected="false" tabindex="-1">
+          <span class="workflow-step">2</span>
+          <span class="workflow-label">Assembly</span>
+        </button>
+        <button class="workflow-tab" id="workflow-tab-hydration" type="button" role="tab" data-boundary="hydration" aria-selected="false" tabindex="-1">
+          <span class="workflow-step">3</span>
+          <span class="workflow-label">Hydration</span>
+        </button>
+        <button class="workflow-tab" id="workflow-tab-scene" type="button" role="tab" data-boundary="scene" aria-selected="false" tabindex="-1">
+          <span class="workflow-step">4</span>
+          <span class="workflow-label">Scene</span>
+        </button>
+        <button class="workflow-tab" id="workflow-tab-profiles" type="button" role="tab" data-boundary="profiles" aria-selected="false" tabindex="-1">
+          <span class="workflow-step">5</span>
+          <span class="workflow-label">Profiles</span>
+        </button>
+      </div>
+      <p id="workflow-boundary-meta" class="subtle">Stage 1 of 5: Components.</p>
+    </section>
+
     <div id="sidebar-sections">
-    <section id="profile-controls" aria-label="Profile controls">
-      <h2>Builder Profiles</h2>
-      <select id="profile-select"></select>
-      <div class="inline-row">
-        <button class="small-btn" id="profile-new-btn" type="button">New</button>
-        <button class="small-btn" id="profile-save-btn" type="button">Save</button>
+    <section id="profile-controls" class="workspace-surface" aria-label="Profile controls" data-boundaries="profiles">
+      <div class="workspace-header">
+        <h2>Builder Profiles</h2>
       </div>
-      <div class="inline-row">
-        <button class="small-btn" id="profile-delete-btn" type="button">Delete</button>
-        <button class="small-btn" id="profile-export-btn" type="button">Export</button>
+      <div class="workspace-main">
+        <select id="profile-select"></select>
+        <div class="inline-row">
+          <button class="small-btn btn-secondary" id="profile-new-btn" type="button">New</button>
+          <button class="small-btn btn-primary" id="profile-save-btn" type="button">Save</button>
+        </div>
+        <div class="inline-row">
+          <button class="small-btn btn-destructive" id="profile-delete-btn" type="button">Delete</button>
+          <button class="small-btn btn-secondary" id="profile-export-btn" type="button">Export</button>
+        </div>
+        <button class="small-btn btn-secondary" id="profile-import-btn" type="button">Import</button>
+        <input id="profile-import-file" type="file" accept="application/json" hidden>
       </div>
-      <button class="small-btn" id="profile-import-btn" type="button">Import</button>
-      <input id="profile-import-file" type="file" accept="application/json" hidden>
     </section>
 
-    <section id="catalog-panel" aria-label="Element catalog">
-      <h2>Element Catalog</h2>
-      <div id="catalog-toolbar">
-        <input id="catalog-search" type="search" placeholder="Search elements">
-        <select id="catalog-type">
-          <option value="all">All Types</option>
-          <option value="primitive">Primitive</option>
-          <option value="component">Component</option>
-          <option value="composite">Composite</option>
-        </select>
+    <section id="components-workspace" class="workspace-surface" aria-label="Components authoring workspace" data-boundaries="components">
+      <div class="workspace-header">
+        <h2>Components Authoring</h2>
+        <div id="components-draft-pill" class="components-draft-pill is-empty" aria-live="polite">EMPTY</div>
       </div>
-      <div id="catalog-list"></div>
+      <div class="workspace-main components-layout">
+        <div id="catalog-panel" class="workspace-main components-rail" aria-label="Element catalog">
+          <div class="workspace-header">
+            <h3>Catalog</h3>
+          </div>
+          <div id="catalog-toolbar">
+            <input id="catalog-search" type="search" placeholder="Search elements">
+            <select id="catalog-type">
+              <option value="all">All Types</option>
+              <option value="primitive">Primitive</option>
+              <option value="component">Component</option>
+              <option value="composite">Composite</option>
+            </select>
+          </div>
+          <div id="catalog-list"></div>
+        </div>
+        <div id="customizer-panel" class="workspace-main components-inspector" aria-label="Element customizer">
+          <div class="workspace-header">
+            <h3>Inspector</h3>
+          </div>
+          <div id="components-draft-state" class="workspace-state is-empty">Select a catalog element to start editing.</div>
+          <div id="components-usage-state" class="workspace-state is-empty">Usage impact will appear once an element is selected.</div>
+          <p id="customizer-source">Select a catalog element to customize.</p>
+          <input id="customizer-key" type="text" placeholder="Element key (unique)">
+          <input id="customizer-label" type="text" placeholder="Element label">
+          <select id="customizer-kind">
+            <option value="primitive">Primitive</option>
+            <option value="component">Component</option>
+            <option value="composite">Composite</option>
+          </select>
+          <input id="customizer-tags" type="text" placeholder="Tags (comma separated)">
+          <textarea id="customizer-schema" spellcheck="false" placeholder='{"type":"text","props":{"text":"NEW"}}'></textarea>
+          <div class="inline-row">
+            <button class="small-btn btn-primary" id="customizer-save-btn" type="button">Save Element</button>
+            <button class="small-btn btn-secondary" id="customizer-duplicate-btn" type="button">Duplicate</button>
+          </div>
+          <div class="inline-row">
+            <button class="small-btn btn-secondary" id="customizer-reset-btn" type="button">Revert</button>
+            <button class="small-btn btn-destructive" id="customizer-delete-btn" type="button">Delete</button>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section id="customizer-panel" aria-label="Element customizer">
-      <h2>Element Customizer</h2>
-      <p id="customizer-source">Select a catalog element to customize.</p>
-      <input id="customizer-key" type="text" placeholder="Element key (unique)">
-      <input id="customizer-label" type="text" placeholder="Element label">
-      <select id="customizer-kind">
-        <option value="primitive">Primitive</option>
-        <option value="component">Component</option>
-        <option value="composite">Composite</option>
-      </select>
-      <input id="customizer-tags" type="text" placeholder="Tags (comma separated)">
-      <textarea id="customizer-schema" spellcheck="false" placeholder='{"type":"text","props":{"text":"NEW"}}'></textarea>
-      <div class="inline-row">
-        <button class="small-btn" id="customizer-save-btn" type="button">Save Element</button>
-        <button class="small-btn" id="customizer-reset-btn" type="button">Reset</button>
+    <section id="editor-panel" class="workspace-surface" aria-label="Assembly grid editor" data-boundaries="assembly">
+      <div class="workspace-header">
+        <h2>Assembly Grid</h2>
+        <button class="small-btn btn-primary" id="editor-inject-btn" type="button" draggable="true">Inject</button>
       </div>
-      <button class="small-btn" id="customizer-delete-btn" type="button">Delete Custom Element</button>
-    </section>
-
-    <section id="editor-panel" aria-label="Grid editor">
-      <div class="section-head">
-        <h2>Grid Editor</h2>
-        <button class="small-btn" id="editor-inject-btn" type="button" draggable="true">Inject</button>
+      <div class="workspace-main">
+        <p class="subtle">Compose structure by dragging catalog elements into cells. Click cells to inspect placement details. Drag filled cells to move or delete via trash.</p>
+        <div class="inline-row">
+          <button class="small-btn btn-secondary" id="editor-clear-btn" type="button">Clear Grid</button>
+          <button class="small-btn btn-primary" id="editor-validate-btn" type="button">Validate Structure</button>
+        </div>
+        <div id="editor-grid"></div>
+        <textarea id="editor-schema" readonly></textarea>
       </div>
-      <p class="subtle">Drag catalog elements into cells. Click a filled cell to inspect/customize. Drag filled cells to move or delete via trash.</p>
-      <div class="inline-row">
-        <button class="small-btn" id="editor-clear-btn" type="button">Clear Grid</button>
-        <button class="small-btn" id="editor-validate-btn" type="button">Validate</button>
-      </div>
-      <div id="editor-grid"></div>
-      <textarea id="editor-schema" readonly></textarea>
-      <section id="editor-tuneables" aria-label="Grid tuneables">
-        <h3>Tuneables</h3>
+      <section id="editor-tuneables" class="workspace-inspector" aria-label="Assembly structural inspector">
+        <h3>Structural Inspector</h3>
+        <div id="editor-structure-summary" class="workspace-state is-empty">Grid summary will update as you compose.</div>
         <label class="helper-row">
           <input id="tuneables-auto-resize-grid" type="checkbox">
           <span>Auto Resize Grid Output</span>
         </label>
-        <p class="subtle">When enabled, scene output trims unused rows/cols to avoid large empty bordered grids.</p>
+        <p class="subtle">When enabled, structural output trims unused rows/cols to avoid large empty bordered grids.</p>
+        <div class="tuneables-subsection" id="editor-cell-details">
+          <h4>Cell Details</h4>
+          <div id="editor-cell-selection" class="workspace-state is-empty">Select a grid cell to inspect structure details.</div>
+          <button class="small-btn btn-secondary" id="editor-open-element-btn" type="button" disabled>Edit Element In Components</button>
+        </div>
+        <div class="tuneables-subsection" id="editor-structure-validation-panel">
+          <h4>Structure Validation</h4>
+          <div id="editor-structure-validation" class="workspace-state is-empty">Run validation to check structure health.</div>
+        </div>
+      </section>
+    </section>
+
+    <section id="hydration-panel" class="workspace-surface" aria-label="Hydration bindings" data-boundaries="hydration">
+      <div class="workspace-header">
+        <h2>Hydration Bindings</h2>
+        <div id="hydration-actions" class="inline-row">
+          <button class="small-btn btn-quiet" id="hydration-revert-btn" type="button">Revert</button>
+          <button class="small-btn btn-secondary" id="hydration-apply-btn" type="button">Apply</button>
+          <button class="small-btn btn-primary" id="hydration-validate-btn" type="button">Validate</button>
+        </div>
+      </div>
+      <div class="workspace-main">
+        <p class="subtle">Bind runtime telemetry and trigger behavior to assembled element outputs.</p>
+        <div class="tuneables-subsection">
+          <h4>Telemetry Inventory</h4>
+          <div id="hydration-inventory-summary" class="workspace-state is-empty">Telemetry inventory is loading.</div>
+          <div class="hydration-inventory-grid">
+            <div class="hydration-inventory-col">
+              <h5>Fields</h5>
+              <div id="hydration-field-inventory"></div>
+            </div>
+            <div class="hydration-inventory-col">
+              <h5>Providers</h5>
+              <div id="hydration-provider-inventory"></div>
+            </div>
+          </div>
+        </div>
         <div class="tuneables-subsection">
           <h4>Nested Triggers</h4>
           <div class="inline-row">
@@ -849,13 +1294,13 @@
           </div>
           <div class="inline-row">
             <select id="tuneables-trigger-profile"></select>
-            <button class="small-btn" id="tuneables-add-trigger-btn" type="button">Add Trigger</button>
+            <button class="small-btn btn-primary" id="tuneables-add-trigger-btn" type="button">Add Trigger</button>
           </div>
           <div id="tuneables-trigger-list"></div>
         </div>
         <div class="tuneables-subsection">
-          <h4>Data Bindings</h4>
-          <p class="subtle">Bind telemetry fields to selected UI element outputs.</p>
+          <h4>Binding Table</h4>
+          <p class="subtle">Author row bindings against assembled element ids.</p>
           <div class="inline-row">
             <select id="tuneables-binding-element"></select>
             <select id="tuneables-binding-target"></select>
@@ -866,61 +1311,90 @@
           </div>
           <div class="inline-row">
             <input id="tuneables-binding-fallback" type="text" placeholder="Fallback (optional)">
-            <button class="small-btn" id="tuneables-add-binding-btn" type="button">Add Binding</button>
+            <input id="tuneables-binding-template" type="text" placeholder='Template (optional, e.g. "v={{value}}")'>
+          </div>
+          <div class="inline-row">
+            <button class="small-btn btn-primary" id="tuneables-add-binding-btn" type="button">Upsert Binding</button>
           </div>
           <div id="tuneables-binding-list"></div>
         </div>
+      </div>
+      <section id="hydration-inspector" class="workspace-inspector" aria-label="Hydration validation inspector">
+        <h3>Hydration Health</h3>
+        <div id="hydration-validation-state" class="workspace-state is-empty">Hydration validation is idle.</div>
+        <div id="hydration-checkpoint-state" class="workspace-state is-empty">No hydration checkpoint yet.</div>
+        <div id="hydration-formatter-preview" class="workspace-state is-empty">Formatter preview will appear when a field is selected.</div>
+        <div id="hydration-diagnostics-state" class="workspace-state is-empty">Binding diagnostics unavailable until runtime binds fields.</div>
       </section>
     </section>
 
-    <section id="camera-controls" aria-label="Camera navigation controls">
-      <h2>Camera Navigation</h2>
-      <label class="subtle" for="nav-mode">Mode</label>
-      <select id="nav-mode">
-        <option value="orbit">Orbit Controls</option>
-        <option value="static">Static Camera</option>
-        <option value="fly">Fly Controls</option>
-        <option value="pointer-lock">Pointer Lock Controls</option>
-      </select>
-      <button id="pointer-lock-btn" type="button" disabled>Lock Pointer</button>
-      <label class="helper-row">
-        <input id="snap-orbit-grid" type="checkbox">
-        <span>Snap Orbit Origin To Grid</span>
-      </label>
-      <p class="subtle">Fly: hold mouse button and use WASD + Space/Shift. Pointer lock: WASD + mouse look.</p>
+    <section id="camera-controls" class="workspace-surface" aria-label="Camera navigation controls" data-boundaries="scene">
+      <div class="workspace-header">
+        <h2>Camera Navigation</h2>
+      </div>
+      <div class="workspace-main">
+        <label class="subtle" for="nav-mode">Mode</label>
+        <select id="nav-mode">
+          <option value="orbit">Orbit Controls</option>
+          <option value="static">Static Camera</option>
+          <option value="fly">Fly Controls</option>
+          <option value="pointer-lock">Pointer Lock Controls</option>
+        </select>
+        <button id="pointer-lock-btn" type="button" disabled>Lock Pointer</button>
+        <label class="helper-row">
+          <input id="snap-orbit-grid" type="checkbox">
+          <span>Snap Orbit Origin To Grid</span>
+        </label>
+        <p class="subtle">Fly: hold mouse button and use WASD + Space/Shift. Pointer lock: WASD + mouse look.</p>
+      </div>
     </section>
 
-    <section id="helper-controls" aria-label="Helper controls">
-      <button id="helpers-toggle" type="button" aria-pressed="false">Helpers: OFF</button>
-      <label class="helper-row">
-        <input id="toggle-anchor-axes" type="checkbox">
-        <span>Anchor Axes</span>
-      </label>
-      <label class="helper-row">
-        <input id="toggle-element-axes" type="checkbox">
-        <span>Element Axes</span>
-      </label>
-      <label class="helper-row">
-        <input id="toggle-grid-coords" type="checkbox">
-        <span>Grid Coordinates</span>
-      </label>
-      <label class="helper-row">
-        <input id="toggle-hit-regions" type="checkbox">
-        <span>Hit Regions</span>
-      </label>
-      <label class="helper-row">
-        <input id="toggle-layout-bounds" type="checkbox">
-        <span>Layout Bounds</span>
-      </label>
-      <button class="helper-action-btn" id="add-built-ui-btn" type="button" draggable="true">Add Built UI To Scene</button>
-      <button class="helper-action-btn" id="attach-grid-btn" type="button">Attach UI To Hover Grid</button>
-      <button class="helper-action-btn" id="restore-anchor-btn" type="button">Restore UI Anchor</button>
+    <section id="helper-controls" class="workspace-surface" aria-label="Helper controls" data-boundaries="scene">
+      <div class="workspace-header">
+        <h2>Scene Helpers</h2>
+      </div>
+      <div class="workspace-main">
+        <button id="helpers-toggle" type="button" aria-pressed="false">Helpers: OFF</button>
+        <label class="helper-row">
+          <input id="toggle-anchor-axes" type="checkbox">
+          <span>Anchor Axes</span>
+        </label>
+        <label class="helper-row">
+          <input id="toggle-element-axes" type="checkbox">
+          <span>Element Axes</span>
+        </label>
+        <label class="helper-row">
+          <input id="toggle-grid-coords" type="checkbox">
+          <span>Grid Coordinates</span>
+        </label>
+        <label class="helper-row">
+          <input id="toggle-hit-regions" type="checkbox">
+          <span>Hit Regions</span>
+        </label>
+        <label class="helper-row">
+          <input id="toggle-layout-bounds" type="checkbox">
+          <span>Layout Bounds</span>
+        </label>
+        <button class="helper-action-btn" id="add-built-ui-btn" type="button" draggable="true">Add Built UI To Scene</button>
+        <button class="helper-action-btn" id="attach-grid-btn" type="button">Attach UI To Hover Grid</button>
+        <button class="helper-action-btn" id="restore-anchor-btn" type="button">Restore UI Anchor</button>
+      </div>
     </section>
 
-    <section id="debug-panel" aria-live="polite">
-      <h2>Hover Inspector</h2>
-      <pre id="debug-output">No active example.</pre>
+    <section id="debug-panel" class="workspace-surface" aria-live="polite" data-boundaries="scene hydration profiles">
+      <div class="workspace-header">
+        <h2>Hover Inspector</h2>
+      </div>
+      <div class="workspace-main">
+        <pre id="debug-output">No active example.</pre>
+      </div>
     </section>
+    </div>
+
+    <div id="workflow-footer" aria-label="Workflow transition controls">
+      <button class="small-btn btn-secondary" id="workflow-back-btn" type="button">Back</button>
+      <button class="small-btn btn-quiet" id="workflow-validate-btn" type="button">Validate</button>
+      <button class="small-btn btn-primary" id="workflow-next-btn" type="button">Continue</button>
     </div>
 
     <div id="status">Loading unified camera HUD scene...</div>
@@ -976,6 +1450,12 @@ const sidebar = document.getElementById("sidebar");
 const sidebarResizer = document.getElementById("sidebar-resizer");
 const status = document.getElementById("status");
 const buttons = Array.from(document.querySelectorAll(".example-btn"));
+const workflowTabs = Array.from(document.querySelectorAll(".workflow-tab"));
+const workflowBoundaryMeta = document.getElementById("workflow-boundary-meta");
+const workflowBackBtn = document.getElementById("workflow-back-btn");
+const workflowValidateBtn = document.getElementById("workflow-validate-btn");
+const workflowNextBtn = document.getElementById("workflow-next-btn");
+const workflowSections = Array.from(document.querySelectorAll("#sidebar-sections > section"));
 
 const navModeSelect = document.getElementById("nav-mode");
 const pointerLockBtn = document.getElementById("pointer-lock-btn");
@@ -1001,6 +1481,9 @@ const profileImportFile = document.getElementById("profile-import-file");
 const catalogSearch = document.getElementById("catalog-search");
 const catalogType = document.getElementById("catalog-type");
 const catalogList = document.getElementById("catalog-list");
+const componentsDraftPill = document.getElementById("components-draft-pill");
+const componentsDraftState = document.getElementById("components-draft-state");
+const componentsUsageState = document.getElementById("components-usage-state");
 const customizerSource = document.getElementById("customizer-source");
 const customizerKeyInput = document.getElementById("customizer-key");
 const customizerLabelInput = document.getElementById("customizer-label");
@@ -1008,6 +1491,7 @@ const customizerKindSelect = document.getElementById("customizer-kind");
 const customizerTagsInput = document.getElementById("customizer-tags");
 const customizerSchemaInput = document.getElementById("customizer-schema");
 const customizerSaveBtn = document.getElementById("customizer-save-btn");
+const customizerDuplicateBtn = document.getElementById("customizer-duplicate-btn");
 const customizerResetBtn = document.getElementById("customizer-reset-btn");
 const customizerDeleteBtn = document.getElementById("customizer-delete-btn");
 const editorInjectBtn = document.getElementById("editor-inject-btn");
@@ -1015,6 +1499,10 @@ const editorGrid = document.getElementById("editor-grid");
 const editorClearBtn = document.getElementById("editor-clear-btn");
 const editorValidateBtn = document.getElementById("editor-validate-btn");
 const editorSchemaOutput = document.getElementById("editor-schema");
+const editorStructureSummaryState = document.getElementById("editor-structure-summary");
+const editorCellSelectionState = document.getElementById("editor-cell-selection");
+const editorStructureValidationState = document.getElementById("editor-structure-validation");
+const editorOpenElementBtn = document.getElementById("editor-open-element-btn");
 const tuneablesAutoResizeGrid = document.getElementById("tuneables-auto-resize-grid");
 const tuneablesTriggerElementInput = document.getElementById("tuneables-trigger-element");
 const tuneablesTriggerEventSelect = document.getElementById("tuneables-trigger-event");
@@ -1026,8 +1514,19 @@ const tuneablesBindingTargetSelect = document.getElementById("tuneables-binding-
 const tuneablesBindingFieldSelect = document.getElementById("tuneables-binding-field");
 const tuneablesBindingFormatterSelect = document.getElementById("tuneables-binding-formatter");
 const tuneablesBindingFallbackInput = document.getElementById("tuneables-binding-fallback");
+const tuneablesBindingTemplateInput = document.getElementById("tuneables-binding-template");
 const tuneablesAddBindingBtn = document.getElementById("tuneables-add-binding-btn");
 const tuneablesBindingList = document.getElementById("tuneables-binding-list");
+const hydrationValidateBtn = document.getElementById("hydration-validate-btn");
+const hydrationApplyBtn = document.getElementById("hydration-apply-btn");
+const hydrationRevertBtn = document.getElementById("hydration-revert-btn");
+const hydrationValidationState = document.getElementById("hydration-validation-state");
+const hydrationCheckpointState = document.getElementById("hydration-checkpoint-state");
+const hydrationFormatterPreviewState = document.getElementById("hydration-formatter-preview");
+const hydrationDiagnosticsState = document.getElementById("hydration-diagnostics-state");
+const hydrationInventorySummary = document.getElementById("hydration-inventory-summary");
+const hydrationFieldInventory = document.getElementById("hydration-field-inventory");
+const hydrationProviderInventory = document.getElementById("hydration-provider-inventory");
 
 const EXAMPLES = {
   hud: {
@@ -1084,6 +1583,21 @@ const SIDEBAR_MAX_WIDTH = 760;
 const SIDEBAR_MIN_VIEWPORT_WIDTH = 320;
 const SIDEBAR_WIDE_BREAKPOINT = 620;
 const SIDEBAR_COMPACT_BREAKPOINT = 310;
+const WORKFLOW_BOUNDARY_STORAGE_KEY = "three-ui-kit-workflow-boundary-v1";
+const WORKFLOW_BOUNDARY_ORDER = [
+  "components",
+  "assembly",
+  "hydration",
+  "scene",
+  "profiles",
+];
+const WORKFLOW_BOUNDARY_LABELS = {
+  components: "Components",
+  assembly: "Assembly",
+  hydration: "Hydration",
+  scene: "Scene",
+  profiles: "Profiles",
+};
 
 const sidebarResizeState = {
   active: false,
@@ -1091,6 +1605,10 @@ const sidebarResizeState = {
   startX: 0,
   startWidth: SIDEBAR_DEFAULT_WIDTH,
   currentWidth: SIDEBAR_DEFAULT_WIDTH,
+};
+
+const workflowState = {
+  activeBoundary: "components",
 };
 
 if (navModeSelect) {
@@ -1101,7 +1619,16 @@ if (snapOrbitGridCheckbox) {
 }
 
 const PROFILE_STORAGE_KEY = "three-ui-kit-builder-profiles-v1";
+const HYDRATION_STATE_STORAGE_KEY = "three-ui-kit-hydration-state-v1";
+const HYDRATION_STATE_VERSION = 1;
 const PROFILE_VERSION = 2;
+const PROFILE_MIN_VERSION = 1;
+const PROFILE_BINDING_VERSION = 2;
+const ROLLOUT_FLAGS = {
+  dataBindings: true,
+  telemetryDiagnostics: true,
+  strictFutureBindingImport: true,
+};
 const CUSTOM_ELEMENTS_STORAGE_KEY = "three-ui-kit-custom-elements-v1";
 const PREVIEW_PIXEL_RATIO_MAX = 1.5;
 const DEFAULT_GRID_COLS = 6;
@@ -1346,8 +1873,15 @@ let catalogEntryByKey = new Map();
 let customizerState = {
   sourceKey: null,
   isCustom: false,
+  baseSignature: "",
+  lastSavedSignature: "",
+  status: "empty",
+  message: "Select a catalog element to start editing.",
+  usage: "Usage impact will appear once an element is selected.",
 };
 let editorTrashMode = false;
+const assemblyActionHistory = [];
+const ASSEMBLY_ACTION_HISTORY_LIMIT = 120;
 
 const SCHEMA_TYPE_TO_CATALOG_KEY = new Map([
   ["panel", "panel"],
@@ -1374,7 +1908,14 @@ const editorState = {
   cols: DEFAULT_GRID_COLS,
   rows: DEFAULT_GRID_ROWS,
   cells: Array(DEFAULT_GRID_COLS * DEFAULT_GRID_ROWS).fill(null),
+  selectedCellIndex: null,
   activeProfileId: null,
+};
+
+let hydrationState = {
+  version: HYDRATION_STATE_VERSION,
+  draftsByProfileId: {},
+  checkpointsByProfileId: {},
 };
 
 let profileStore = {
@@ -1382,6 +1923,7 @@ let profileStore = {
   activeProfileId: null,
   profiles: [],
 };
+const profileCompatibilityNotes = new Map();
 
 function cloneDeep(value) {
   return JSON.parse(JSON.stringify(value));
@@ -1457,6 +1999,11 @@ function persistCustomCatalogEntries() {
   localStorage.setItem(CUSTOM_ELEMENTS_STORAGE_KEY, JSON.stringify(customCatalogEntries));
 }
 
+function syncCustomCatalogRegistry() {
+  persistCustomCatalogEntries();
+  rebuildCatalogRegistry();
+}
+
 function rebuildCatalogRegistry() {
   const merged = [];
   const seen = new Set();
@@ -1474,6 +2021,35 @@ function rebuildCatalogRegistry() {
 function ensureCatalogRegistry() {
   loadCustomCatalogEntries();
   rebuildCatalogRegistry();
+}
+
+function upsertCustomCatalogEntry(rawEntry, opts = {}) {
+  const clean = sanitizeCatalogEntry(rawEntry, makeId("custom"));
+  if (!clean) {
+    throw new Error("Unable to sanitize custom element.");
+  }
+  clean.custom = true;
+  const existingIdx = customCatalogEntries.findIndex((entry) => entry.key === clean.key);
+  if (existingIdx >= 0) {
+    customCatalogEntries[existingIdx] = clean;
+  } else {
+    customCatalogEntries.push(clean);
+  }
+  if (opts.sync !== false) {
+    syncCustomCatalogRegistry();
+  }
+  return clean;
+}
+
+function removeCustomCatalogEntryByKey(key, opts = {}) {
+  if (!key || typeof key !== "string") return false;
+  const before = customCatalogEntries.length;
+  customCatalogEntries = customCatalogEntries.filter((entry) => entry.key !== key);
+  const changed = customCatalogEntries.length !== before;
+  if (changed && opts.sync !== false) {
+    syncCustomCatalogRegistry();
+  }
+  return changed;
 }
 
 function isGridEmpty(cells = editorState.cells) {
@@ -1589,6 +2165,186 @@ function collectTelemetryFieldOptions() {
   }
 
   return Array.from(byId.values()).sort((a, b) => a.fieldId.localeCompare(b.fieldId));
+}
+
+function getTelemetryDiagnosticsSnapshot() {
+  if (
+    !ROLLOUT_FLAGS.telemetryDiagnostics ||
+    !activeRuntime ||
+    !activeRuntime.telemetryHub ||
+    typeof activeRuntime.telemetryHub.getDiagnostics !== "function"
+  ) {
+    return null;
+  }
+  return activeRuntime.telemetryHub.getDiagnostics();
+}
+
+function formatTimestampAge(ts) {
+  if (!Number.isFinite(ts)) return "n/a";
+  const delta = Math.max(0, Date.now() - ts);
+  if (delta < 1000) return `${delta}ms`;
+  if (delta < 60000) return `${(delta / 1000).toFixed(1)}s`;
+  return `${(delta / 60000).toFixed(1)}m`;
+}
+
+function collectTelemetryFieldInventory() {
+  const telemetrySnapshot =
+    activeRuntime && typeof activeRuntime.getTelemetrySnapshot === "function"
+      ? activeRuntime.getTelemetrySnapshot()
+      : null;
+  const knownById = new Map();
+
+  if (Array.isArray(CAMERA_HUD_TELEMETRY_FIELDS)) {
+    for (const spec of CAMERA_HUD_TELEMETRY_FIELDS) {
+      if (!spec || typeof spec !== "object") continue;
+      const fieldId = typeof spec.fieldId === "string" ? spec.fieldId.trim() : "";
+      if (!fieldId) continue;
+      knownById.set(fieldId, {
+        fieldId,
+        label: typeof spec.label === "string" ? spec.label : fieldId,
+        source: typeof spec.source === "string" ? spec.source : "unknown",
+        cadenceSeconds:
+          Number.isFinite(spec.cadenceSeconds) || spec.cadenceSeconds === null
+            ? spec.cadenceSeconds
+            : null,
+        placeholderPolicy:
+          spec.placeholder && typeof spec.placeholder === "object"
+            ? `loading=${spec.placeholder.loading}, stale=${spec.placeholder.stale}, error=${spec.placeholder.error}, unavailable=${spec.placeholder.unavailable}`
+            : "n/a",
+        status: "unavailable",
+        value: undefined,
+        updatedAt: null,
+      });
+    }
+  }
+
+  if (telemetrySnapshot && telemetrySnapshot.fields && typeof telemetrySnapshot.fields === "object") {
+    for (const [fieldIdRaw, field] of Object.entries(telemetrySnapshot.fields)) {
+      const fieldId = typeof fieldIdRaw === "string" ? fieldIdRaw.trim() : "";
+      if (!fieldId) continue;
+      const existing = knownById.get(fieldId) ?? {
+        fieldId,
+        label: fieldId,
+        source: typeof field?.source === "string" ? field.source : "unknown",
+        cadenceSeconds: null,
+        placeholderPolicy: "n/a",
+        status: "unavailable",
+        value: undefined,
+        updatedAt: null,
+      };
+      existing.status =
+        typeof field?.status === "string" ? field.status : existing.status;
+      existing.value = field?.value;
+      existing.updatedAt = Number.isFinite(field?.updatedAt) ? field.updatedAt : null;
+      existing.source =
+        typeof field?.source === "string" && field.source.trim().length > 0
+          ? field.source
+          : existing.source;
+      knownById.set(fieldId, existing);
+    }
+  }
+
+  return Array.from(knownById.values()).sort((a, b) => a.fieldId.localeCompare(b.fieldId));
+}
+
+function renderHydrationInventory() {
+  if (!hydrationFieldInventory || !hydrationProviderInventory || !hydrationInventorySummary) return;
+  hydrationFieldInventory.innerHTML = "";
+  hydrationProviderInventory.innerHTML = "";
+
+  const fields = collectTelemetryFieldInventory();
+  const telemetryDiagnostics = getTelemetryDiagnosticsSnapshot();
+  const profile = activeProfile();
+  const draft = hydrationDraftForActiveProfile();
+  const bindingCount = Array.isArray(draft?.dataBindings) ? draft.dataBindings.length : 0;
+
+  if (fields.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "workspace-state is-empty";
+    empty.textContent = "No telemetry fields detected.";
+    hydrationFieldInventory.appendChild(empty);
+  } else {
+    for (const row of fields) {
+      const item = document.createElement("div");
+      item.className = "hydration-field-row";
+      const head = document.createElement("div");
+      head.className = "hydration-field-head";
+
+      const fieldId = document.createElement("span");
+      fieldId.className = "hydration-field-id";
+      fieldId.textContent = row.fieldId;
+      head.appendChild(fieldId);
+
+      const statusTag = document.createElement("span");
+      statusTag.className = "hydration-field-status";
+      statusTag.textContent = row.status ?? "unknown";
+      head.appendChild(statusTag);
+      item.appendChild(head);
+
+      const meta = document.createElement("div");
+      meta.className = "hydration-field-meta";
+      const cadence =
+        row.cadenceSeconds === 0
+          ? "frame"
+          : row.cadenceSeconds === null
+            ? "event"
+            : `${row.cadenceSeconds}s`;
+      const valuePreview =
+        row.value === undefined || row.value === null
+          ? "n/a"
+          : String(row.value);
+      meta.textContent =
+        `${row.label} | src=${row.source} | cadence=${cadence} | age=${formatTimestampAge(row.updatedAt)} | value=${valuePreview}`;
+      item.appendChild(meta);
+
+      const placeholders = document.createElement("div");
+      placeholders.className = "hydration-field-meta";
+      placeholders.textContent = `placeholder: ${row.placeholderPolicy}`;
+      item.appendChild(placeholders);
+
+      hydrationFieldInventory.appendChild(item);
+    }
+  }
+
+  const providers = telemetryDiagnostics?.providers ?? [];
+  if (providers.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "workspace-state is-empty";
+    empty.textContent = "No telemetry provider diagnostics available.";
+    hydrationProviderInventory.appendChild(empty);
+  } else {
+    for (const provider of providers) {
+      const item = document.createElement("div");
+      item.className = "hydration-provider-row";
+      const head = document.createElement("div");
+      head.className = "hydration-provider-head";
+      const id = document.createElement("span");
+      id.className = "hydration-provider-id";
+      id.textContent = provider.providerId;
+      head.appendChild(id);
+      const state = document.createElement("span");
+      state.className = "hydration-provider-state";
+      state.textContent = provider.state;
+      head.appendChild(state);
+      item.appendChild(head);
+
+      const meta = document.createElement("div");
+      meta.className = "hydration-provider-meta";
+      const err = provider.lastError ? ` | err=${provider.lastError}` : "";
+      meta.textContent =
+        `fields=${provider.fieldIds.length} | updates=${provider.updates} | last=${formatTimestampAge(provider.lastUpdateAt)}${err}`;
+      item.appendChild(meta);
+
+      hydrationProviderInventory.appendChild(item);
+    }
+  }
+
+  const totalFields = telemetryDiagnostics?.fields?.total ?? fields.length;
+  const providerCount = telemetryDiagnostics?.providerCount ?? providers.length;
+  const profileName = profile?.name ?? "No profile";
+  hydrationInventorySummary.classList.remove("is-empty", "is-error", "is-loading");
+  hydrationInventorySummary.textContent =
+    `${profileName}: ${bindingCount} draft binding${bindingCount === 1 ? "" : "s"}, ${totalFields} field${totalFields === 1 ? "" : "s"}, ${providerCount} provider${providerCount === 1 ? "" : "s"}.`;
 }
 
 function normalizeDataBindingDraft(input) {
@@ -1723,6 +2479,167 @@ function deriveTuneableDataBindingsFromSceneSchema(sceneSchema) {
   return derived;
 }
 
+function setProfileCompatibilityNotes(profileId, notes) {
+  if (!profileId || typeof profileId !== "string") return;
+  const clean = Array.isArray(notes)
+    ? notes
+        .filter((note) => typeof note === "string")
+        .map((note) => note.trim())
+        .filter(Boolean)
+    : [];
+  if (clean.length === 0) {
+    profileCompatibilityNotes.delete(profileId);
+  } else {
+    profileCompatibilityNotes.set(profileId, clean);
+  }
+}
+
+function getProfileCompatibilityNotes(profileId) {
+  if (!profileId || typeof profileId !== "string") return [];
+  const notes = profileCompatibilityNotes.get(profileId);
+  return Array.isArray(notes) ? notes.slice() : [];
+}
+
+function countSchemaBindings(schema) {
+  if (!schema || typeof schema !== "object") return 0;
+  let total = 0;
+  walkSchemaNodes(schema, (node) => {
+    if (Array.isArray(node.bindings)) {
+      total += node.bindings.length;
+    }
+  });
+  return total;
+}
+
+function stripBindingsFromSchema(schema) {
+  if (!schema || typeof schema !== "object") return 0;
+  let removed = 0;
+  walkSchemaNodes(schema, (node) => {
+    if (Array.isArray(node.bindings) && node.bindings.length > 0) {
+      removed += node.bindings.length;
+    }
+    if (Array.isArray(node.bindings)) {
+      delete node.bindings;
+    }
+  });
+  return removed;
+}
+
+function profileHasBindingMetadata(profile) {
+  if (!profile || typeof profile !== "object") return false;
+  const tuneableBindings =
+    Array.isArray(profile.tuneables?.dataBindings) &&
+    profile.tuneables.dataBindings.length > 0;
+  const schemaBindingCount = countSchemaBindings(profile.sceneSchema);
+  return tuneableBindings || schemaBindingCount > 0;
+}
+
+function applyProfileCompatibilityGate(profile, opts = {}) {
+  const context = opts.context === "import" ? "import" : "store";
+  const warnings = [];
+  const errors = [];
+  let changed = false;
+
+  if (!profile || typeof profile !== "object") {
+    return { warnings, errors, changed, version: PROFILE_MIN_VERSION };
+  }
+
+  const rawVersion = Number(profile.version);
+  let version = Number.isFinite(rawVersion)
+    ? Math.max(PROFILE_MIN_VERSION, Math.floor(rawVersion))
+    : PROFILE_MIN_VERSION;
+  if (!Number.isFinite(rawVersion)) {
+    warnings.push("Profile version missing. Migrated to v1 compatibility mode.");
+    changed = true;
+  }
+
+  if (version > PROFILE_VERSION) {
+    const hasBindings = profileHasBindingMetadata(profile);
+    if (
+      hasBindings &&
+      context === "import" &&
+      ROLLOUT_FLAGS.strictFutureBindingImport
+    ) {
+      errors.push(
+        `Profile v${version} is newer than supported v${PROFILE_VERSION} and includes binding metadata.`
+      );
+      return { warnings, errors, changed, version };
+    }
+
+    warnings.push(
+      `Profile v${version} is newer than supported v${PROFILE_VERSION}; applying compatibility fallback.`
+    );
+    if (hasBindings) {
+      if (
+        profile.tuneables &&
+        Array.isArray(profile.tuneables.dataBindings) &&
+        profile.tuneables.dataBindings.length > 0
+      ) {
+        warnings.push("Dropped tuneable data bindings from future profile version.");
+        profile.tuneables.dataBindings = [];
+        changed = true;
+      }
+      const removedSchemaBindings = stripBindingsFromSchema(profile.sceneSchema);
+      if (removedSchemaBindings > 0) {
+        warnings.push(
+          `Removed ${removedSchemaBindings} scene-schema bindings from future profile version.`
+        );
+        changed = true;
+      }
+    }
+    version = PROFILE_VERSION;
+    changed = true;
+  }
+
+  if (
+    !ROLLOUT_FLAGS.dataBindings &&
+    profile.tuneables &&
+    Array.isArray(profile.tuneables.dataBindings) &&
+    profile.tuneables.dataBindings.length > 0
+  ) {
+    warnings.push("Data bindings are disabled by rollout flag; dropping tuneable bindings.");
+    profile.tuneables.dataBindings = [];
+    changed = true;
+  }
+
+  if (version < PROFILE_BINDING_VERSION && profileHasBindingMetadata(profile)) {
+    warnings.push(
+      `Profile v${version} contains binding metadata; migrating to v${PROFILE_BINDING_VERSION}.`
+    );
+    version = PROFILE_BINDING_VERSION;
+    changed = true;
+  }
+
+  if (version > PROFILE_VERSION) {
+    version = PROFILE_VERSION;
+    changed = true;
+  }
+  if (version < PROFILE_MIN_VERSION) {
+    version = PROFILE_MIN_VERSION;
+    changed = true;
+  }
+
+  if (profile.version !== version) {
+    profile.version = version;
+    changed = true;
+  }
+
+  if (
+    version === PROFILE_VERSION &&
+    profile.sceneSchema &&
+    typeof profile.sceneSchema === "object" &&
+    !ROLLOUT_FLAGS.dataBindings
+  ) {
+    const removed = stripBindingsFromSchema(profile.sceneSchema);
+    if (removed > 0) {
+      warnings.push(`Removed ${removed} schema bindings due to rollout flag.`);
+      changed = true;
+    }
+  }
+
+  return { warnings, errors, changed, version };
+}
+
 function defaultProfileTuneables() {
   return {
     autoResizeGrid: true,
@@ -1777,17 +2694,22 @@ function normalizeProfileTuneables(input) {
         })
         .filter(Boolean)
     : [];
+  const gatedDataBindings = ROLLOUT_FLAGS.dataBindings ? dataBindings : [];
 
   return {
     autoResizeGrid: input.autoResizeGrid !== false,
     nestedTriggers,
-    dataBindings,
+    dataBindings: gatedDataBindings,
   };
 }
 
 function ensureProfileTuneables(profile) {
   if (!profile || typeof profile !== "object") return defaultProfileTuneables();
   profile.tuneables = normalizeProfileTuneables(profile.tuneables);
+  if (!ROLLOUT_FLAGS.dataBindings) {
+    profile.tuneables.dataBindings = [];
+    return profile.tuneables;
+  }
   if (
     profile.tuneables.dataBindings.length === 0 &&
     profile.sceneSchema &&
@@ -1809,6 +2731,245 @@ function tuneablesForProfile(profile) {
 function tuneablesForActiveProfile() {
   const profile = activeProfile();
   return tuneablesForProfile(profile);
+}
+
+function hydrationDraftSignature(payload) {
+  return JSON.stringify({
+    nestedTriggers: Array.isArray(payload?.nestedTriggers)
+      ? payload.nestedTriggers
+      : [],
+    dataBindings: Array.isArray(payload?.dataBindings)
+      ? payload.dataBindings
+      : [],
+  });
+}
+
+function normalizeHydrationCheckpoint(raw, profileId = "") {
+  if (!raw || typeof raw !== "object") {
+    return {
+      profileId,
+      lastValidationAt: null,
+      lastValidationOk: null,
+      lastValidationMessage: "",
+      lastAppliedAt: null,
+      lastAppliedMessage: "",
+    };
+  }
+  return {
+    profileId,
+    lastValidationAt: Number.isFinite(raw.lastValidationAt) ? raw.lastValidationAt : null,
+    lastValidationOk:
+      raw.lastValidationOk === true || raw.lastValidationOk === false
+        ? raw.lastValidationOk
+        : null,
+    lastValidationMessage:
+      typeof raw.lastValidationMessage === "string"
+        ? raw.lastValidationMessage
+        : "",
+    lastAppliedAt: Number.isFinite(raw.lastAppliedAt) ? raw.lastAppliedAt : null,
+    lastAppliedMessage:
+      typeof raw.lastAppliedMessage === "string"
+        ? raw.lastAppliedMessage
+        : "",
+  };
+}
+
+function normalizeHydrationDraft(raw, profile) {
+  if (!profile || typeof profile !== "object") return null;
+  const profileId = typeof profile.id === "string" ? profile.id : "";
+  if (!profileId) return null;
+  const tuneables = tuneablesForProfile(profile);
+  const basePayload = normalizeProfileTuneables({
+    dataBindings: tuneables.dataBindings,
+    nestedTriggers: tuneables.nestedTriggers,
+  });
+  const baseSignature = hydrationDraftSignature(basePayload);
+
+  const candidate =
+    raw && typeof raw === "object"
+      ? normalizeProfileTuneables({
+        dataBindings: raw.dataBindings,
+        nestedTriggers: raw.nestedTriggers,
+      })
+      : basePayload;
+
+  const draftSignature = hydrationDraftSignature(candidate);
+  const dirty =
+    typeof raw?.dirty === "boolean"
+      ? raw.dirty
+      : draftSignature !== baseSignature;
+  const checkpoint = normalizeHydrationCheckpoint(
+    hydrationState?.checkpointsByProfileId?.[profileId],
+    profileId
+  );
+
+  return {
+    profileId,
+    nestedTriggers: candidate.nestedTriggers.slice(),
+    dataBindings: candidate.dataBindings.slice(),
+    baseSignature,
+    draftSignature,
+    dirty,
+    updatedAt: Number.isFinite(raw?.updatedAt) ? raw.updatedAt : null,
+    checkpoint,
+  };
+}
+
+function loadHydrationState() {
+  try {
+    const raw = localStorage.getItem(HYDRATION_STATE_STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return false;
+
+    const drafts =
+      parsed.draftsByProfileId && typeof parsed.draftsByProfileId === "object"
+        ? parsed.draftsByProfileId
+        : {};
+    const checkpoints =
+      parsed.checkpointsByProfileId && typeof parsed.checkpointsByProfileId === "object"
+        ? parsed.checkpointsByProfileId
+        : {};
+
+    hydrationState = {
+      version:
+        Number.isFinite(Number(parsed.version))
+          ? Number(parsed.version)
+          : HYDRATION_STATE_VERSION,
+      draftsByProfileId: drafts,
+      checkpointsByProfileId: checkpoints,
+    };
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function persistHydrationState() {
+  try {
+    localStorage.setItem(HYDRATION_STATE_STORAGE_KEY, JSON.stringify(hydrationState));
+  } catch {
+    // Ignore local storage failures.
+  }
+}
+
+function pruneHydrationStateForProfiles() {
+  const valid = new Set(
+    profileStore.profiles
+      .map((profile) => (typeof profile.id === "string" ? profile.id : ""))
+      .filter(Boolean)
+  );
+  for (const profileId of Object.keys(hydrationState.draftsByProfileId)) {
+    if (!valid.has(profileId)) {
+      delete hydrationState.draftsByProfileId[profileId];
+    }
+  }
+  for (const profileId of Object.keys(hydrationState.checkpointsByProfileId)) {
+    if (!valid.has(profileId)) {
+      delete hydrationState.checkpointsByProfileId[profileId];
+    }
+  }
+}
+
+function hydrationCheckpointForProfile(profileId) {
+  if (!profileId) return normalizeHydrationCheckpoint(null, "");
+  const existing = hydrationState.checkpointsByProfileId[profileId];
+  const normalized = normalizeHydrationCheckpoint(existing, profileId);
+  hydrationState.checkpointsByProfileId[profileId] = normalized;
+  return normalized;
+}
+
+function setHydrationCheckpoint(profileId, patch = {}) {
+  if (!profileId) return;
+  const current = hydrationCheckpointForProfile(profileId);
+  const next = normalizeHydrationCheckpoint({
+    ...current,
+    ...patch,
+  }, profileId);
+  hydrationState.checkpointsByProfileId[profileId] = next;
+  persistHydrationState();
+}
+
+function ensureHydrationDraftForProfile(profile) {
+  if (!profile || typeof profile !== "object") return null;
+  const profileId = typeof profile.id === "string" ? profile.id : "";
+  if (!profileId) return null;
+
+  const existing = hydrationState.draftsByProfileId[profileId];
+  const normalized = normalizeHydrationDraft(existing, profile);
+  if (!normalized) return null;
+  normalized.checkpoint = hydrationCheckpointForProfile(profileId);
+  hydrationState.draftsByProfileId[profileId] = normalized;
+  return normalized;
+}
+
+function hydrationDraftForActiveProfile() {
+  const profile = activeProfile();
+  return ensureHydrationDraftForProfile(profile);
+}
+
+function setHydrationDraftDirty(draft, reason = "") {
+  if (!draft || typeof draft !== "object") return;
+  draft.draftSignature = hydrationDraftSignature(draft);
+  draft.dirty = draft.draftSignature !== draft.baseSignature;
+  draft.updatedAt = Date.now();
+  hydrationState.draftsByProfileId[draft.profileId] = draft;
+  if (reason) {
+    setHydrationCheckpoint(draft.profileId, {
+      lastValidationAt: Date.now(),
+      lastValidationOk: null,
+      lastValidationMessage: reason,
+    });
+  } else {
+    persistHydrationState();
+  }
+}
+
+function applyHydrationDraftToActiveProfile(opts = {}) {
+  const profile = activeProfile();
+  if (!profile) return { ok: false, message: "No active profile." };
+  const draft = ensureHydrationDraftForProfile(profile);
+  if (!draft) return { ok: false, message: "No hydration draft available." };
+
+  const tuneables = tuneablesForProfile(profile);
+  tuneables.nestedTriggers = draft.nestedTriggers.slice();
+  tuneables.dataBindings = draft.dataBindings.slice();
+  profile.updatedAt = new Date().toISOString();
+  draft.baseSignature = hydrationDraftSignature({
+    nestedTriggers: tuneables.nestedTriggers,
+    dataBindings: tuneables.dataBindings,
+  });
+  draft.draftSignature = draft.baseSignature;
+  draft.dirty = false;
+  draft.updatedAt = Date.now();
+  hydrationState.draftsByProfileId[draft.profileId] = draft;
+  const appliedMessage = opts.message || "Hydration draft applied.";
+  setHydrationCheckpoint(draft.profileId, {
+    lastAppliedAt: Date.now(),
+    lastAppliedMessage: appliedMessage,
+  });
+  persistProfileStore();
+  syncEditorSchemaOutput();
+  syncLiveBuilderUiFromEditor();
+  renderHydrationCheckpointState();
+  renderHydrationDiagnosticsState();
+  renderHydrationInventory();
+  return { ok: true, message: appliedMessage };
+}
+
+function revertHydrationDraftForActiveProfile() {
+  const profile = activeProfile();
+  if (!profile) return { ok: false, message: "No active profile." };
+  const draft = normalizeHydrationDraft(null, profile);
+  if (!draft) return { ok: false, message: "No hydration draft available." };
+  draft.checkpoint = hydrationCheckpointForProfile(draft.profileId);
+  hydrationState.draftsByProfileId[draft.profileId] = draft;
+  setHydrationCheckpoint(draft.profileId, {
+    lastValidationAt: Date.now(),
+    lastValidationOk: null,
+    lastValidationMessage: "Hydration draft reverted to applied profile state.",
+  });
+  return { ok: true, message: "Hydration draft reverted." };
 }
 
 function createProfile(name = "Profile", opts = {}) {
@@ -1836,7 +2997,9 @@ function createProfile(name = "Profile", opts = {}) {
   };
   if (sceneSchema) {
     profile.sceneSchema = sceneSchema;
-    profile.tuneables.dataBindings = deriveTuneableDataBindingsFromSceneSchema(sceneSchema);
+    profile.tuneables.dataBindings = ROLLOUT_FLAGS.dataBindings
+      ? deriveTuneableDataBindingsFromSceneSchema(sceneSchema)
+      : [];
   }
   return profile;
 }
@@ -1875,6 +3038,7 @@ function persistProfileStore() {
 
 function ensureProfileStore() {
   ensureCatalogRegistry();
+  profileCompatibilityNotes.clear();
 
   if (!loadProfileStore() || profileStore.profiles.length === 0) {
     const defaultProfile = createProfile("Default Camera HUD Profile", {
@@ -1883,6 +3047,8 @@ function ensureProfileStore() {
     profileStore.profiles = [defaultProfile];
     profileStore.activeProfileId = defaultProfile.id;
     persistProfileStore();
+    pruneHydrationStateForProfiles();
+    persistHydrationState();
     return;
   }
 
@@ -1913,10 +3079,39 @@ function ensureProfileStore() {
   }
 
   for (const profile of profileStore.profiles) {
+    const compatibility = applyProfileCompatibilityGate(profile, { context: "store" });
+    if (compatibility.changed) {
+      storeChanged = true;
+    }
+    if (compatibility.warnings.length > 0 || compatibility.errors.length > 0) {
+      setProfileCompatibilityNotes(profile.id, [
+        ...compatibility.errors,
+        ...compatibility.warnings,
+      ]);
+    } else {
+      setProfileCompatibilityNotes(profile.id, []);
+    }
+
     const prevTuneablesRaw = JSON.stringify(profile.tuneables ?? null);
     ensureProfileTuneables(profile);
     if (JSON.stringify(profile.tuneables) !== prevTuneablesRaw) {
       storeChanged = true;
+    }
+
+    const postTuneablesCompatibility = applyProfileCompatibilityGate(profile, {
+      context: "store",
+    });
+    if (postTuneablesCompatibility.changed) {
+      storeChanged = true;
+    }
+    if (
+      postTuneablesCompatibility.warnings.length > 0 ||
+      postTuneablesCompatibility.errors.length > 0
+    ) {
+      setProfileCompatibilityNotes(profile.id, [
+        ...postTuneablesCompatibility.errors,
+        ...postTuneablesCompatibility.warnings,
+      ]);
     }
 
     const cols = Math.max(2, Number(profile.grid?.cols) || DEFAULT_GRID_COLS);
@@ -1940,6 +3135,8 @@ function ensureProfileStore() {
   if (storeChanged) {
     persistProfileStore();
   }
+  pruneHydrationStateForProfiles();
+  persistHydrationState();
 }
 
 function activeProfile() {
@@ -1988,16 +3185,17 @@ function renderTuneablesTriggerList() {
   tuneablesTriggerList.innerHTML = "";
   const profile = activeProfile();
   if (!profile) return;
-  const tuneables = tuneablesForProfile(profile);
-  if (!Array.isArray(tuneables.nestedTriggers) || tuneables.nestedTriggers.length === 0) {
+  const draft = ensureHydrationDraftForProfile(profile);
+  const nestedTriggers = Array.isArray(draft?.nestedTriggers) ? draft.nestedTriggers : [];
+  if (nestedTriggers.length === 0) {
     const empty = document.createElement("div");
-    empty.className = "subtle";
+    empty.className = "workspace-state is-empty";
     empty.textContent = "No nested triggers configured.";
     tuneablesTriggerList.appendChild(empty);
     return;
   }
 
-  for (const binding of tuneables.nestedTriggers) {
+  for (const binding of nestedTriggers) {
     const row = document.createElement("div");
     row.className = "tuneables-trigger-row";
 
@@ -2009,15 +3207,16 @@ function renderTuneablesTriggerList() {
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
-    removeBtn.className = "tuneables-trigger-remove";
+    removeBtn.className = "small-btn btn-destructive tuneables-trigger-remove";
     removeBtn.textContent = "Remove";
     removeBtn.addEventListener("click", () => {
-      tuneables.nestedTriggers = tuneables.nestedTriggers.filter((item) => item.id !== binding.id);
-      profile.updatedAt = new Date().toISOString();
-      persistProfileStore();
+      const activeDraft = hydrationDraftForActiveProfile();
+      if (!activeDraft) return;
+      activeDraft.nestedTriggers = activeDraft.nestedTriggers.filter((item) => item.id !== binding.id);
+      setHydrationDraftDirty(activeDraft, "Nested trigger draft updated.");
       renderTuneablesTriggerList();
+      validateHydrationBoundary({ announce: false, enforceFormatter: true });
       syncEditorSchemaOutput();
-      syncLiveBuilderUiFromEditor();
       status.textContent = `Removed nested trigger "${binding.elementId}:${binding.event}".`;
     });
     row.appendChild(removeBtn);
@@ -2148,6 +3347,7 @@ function syncTuneablesBindingFieldOptions() {
   if (options.some((option) => option.fieldId === previousValue)) {
     tuneablesBindingFieldSelect.value = previousValue;
   }
+  renderHydrationFormatterPreview();
 }
 
 function syncTuneablesBindingFormatterOptions() {
@@ -2178,9 +3378,30 @@ function syncTuneablesBindingFormatterOptions() {
   } else {
     tuneablesBindingFormatterSelect.value = "";
   }
+  renderHydrationFormatterPreview();
+}
+
+function syncTuneablesBindingControlsEnabledState() {
+  const enabled = ROLLOUT_FLAGS.dataBindings;
+  if (tuneablesBindingElementSelect) tuneablesBindingElementSelect.disabled = !enabled;
+  if (tuneablesBindingTargetSelect) tuneablesBindingTargetSelect.disabled = !enabled;
+  if (tuneablesBindingFieldSelect) tuneablesBindingFieldSelect.disabled = !enabled;
+  if (tuneablesBindingFormatterSelect) tuneablesBindingFormatterSelect.disabled = !enabled;
+  if (tuneablesBindingFallbackInput) tuneablesBindingFallbackInput.disabled = !enabled;
+  if (tuneablesBindingTemplateInput) tuneablesBindingTemplateInput.disabled = !enabled;
+  if (tuneablesAddBindingBtn) tuneablesAddBindingBtn.disabled = !enabled;
+  if (hydrationValidateBtn) hydrationValidateBtn.disabled = !enabled;
+  if (hydrationApplyBtn) hydrationApplyBtn.disabled = !enabled;
+  if (hydrationRevertBtn) hydrationRevertBtn.disabled = !enabled;
 }
 
 function validateTuneableDataBindingsForProfile(profile, opts = {}) {
+  if (!ROLLOUT_FLAGS.dataBindings) {
+    return {
+      errors: [],
+      bindable: new Map(),
+    };
+  }
   const tuneables = tuneablesForProfile(profile);
   const bindable = getBindableElementTypeByIdForProfile(profile);
   const formatterSet =
@@ -2203,24 +3424,72 @@ function validateTuneableDataBindingsForProfile(profile, opts = {}) {
   };
 }
 
+function validateHydrationDraftForProfile(profile, opts = {}) {
+  if (!ROLLOUT_FLAGS.dataBindings) {
+    return {
+      errors: [],
+      bindable: new Map(),
+      rowResults: [],
+    };
+  }
+  const draft = ensureHydrationDraftForProfile(profile);
+  const bindable = getBindableElementTypeByIdForProfile(profile);
+  const formatterSet =
+    opts.enforceFormatter === true ? collectAvailableBindingFormatters() : null;
+  const dataBindings = Array.isArray(draft?.dataBindings) ? draft.dataBindings : [];
+  const errors = [];
+  const rowResults = [];
+
+  for (let i = 0; i < dataBindings.length; i++) {
+    const binding = dataBindings[i];
+    const validation = validateDataBindingCandidate(binding, bindable, {
+      allowedFormatters: formatterSet,
+    });
+    if (!validation.ok) {
+      errors.push(`dataBindings[${i}]: ${validation.error}`);
+    }
+    rowResults.push({
+      index: i,
+      binding,
+      ok: validation.ok,
+      error: validation.ok ? "" : validation.error,
+      nodeType: validation.ok ? validation.nodeType : "",
+    });
+  }
+
+  return {
+    errors,
+    bindable,
+    rowResults,
+  };
+}
+
 function renderTuneablesDataBindingList() {
   if (!tuneablesBindingList) return;
   tuneablesBindingList.innerHTML = "";
+  if (!ROLLOUT_FLAGS.dataBindings) {
+    const disabled = document.createElement("div");
+    disabled.className = "workspace-state is-loading";
+    disabled.textContent = "Data bindings disabled by rollout flag.";
+    tuneablesBindingList.appendChild(disabled);
+    return;
+  }
   const profile = activeProfile();
   if (!profile) return;
-  const tuneables = tuneablesForProfile(profile);
+  const draft = ensureHydrationDraftForProfile(profile);
   const bindable = getBindableElementTypeByIdForProfile(profile);
+  const dataBindings = Array.isArray(draft?.dataBindings) ? draft.dataBindings : [];
 
-  if (!Array.isArray(tuneables.dataBindings) || tuneables.dataBindings.length === 0) {
+  if (dataBindings.length === 0) {
     const empty = document.createElement("div");
-    empty.className = "subtle";
+    empty.className = "workspace-state is-empty";
     empty.textContent = "No data bindings configured.";
     tuneablesBindingList.appendChild(empty);
     return;
   }
 
   const availableFormatters = collectAvailableBindingFormatters();
-  for (const binding of tuneables.dataBindings) {
+  for (const binding of dataBindings) {
     const validation = validateDataBindingCandidate(binding, bindable);
     const row = document.createElement("div");
     row.className = `tuneables-binding-row${validation.ok ? "" : " invalid"}`;
@@ -2242,6 +3511,10 @@ function renderTuneablesDataBindingList() {
     if (binding.fallback) {
       extras.push(`fallback: ${binding.fallback}`);
     }
+    if (binding.template) {
+      extras.push(`template: ${binding.template}`);
+    }
+    extras.push(`status: ${validation.ok ? "valid" : "invalid"}`);
     if (extras.length > 0) {
       const extra = document.createElement("span");
       extra.className = "tuneables-binding-extra";
@@ -2260,18 +3533,46 @@ function renderTuneablesDataBindingList() {
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
-    removeBtn.className = "tuneables-binding-remove";
+    removeBtn.className = "small-btn btn-destructive tuneables-binding-remove";
     removeBtn.textContent = "Remove";
     removeBtn.addEventListener("click", () => {
-      tuneables.dataBindings = tuneables.dataBindings.filter((item) => item.id !== binding.id);
-      profile.updatedAt = new Date().toISOString();
-      persistProfileStore();
+      const activeDraft = hydrationDraftForActiveProfile();
+      if (!activeDraft) return;
+      activeDraft.dataBindings = activeDraft.dataBindings.filter((item) => item.id !== binding.id);
+      setHydrationDraftDirty(activeDraft, "Data binding draft updated.");
       renderTuneablesDataBindingList();
+      validateHydrationBoundary({ announce: false, enforceFormatter: true });
       syncEditorSchemaOutput();
-      syncLiveBuilderUiFromEditor();
       status.textContent = `Removed data binding for "${binding.elementId}".`;
     });
     row.appendChild(removeBtn);
+
+    row.addEventListener("click", (event) => {
+      if (event.target instanceof HTMLElement && event.target.closest(".tuneables-binding-remove")) {
+        return;
+      }
+      if (tuneablesBindingElementSelect) {
+        tuneablesBindingElementSelect.value = binding.elementId ?? "";
+      }
+      syncTuneablesBindingTargetOptions(activeProfile());
+      if (tuneablesBindingTargetSelect) {
+        tuneablesBindingTargetSelect.value = binding.target ?? "";
+      }
+      if (tuneablesBindingFieldSelect) {
+        tuneablesBindingFieldSelect.value = binding.field ?? "";
+      }
+      if (tuneablesBindingFormatterSelect) {
+        tuneablesBindingFormatterSelect.value = binding.formatter ?? "";
+      }
+      if (tuneablesBindingFallbackInput) {
+        tuneablesBindingFallbackInput.value = binding.fallback ?? "";
+      }
+      if (tuneablesBindingTemplateInput) {
+        tuneablesBindingTemplateInput.value = binding.template ?? "";
+      }
+      renderHydrationFormatterPreview();
+      status.textContent = `Loaded binding row for "${binding.elementId}.${binding.target ?? "(auto)"}".`;
+    });
 
     tuneablesBindingList.appendChild(row);
   }
@@ -2280,9 +3581,11 @@ function renderTuneablesDataBindingList() {
 function syncTuneablesUIFromActiveProfile() {
   const profile = activeProfile();
   const tuneables = tuneablesForProfile(profile);
+  ensureHydrationDraftForProfile(profile);
   if (tuneablesAutoResizeGrid) {
     tuneablesAutoResizeGrid.checked = tuneables.autoResizeGrid !== false;
   }
+  syncTuneablesBindingControlsEnabledState();
   syncTuneablesTargetProfileSelect();
   renderTuneablesTriggerList();
   syncTuneablesBindingElementOptions(profile);
@@ -2290,12 +3593,19 @@ function syncTuneablesUIFromActiveProfile() {
   syncTuneablesBindingFieldOptions();
   syncTuneablesBindingFormatterOptions();
   renderTuneablesDataBindingList();
+  renderHydrationInventory();
+  renderHydrationFormatterPreview();
+  renderHydrationCheckpointState();
+  renderHydrationDiagnosticsState();
+  syncAssemblyInspectorState();
+  validateHydrationBoundary({ announce: false, enforceFormatter: true });
 }
 
 function addNestedTriggerBinding() {
   const profile = activeProfile();
   if (!profile) return false;
-  const tuneables = tuneablesForProfile(profile);
+  const draft = ensureHydrationDraftForProfile(profile);
+  if (!draft) return false;
   const elementId = tuneablesTriggerElementInput.value.trim();
   const eventName = tuneablesTriggerEventSelect.value;
   const targetProfileId = tuneablesTriggerProfileSelect.value;
@@ -2317,7 +3627,7 @@ function addNestedTriggerBinding() {
     return false;
   }
 
-  const duplicate = tuneables.nestedTriggers.find(
+  const duplicate = draft.nestedTriggers.find(
     (binding) =>
       binding.elementId === elementId &&
       binding.event === eventName &&
@@ -2328,25 +3638,29 @@ function addNestedTriggerBinding() {
     return false;
   }
 
-  tuneables.nestedTriggers.push({
+  draft.nestedTriggers.push({
     id: makeId("trigger"),
     elementId,
     event: eventName,
     profileId: targetProfileId,
   });
-  profile.updatedAt = new Date().toISOString();
-  persistProfileStore();
+  setHydrationDraftDirty(draft, "Nested trigger draft updated.");
   renderTuneablesTriggerList();
+  validateHydrationBoundary({ announce: false, enforceFormatter: true });
   syncEditorSchemaOutput();
-  syncLiveBuilderUiFromEditor();
   status.textContent = `Added nested trigger ${elementId} -> ${eventName}.`;
   return true;
 }
 
 function addTuneablesDataBinding() {
+  if (!ROLLOUT_FLAGS.dataBindings) {
+    status.textContent = "Data bindings disabled by rollout flag.";
+    return false;
+  }
   const profile = activeProfile();
   if (!profile) return false;
-  const tuneables = tuneablesForProfile(profile);
+  const draftState = ensureHydrationDraftForProfile(profile);
+  if (!draftState) return false;
   const bindable = getBindableElementTypeByIdForProfile(profile);
 
   const draft = {
@@ -2355,6 +3669,7 @@ function addTuneablesDataBinding() {
     field: tuneablesBindingFieldSelect?.value ?? "",
     formatter: tuneablesBindingFormatterSelect?.value ?? "",
     fallback: (tuneablesBindingFallbackInput?.value ?? "").trim(),
+    template: (tuneablesBindingTemplateInput?.value ?? "").trim(),
   };
 
   const validation = validateDataBindingCandidate(draft, bindable, {
@@ -2366,7 +3681,7 @@ function addTuneablesDataBinding() {
   }
 
   const next = validation.binding;
-  const existingIndex = tuneables.dataBindings.findIndex((row) => {
+  const existingIndex = draftState.dataBindings.findIndex((row) => {
     if (!row || typeof row !== "object") return false;
     if (row.elementId !== next.elementId) return false;
     const existingTarget =
@@ -2376,27 +3691,24 @@ function addTuneablesDataBinding() {
   });
 
   if (existingIndex >= 0) {
-    const prev = tuneables.dataBindings[existingIndex];
-    tuneables.dataBindings[existingIndex] = {
+    const prev = draftState.dataBindings[existingIndex];
+    draftState.dataBindings[existingIndex] = {
       ...prev,
       ...next,
       id: prev.id || next.id,
-      template:
-        typeof prev.template === "string" && prev.template.length > 0
-          ? prev.template
-          : next.template,
+      template: next.template,
     };
     status.textContent = `Updated data binding for "${next.elementId}.${next.target}".`;
   } else {
-    tuneables.dataBindings.push(next);
+    draftState.dataBindings.push(next);
     status.textContent = `Added data binding for "${next.elementId}.${next.target}".`;
   }
 
-  profile.updatedAt = new Date().toISOString();
-  persistProfileStore();
+  setHydrationDraftDirty(draftState, "Data binding draft updated.");
   renderTuneablesDataBindingList();
+  validateHydrationBoundary({ announce: false, enforceFormatter: true });
   syncEditorSchemaOutput();
-  syncLiveBuilderUiFromEditor();
+  renderHydrationFormatterPreview();
   return true;
 }
 
@@ -2413,6 +3725,7 @@ function applyProfileToEditor(profileId) {
   const expected = editorState.cols * editorState.rows;
   const incoming = Array.isArray(profile.grid?.cells) ? profile.grid.cells.slice(0, expected) : [];
   editorState.cells = incoming.concat(blankCells(editorState.cols, editorState.rows)).slice(0, expected);
+  editorState.selectedCellIndex = null;
   if (
     isGridEmpty(editorState.cells) &&
     profile.sceneSchema &&
@@ -2437,6 +3750,11 @@ function applyProfileToEditor(profileId) {
   });
   if (bindingValidation.errors.length > 0) {
     status.textContent = `Profile has invalid bindings: ${bindingValidation.errors[0]}`;
+  } else {
+    const compatibilityNotes = getProfileCompatibilityNotes(profile.id);
+    if (compatibilityNotes.length > 0) {
+      status.textContent = compatibilityNotes[0];
+    }
   }
   if (derivedFromScene) {
     persistProfileStore();
@@ -2650,27 +3968,502 @@ function buildActiveSceneSchema() {
   return buildSceneSchemaForProfile(profileStore.activeProfileId);
 }
 
+function setWorkspaceStateMessage(node, stateClass, message) {
+  if (!node) return;
+  node.classList.remove("is-empty", "is-loading", "is-error");
+  if (stateClass) {
+    node.classList.add(stateClass);
+  }
+  node.textContent = message;
+}
+
+function pushAssemblyAction(type, details = {}) {
+  assemblyActionHistory.push({
+    id: makeId("assembly-action"),
+    at: new Date().toISOString(),
+    type,
+    details,
+  });
+  if (assemblyActionHistory.length > ASSEMBLY_ACTION_HISTORY_LIMIT) {
+    assemblyActionHistory.splice(0, assemblyActionHistory.length - ASSEMBLY_ACTION_HISTORY_LIMIT);
+  }
+}
+
+function buildAssemblyStructuralSnapshot() {
+  const tuneables = tuneablesForActiveProfile();
+  const autoResize = tuneables?.autoResizeGrid !== false;
+  const filledCells = editorState.cells.reduce((count, key) => (
+    typeof key === "string" && catalogEntryByKey.has(key) ? count + 1 : count
+  ), 0);
+  const bounds = resolveGridBounds(editorState.cells, editorState.cols, editorState.rows, autoResize);
+  const usedRows = Math.max(1, bounds.maxRow - bounds.minRow + 1);
+  const usedCols = Math.max(1, bounds.maxCol - bounds.minCol + 1);
+  const schema = buildGridSchema({
+    cols: editorState.cols,
+    rows: editorState.rows,
+    cells: editorState.cells,
+    tuneables,
+    autoResize,
+    includeTuneableBindings: false,
+  });
+  const errors = UIHydrate.validate(schema);
+  return {
+    schema,
+    errors,
+    summary: {
+      cols: editorState.cols,
+      rows: editorState.rows,
+      filledCells,
+      usedRows,
+      usedCols,
+      autoResize,
+    },
+  };
+}
+
+function validateAssemblyStructure(opts = {}) {
+  const announce = opts.announce === true;
+  const updateUi = opts.updateUi !== false;
+  const snapshot = buildAssemblyStructuralSnapshot();
+  const ok = snapshot.errors.length === 0;
+  const message = ok
+    ? `Structure valid (${snapshot.summary.filledCells} filled cells, ${snapshot.summary.usedCols}x${snapshot.summary.usedRows} used).`
+    : `Structure validation failed: ${snapshot.errors[0]}`;
+
+  if (updateUi && editorStructureValidationState) {
+    if (!ok) {
+      setWorkspaceStateMessage(
+        editorStructureValidationState,
+        "is-error",
+        `${message} (${snapshot.errors.length} issue${snapshot.errors.length === 1 ? "" : "s"})`
+      );
+    } else if (snapshot.summary.filledCells === 0) {
+      setWorkspaceStateMessage(
+        editorStructureValidationState,
+        "is-empty",
+        "Structure valid, grid is currently empty."
+      );
+    } else {
+      setWorkspaceStateMessage(editorStructureValidationState, "", message);
+    }
+  }
+
+  if (announce && status) {
+    status.textContent = message;
+  }
+  return { ok, message, snapshot };
+}
+
+function collectHydrationBindingDiagnostics() {
+  const targets = [
+    { scope: "camera-hud", root: getRuntimeRoot() },
+    { scope: "placed-builder", root: placedBuilderUiInstance?.root ?? null },
+    { scope: "drag-builder", root: dragBuilderUiInstance?.root ?? null },
+  ];
+  const aggregate = {
+    bindingRoots: 0,
+    totalBindings: 0,
+    boundFieldCount: 0,
+    warningCount: 0,
+    errorCount: 0,
+    missingFormatterCount: 0,
+    unsupportedTargetCount: 0,
+    formatterErrorCount: 0,
+    applyErrorCount: 0,
+    lastEvent: null,
+  };
+
+  if (!ROLLOUT_FLAGS.telemetryDiagnostics || typeof UIHydrate.getBindingDiagnostics !== "function") {
+    return aggregate;
+  }
+
+  for (const target of targets) {
+    if (!target.root) continue;
+    const diagnostics = UIHydrate.getBindingDiagnostics(target.root);
+    if (!diagnostics) continue;
+    aggregate.bindingRoots += 1;
+    aggregate.totalBindings += diagnostics.totalBindings;
+    aggregate.boundFieldCount += diagnostics.boundFieldCount;
+    aggregate.warningCount += diagnostics.warningCount;
+    aggregate.errorCount += diagnostics.errorCount;
+    aggregate.missingFormatterCount += diagnostics.missingFormatterCount;
+    aggregate.unsupportedTargetCount += diagnostics.unsupportedTargetCount;
+    aggregate.formatterErrorCount += diagnostics.formatterErrorCount;
+    aggregate.applyErrorCount += diagnostics.applyErrorCount;
+    if (Array.isArray(diagnostics.recentEvents) && diagnostics.recentEvents.length > 0) {
+      const latest = diagnostics.recentEvents[diagnostics.recentEvents.length - 1];
+      if (!aggregate.lastEvent || latest.at > aggregate.lastEvent.at) {
+        aggregate.lastEvent = {
+          ...latest,
+          scope: target.scope,
+        };
+      }
+    }
+  }
+  return aggregate;
+}
+
+function renderHydrationDiagnosticsState() {
+  if (!hydrationDiagnosticsState) return;
+  const diagnostics = collectHydrationBindingDiagnostics();
+  if (diagnostics.bindingRoots === 0) {
+    setWorkspaceStateMessage(
+      hydrationDiagnosticsState,
+      "is-empty",
+      "Binding diagnostics unavailable until runtime binds fields."
+    );
+    return;
+  }
+  const header =
+    `roots=${diagnostics.bindingRoots}, bindings=${diagnostics.totalBindings}, fields=${diagnostics.boundFieldCount}, ` +
+    `warnings=${diagnostics.warningCount}, errors=${diagnostics.errorCount}, missingFormatter=${diagnostics.missingFormatterCount}, ` +
+    `unsupportedTarget=${diagnostics.unsupportedTargetCount}, formatterThrow=${diagnostics.formatterErrorCount}, applyThrow=${diagnostics.applyErrorCount}`;
+  if (diagnostics.lastEvent) {
+    setWorkspaceStateMessage(
+      hydrationDiagnosticsState,
+      diagnostics.errorCount > 0 ? "is-error" : "",
+      `${header}. Last event: ${diagnostics.lastEvent.scope}:${diagnostics.lastEvent.code} (${diagnostics.lastEvent.severity}) field=${diagnostics.lastEvent.fieldId} element=${diagnostics.lastEvent.elementId ?? "n/a"} ${formatTimestampAge(diagnostics.lastEvent.at)} ago.`
+    );
+  } else {
+    setWorkspaceStateMessage(
+      hydrationDiagnosticsState,
+      diagnostics.errorCount > 0 ? "is-error" : "",
+      `${header}.`
+    );
+  }
+}
+
+function renderHydrationCheckpointState() {
+  if (!hydrationCheckpointState) return;
+  if (!ROLLOUT_FLAGS.dataBindings) {
+    setWorkspaceStateMessage(
+      hydrationCheckpointState,
+      "is-empty",
+      "Hydration checkpoints disabled by rollout flag."
+    );
+    if (hydrationApplyBtn) hydrationApplyBtn.disabled = true;
+    if (hydrationRevertBtn) hydrationRevertBtn.disabled = true;
+    return;
+  }
+  const profile = activeProfile();
+  if (!profile) {
+    setWorkspaceStateMessage(hydrationCheckpointState, "is-empty", "No active profile.");
+    if (hydrationApplyBtn) hydrationApplyBtn.disabled = true;
+    if (hydrationRevertBtn) hydrationRevertBtn.disabled = true;
+    return;
+  }
+  const draft = ensureHydrationDraftForProfile(profile);
+  const checkpoint = hydrationCheckpointForProfile(profile.id);
+  if (!draft) {
+    setWorkspaceStateMessage(hydrationCheckpointState, "is-empty", "Hydration draft unavailable.");
+    if (hydrationApplyBtn) hydrationApplyBtn.disabled = true;
+    if (hydrationRevertBtn) hydrationRevertBtn.disabled = true;
+    return;
+  }
+  if (hydrationApplyBtn) hydrationApplyBtn.disabled = !draft.dirty;
+  if (hydrationRevertBtn) hydrationRevertBtn.disabled = !draft.dirty;
+  if (draft.dirty) {
+    const updated = Number.isFinite(draft.updatedAt)
+      ? ` Draft updated ${formatTimestampAge(draft.updatedAt)} ago.`
+      : "";
+    setWorkspaceStateMessage(
+      hydrationCheckpointState,
+      "is-loading",
+      `Draft has unapplied hydration changes.${updated}`
+    );
+    return;
+  }
+
+  if (Number.isFinite(checkpoint.lastAppliedAt)) {
+    const applied = `Applied ${formatTimestampAge(checkpoint.lastAppliedAt)} ago.`;
+    const validation =
+      checkpoint.lastValidationOk === null
+        ? ""
+        : ` Validation: ${checkpoint.lastValidationOk ? "pass" : "fail"}${checkpoint.lastValidationMessage ? ` (${checkpoint.lastValidationMessage})` : ""}.`;
+    setWorkspaceStateMessage(hydrationCheckpointState, "", `${applied}${validation}`.trim());
+    return;
+  }
+
+  setWorkspaceStateMessage(hydrationCheckpointState, "is-empty", "No hydration apply checkpoint yet.");
+}
+
+function renderHydrationFormatterPreview() {
+  if (!hydrationFormatterPreviewState) return;
+  if (!ROLLOUT_FLAGS.dataBindings) {
+    setWorkspaceStateMessage(
+      hydrationFormatterPreviewState,
+      "is-empty",
+      "Formatter preview disabled by rollout flag."
+    );
+    return;
+  }
+  const fieldId = tuneablesBindingFieldSelect?.value ?? "";
+  if (!fieldId) {
+    setWorkspaceStateMessage(
+      hydrationFormatterPreviewState,
+      "is-empty",
+      "Formatter preview will appear when a field is selected."
+    );
+    return;
+  }
+
+  const snapshot =
+    activeRuntime && typeof activeRuntime.getTelemetrySnapshot === "function"
+      ? activeRuntime.getTelemetrySnapshot()
+      : null;
+  const field = snapshot?.fields?.[fieldId];
+  const formatterName = tuneablesBindingFormatterSelect?.value ?? "";
+  const fallback = tuneablesBindingFallbackInput?.value ?? "";
+  const template = tuneablesBindingTemplateInput?.value ?? "";
+  const formatters = getRuntimeBindingRuntime(activeRuntime)?.formatters ?? {};
+
+  let working = field?.value;
+  let formatterWarning = "";
+  if (formatterName) {
+    const formatter = formatters[formatterName];
+    if (typeof formatter !== "function") {
+      formatterWarning = `Formatter "${formatterName}" unavailable in active runtime.`;
+    } else {
+      try {
+        working = formatter(working, {
+          fieldId,
+          field,
+          binding: {
+            field: fieldId,
+            target: tuneablesBindingTargetSelect?.value || undefined,
+            formatter: formatterName,
+            fallback: fallback || undefined,
+            template: template || undefined,
+          },
+          element: {
+            elementId: tuneablesBindingElementSelect?.value ?? "",
+          },
+        });
+      } catch (err) {
+        formatterWarning =
+          err instanceof Error
+            ? err.message
+            : `Formatter threw: ${String(err)}`;
+      }
+    }
+  }
+
+  if (
+    (working === null ||
+      working === undefined ||
+      (typeof working === "number" && !Number.isFinite(working))) &&
+    fallback.trim().length > 0
+  ) {
+    working = fallback;
+  }
+
+  const outputBase =
+    working === null || working === undefined
+      ? ""
+      : String(working);
+  const output =
+    template && /\{\{\s*value\s*\}\}/.test(template)
+      ? template.replace(/\{\{\s*value\s*\}\}/g, outputBase)
+      : outputBase;
+
+  const raw = field?.value === undefined ? "undefined" : String(field.value);
+  const source = typeof field?.source === "string" ? field.source : "n/a";
+  const statusText = typeof field?.status === "string" ? field.status : "unknown";
+  const message =
+    `field=${fieldId}, source=${source}, status=${statusText}, raw=${raw}, preview=${output || "(empty)"}` +
+    (formatterWarning ? `, warning=${formatterWarning}` : "");
+  setWorkspaceStateMessage(
+    hydrationFormatterPreviewState,
+    formatterWarning ? "is-error" : "",
+    message
+  );
+}
+
+function validateHydrationBoundary(opts = {}) {
+  const announce = opts.announce === true;
+  const enforceFormatter = opts.enforceFormatter !== false;
+  const persistCheckpoint = opts.persistCheckpoint === true;
+  const requireApplied = opts.requireApplied === true;
+  const profile = activeProfile();
+  if (!profile) {
+    const message = "Hydration boundary invalid: no active profile.";
+    if (hydrationValidationState) {
+      setWorkspaceStateMessage(hydrationValidationState, "is-error", message);
+    }
+    if (announce && status) status.textContent = message;
+    return { ok: false, message, errors: [message] };
+  }
+
+  if (!ROLLOUT_FLAGS.dataBindings) {
+    const message = "Hydration validation skipped: data bindings rollout flag disabled.";
+    if (hydrationValidationState) {
+      setWorkspaceStateMessage(hydrationValidationState, "is-empty", message);
+    }
+    if (persistCheckpoint && profile?.id) {
+      setHydrationCheckpoint(profile.id, {
+        lastValidationAt: Date.now(),
+        lastValidationOk: true,
+        lastValidationMessage: message,
+      });
+    }
+    renderHydrationCheckpointState();
+    renderHydrationDiagnosticsState();
+    if (announce && status) status.textContent = message;
+    return { ok: true, message, errors: [] };
+  }
+
+  const draft = ensureHydrationDraftForProfile(profile);
+  const validation = validateHydrationDraftForProfile(profile, { enforceFormatter });
+  if (validation.errors.length > 0) {
+    const message = `Hydration invalid: ${validation.errors[0]}`;
+    if (hydrationValidationState) {
+      setWorkspaceStateMessage(
+        hydrationValidationState,
+        "is-error",
+        `${message} (${validation.errors.length} issue${validation.errors.length === 1 ? "" : "s"})`
+      );
+    }
+    if (persistCheckpoint && profile.id) {
+      setHydrationCheckpoint(profile.id, {
+        lastValidationAt: Date.now(),
+        lastValidationOk: false,
+        lastValidationMessage: message,
+      });
+    }
+    renderHydrationCheckpointState();
+    renderHydrationDiagnosticsState();
+    if (announce && status) status.textContent = message;
+    return { ok: false, message, errors: validation.errors.slice() };
+  }
+
+  const count = Array.isArray(draft?.dataBindings) ? draft.dataBindings.length : 0;
+  const unapplied = Boolean(draft?.dirty);
+  const message = unapplied
+    ? `Hydration valid (${count} binding${count === 1 ? "" : "s"}), but draft has unapplied changes.`
+    : `Hydration valid (${count} binding${count === 1 ? "" : "s"} configured and applied).`;
+  if (hydrationValidationState) {
+    setWorkspaceStateMessage(
+      hydrationValidationState,
+      validation.errors.length > 0
+        ? "is-error"
+        : unapplied
+          ? "is-loading"
+          : count === 0
+            ? "is-empty"
+            : "",
+      count === 0
+        ? "No data bindings configured yet."
+        : message
+    );
+  }
+  if (persistCheckpoint && profile.id) {
+    setHydrationCheckpoint(profile.id, {
+      lastValidationAt: Date.now(),
+      lastValidationOk: !unapplied,
+      lastValidationMessage: message,
+    });
+  }
+  renderHydrationCheckpointState();
+  renderHydrationDiagnosticsState();
+  renderHydrationFormatterPreview();
+  renderHydrationInventory();
+  if (announce && status) status.textContent = message;
+  if (requireApplied && unapplied) {
+    return { ok: false, message, errors: ["Hydration draft has unapplied changes."] };
+  }
+  return { ok: !unapplied || !requireApplied, message, errors: [] };
+}
+
+function getSelectedEditorCellSnapshot() {
+  const index = Number(editorState.selectedCellIndex);
+  if (!Number.isInteger(index) || index < 0 || index >= editorState.cells.length) {
+    return null;
+  }
+  const key = editorState.cells[index];
+  const entry = typeof key === "string" ? catalogEntryByKey.get(key) ?? null : null;
+  return {
+    index,
+    row: Math.floor(index / editorState.cols),
+    col: index % editorState.cols,
+    key: typeof key === "string" ? key : null,
+    entry,
+  };
+}
+
+function syncAssemblyInspectorState() {
+  const snapshot = buildAssemblyStructuralSnapshot();
+  if (editorStructureSummaryState) {
+    const summaryLine =
+      `Grid ${snapshot.summary.cols}x${snapshot.summary.rows}, filled ${snapshot.summary.filledCells}, ` +
+      `used ${snapshot.summary.usedCols}x${snapshot.summary.usedRows}, auto-resize ${snapshot.summary.autoResize ? "on" : "off"}.`;
+    const stateClass = snapshot.summary.filledCells === 0 ? "is-empty" : "";
+    setWorkspaceStateMessage(editorStructureSummaryState, stateClass, summaryLine);
+  }
+
+  const selection = getSelectedEditorCellSnapshot();
+  if (editorCellSelectionState) {
+    if (!selection) {
+      setWorkspaceStateMessage(editorCellSelectionState, "is-empty", "Select a grid cell to inspect structure details.");
+    } else if (!selection.key) {
+      setWorkspaceStateMessage(
+        editorCellSelectionState,
+        "is-empty",
+        `Cell r${selection.row + 1} c${selection.col + 1} is empty.`
+      );
+    } else if (!selection.entry) {
+      setWorkspaceStateMessage(
+        editorCellSelectionState,
+        "is-error",
+        `Cell r${selection.row + 1} c${selection.col + 1} points to missing element "${selection.key}".`
+      );
+    } else {
+      setWorkspaceStateMessage(
+        editorCellSelectionState,
+        "",
+        `Cell r${selection.row + 1} c${selection.col + 1}: ${selection.entry.label} (${selection.key}).`
+      );
+    }
+  }
+  if (editorOpenElementBtn) {
+    editorOpenElementBtn.disabled = !(selection && selection.entry);
+  }
+  validateAssemblyStructure({ announce: false, updateUi: true });
+}
+
 function syncEditorSchemaOutput() {
   if (!editorSchemaOutput) return;
   const profile = activeProfile();
-  const schema = buildGridSchema();
-  const sceneSchema = buildActiveSceneSchema();
-  const errors = UIHydrate.validate(schema);
-  const sceneErrors = UIHydrate.validate(sceneSchema);
-  const tuneables = tuneablesForActiveProfile();
-  const bindingValidation = validateTuneableDataBindingsForProfile(profile, {
-    enforceFormatter: true,
-  });
+  const compatibilityNotes = profile ? getProfileCompatibilityNotes(profile.id) : [];
+  const structural = buildAssemblyStructuralSnapshot();
+  const hydrationDraft = profile ? ensureHydrationDraftForProfile(profile) : null;
+  const hydrationValidation = profile
+    ? validateHydrationDraftForProfile(profile, { enforceFormatter: true })
+    : { errors: [] };
+  const hydrationCheckpoint = profile ? hydrationCheckpointForProfile(profile.id) : null;
+  const recentAction = assemblyActionHistory[assemblyActionHistory.length - 1] ?? null;
   editorSchemaOutput.value = JSON.stringify(
     {
       version: PROFILE_VERSION,
       profileId: profileStore.activeProfileId,
-      tuneables,
-      errors,
-      sceneErrors,
-      bindingErrors: bindingValidation.errors,
-      schema,
-      sceneSchema,
+      profileVersion: profile?.version ?? null,
+      profileCompatibilityNotes: compatibilityNotes,
+      assembly: {
+        summary: structural.summary,
+        errors: structural.errors,
+        schema: structural.schema,
+      },
+      hydration: {
+        dirty: Boolean(hydrationDraft?.dirty),
+        draftBindingCount: Array.isArray(hydrationDraft?.dataBindings)
+          ? hydrationDraft.dataBindings.length
+          : 0,
+        draftTriggerCount: Array.isArray(hydrationDraft?.nestedTriggers)
+          ? hydrationDraft.nestedTriggers.length
+          : 0,
+        validationErrors: hydrationValidation.errors ?? [],
+        checkpoint: hydrationCheckpoint,
+      },
+      lastAssemblyAction: recentAction,
     },
     null,
     2
@@ -2700,6 +4493,89 @@ function parseDraggedEditorCellIndex(event) {
   return value;
 }
 
+function dispatchAssemblyAction(action) {
+  if (!action || typeof action !== "object") return false;
+  const type = action.type;
+  if (!type) return false;
+
+  if (type === "select-cell") {
+    const index = Number(action.index);
+    const nextIndex =
+      Number.isInteger(index) && index >= 0 && index < editorState.cells.length ? index : null;
+    if (editorState.selectedCellIndex === nextIndex) return false;
+    editorState.selectedCellIndex = nextIndex;
+    pushAssemblyAction("select-cell", { index: nextIndex });
+    renderEditorGrid();
+    return true;
+  }
+
+  let changed = false;
+  switch (type) {
+    case "place-entry": {
+      const index = Number(action.index);
+      const key = typeof action.key === "string" ? action.key : "";
+      if (!Number.isInteger(index) || index < 0 || index >= editorState.cells.length) return false;
+      if (!catalogEntryByKey.has(key)) return false;
+      if (editorState.cells[index] === key) return false;
+      editorState.cells[index] = key;
+      editorState.selectedCellIndex = index;
+      pushAssemblyAction("place-entry", { index, key });
+      changed = true;
+      break;
+    }
+    case "move-cell": {
+      const from = Number(action.from);
+      const to = Number(action.to);
+      if (!Number.isInteger(from) || !Number.isInteger(to)) return false;
+      if (from < 0 || from >= editorState.cells.length) return false;
+      if (to < 0 || to >= editorState.cells.length) return false;
+      if (from === to) return false;
+      const sourceKey = editorState.cells[from];
+      if (typeof sourceKey !== "string" || !catalogEntryByKey.has(sourceKey)) return false;
+      const targetKey = editorState.cells[to];
+      editorState.cells[to] = sourceKey;
+      editorState.cells[from] =
+        typeof targetKey === "string" && catalogEntryByKey.has(targetKey) ? targetKey : null;
+      if (editorState.selectedCellIndex === from) {
+        editorState.selectedCellIndex = to;
+      } else if (editorState.selectedCellIndex === to) {
+        editorState.selectedCellIndex = from;
+      }
+      pushAssemblyAction("move-cell", { from, to, sourceKey, targetKey: targetKey ?? null });
+      changed = true;
+      break;
+    }
+    case "delete-cell": {
+      const index = Number(action.index);
+      if (!Number.isInteger(index) || index < 0 || index >= editorState.cells.length) return false;
+      const key = editorState.cells[index];
+      if (typeof key !== "string") return false;
+      editorState.cells[index] = null;
+      pushAssemblyAction("delete-cell", { index, key });
+      changed = true;
+      break;
+    }
+    case "clear-grid": {
+      const hasFilled = editorState.cells.some((key) => typeof key === "string");
+      if (!hasFilled) return false;
+      editorState.cells = blankCells(editorState.cols, editorState.rows);
+      editorState.selectedCellIndex = null;
+      pushAssemblyAction("clear-grid", { cols: editorState.cols, rows: editorState.rows });
+      changed = true;
+      break;
+    }
+    default:
+      return false;
+  }
+
+  if (!changed) return false;
+  commitEditorToActiveProfile();
+  persistProfileStore();
+  renderEditorGrid();
+  syncEditorSchemaOutput();
+  return true;
+}
+
 function renderEditorGrid() {
   if (!editorGrid) return;
   editorGrid.innerHTML = "";
@@ -2709,7 +4585,8 @@ function renderEditorGrid() {
     const key = editorState.cells[i];
     const entry = typeof key === "string" ? catalogEntryByKey.get(key) : null;
     const cell = document.createElement("div");
-    cell.className = `editor-cell${entry ? " filled" : ""}`;
+    const isSelected = editorState.selectedCellIndex === i;
+    cell.className = `editor-cell${entry ? " filled" : ""}${isSelected ? " is-selected" : ""}`;
     cell.dataset.index = String(i);
     cell.textContent = entry ? entry.label : "+";
     if (entry) {
@@ -2741,46 +4618,22 @@ function renderEditorGrid() {
       cell.classList.remove("drop-hover");
       const draggedCellIndex = parseDraggedEditorCellIndex(event);
       if (draggedCellIndex !== null) {
-        if (draggedCellIndex === i) return;
-        const sourceKey = editorState.cells[draggedCellIndex];
-        if (typeof sourceKey !== "string" || !catalogEntryByKey.has(sourceKey)) return;
-        const targetKey = editorState.cells[i];
-        editorState.cells[i] = sourceKey;
-        editorState.cells[draggedCellIndex] =
-          typeof targetKey === "string" && catalogEntryByKey.has(targetKey) ? targetKey : null;
-        commitEditorToActiveProfile();
-        persistProfileStore();
-        renderEditorGrid();
-        syncEditorSchemaOutput();
+        const moved = dispatchAssemblyAction({ type: "move-cell", from: draggedCellIndex, to: i });
         setEditorTrashMode(false);
+        if (moved) {
+          status.textContent = "Moved grid item.";
+        }
         return;
       }
 
       const dropped = event.dataTransfer?.getData("text/plain") ?? "";
-      if (!catalogEntryByKey.has(dropped)) return;
-      editorState.cells[i] = dropped;
-      commitEditorToActiveProfile();
-      persistProfileStore();
-      renderEditorGrid();
-      syncEditorSchemaOutput();
+      const placed = dispatchAssemblyAction({ type: "place-entry", index: i, key: dropped });
+      if (placed) {
+        status.textContent = `Placed "${dropped}" in r${Math.floor(i / editorState.cols) + 1} c${(i % editorState.cols) + 1}.`;
+      }
     });
     cell.addEventListener("click", () => {
-      if (!entry) return;
-      if (tuneablesTriggerElementInput) {
-        tuneablesTriggerElementInput.value = `${key}-${i}`;
-      }
-      if (tuneablesBindingElementSelect) {
-        const elementId = `${key}-${i}`;
-        const canSelect = Array.from(tuneablesBindingElementSelect.options).some(
-          (opt) => opt.value === elementId
-        );
-        if (canSelect) {
-          tuneablesBindingElementSelect.value = elementId;
-          syncTuneablesBindingTargetOptions(activeProfile());
-        }
-      }
-      setCustomizerFromEntry(entry);
-      renderCatalog();
+      dispatchAssemblyAction({ type: "select-cell", index: i });
     });
 
     editorGrid.appendChild(cell);
@@ -2789,6 +4642,9 @@ function renderEditorGrid() {
   syncTuneablesBindingElementOptions(activeProfile());
   syncTuneablesBindingTargetOptions(activeProfile());
   renderTuneablesDataBindingList();
+  syncAssemblyInspectorState();
+  validateHydrationBoundary({ announce: false, enforceFormatter: true });
+  refreshCustomizerDraftState();
 }
 
 function disposeCatalogPreviews() {
@@ -2875,18 +4731,113 @@ function startCatalogPreviewLoop() {
   requestAnimationFrame(tick);
 }
 
-function setCustomizerFromEntry(entry) {
+function draftSignatureFromEntry(entry) {
+  if (!entry || typeof entry !== "object") return "";
+  return JSON.stringify({
+    key: entry.key,
+    label: entry.label,
+    kind: entry.kind,
+    tags: Array.isArray(entry.tags) ? entry.tags.slice() : [],
+    schema: entry.schema ?? null,
+  });
+}
+
+function setComponentsDraftUi(statusKey, message) {
+  const status = typeof statusKey === "string" ? statusKey : "empty";
+  customizerState.status = status;
+  customizerState.message = message;
+  if (componentsDraftState) {
+    componentsDraftState.textContent = message;
+    componentsDraftState.classList.remove("is-empty", "is-loading", "is-error");
+    if (status === "empty") {
+      componentsDraftState.classList.add("is-empty");
+    } else if (status === "invalid") {
+      componentsDraftState.classList.add("is-error");
+    } else if (status === "saved") {
+      componentsDraftState.classList.add("is-loading");
+    }
+  }
+  if (componentsDraftPill) {
+    componentsDraftPill.classList.remove(
+      "is-empty",
+      "is-clean",
+      "is-dirty",
+      "is-invalid",
+      "is-saved"
+    );
+    const map = {
+      empty: { label: "EMPTY", cls: "is-empty" },
+      clean: { label: "CLEAN", cls: "is-clean" },
+      dirty: { label: "DIRTY", cls: "is-dirty" },
+      invalid: { label: "INVALID", cls: "is-invalid" },
+      saved: { label: "SAVED", cls: "is-saved" },
+    };
+    const meta = map[status] ?? map.empty;
+    componentsDraftPill.textContent = meta.label;
+    componentsDraftPill.classList.add(meta.cls);
+  }
+}
+
+function parseCustomizerDraftKey() {
+  return customizerKeyInput.value.trim().toLowerCase().replace(/[^a-z0-9-_]+/g, "-");
+}
+
+function usageStatsForCatalogKey(key) {
+  if (!key) {
+    return {
+      activeGridCells: 0,
+      totalProfileCells: 0,
+      profilesUsing: 0,
+    };
+  }
+  const activeGridCells = editorState.cells.filter((cell) => cell === key).length;
+  let totalProfileCells = 0;
+  let profilesUsing = 0;
+  for (const profile of profileStore.profiles) {
+    const cells = Array.isArray(profile.grid?.cells) ? profile.grid.cells : [];
+    const count = cells.filter((cell) => cell === key).length;
+    totalProfileCells += count;
+    if (count > 0) {
+      profilesUsing += 1;
+    }
+  }
+  return {
+    activeGridCells,
+    totalProfileCells,
+    profilesUsing,
+  };
+}
+
+function updateCustomizerUsageState(key) {
+  const stats = usageStatsForCatalogKey(key);
+  const hasUsage = stats.totalProfileCells > 0 || stats.activeGridCells > 0;
+  const text = key
+    ? `Usage for "${key}": active grid cells=${stats.activeGridCells}, profile cells=${stats.totalProfileCells}, profiles=${stats.profilesUsing}.`
+    : "Usage impact will appear once an element is selected.";
+  customizerState.usage = text;
+  if (componentsUsageState) {
+    componentsUsageState.textContent = text;
+    componentsUsageState.classList.remove("is-empty", "is-loading", "is-error");
+    componentsUsageState.classList.add(hasUsage ? "is-loading" : "is-empty");
+  }
+}
+
+function setCustomizerFromEntry(entry, opts = {}) {
   if (!entry) return;
   customizerState.sourceKey = entry.key;
   customizerState.isCustom = entry.custom === true;
 
-  customizerSource.textContent = `Selected: ${entry.label} (${entry.key})`;
+  customizerSource.textContent = `${entry.custom ? "Custom" : "Built-in"} source: ${entry.label} (${entry.key})`;
   customizerKeyInput.value = entry.key;
   customizerLabelInput.value = entry.label;
   customizerKindSelect.value = entry.kind;
   customizerTagsInput.value = (entry.tags ?? []).join(", ");
   customizerSchemaInput.value = JSON.stringify(entry.schema, null, 2);
+
+  customizerState.baseSignature = draftSignatureFromEntry(entry);
+  customizerState.lastSavedSignature = opts.markSaved === true ? customizerState.baseSignature : "";
   customizerDeleteBtn.disabled = entry.custom !== true;
+  refreshCustomizerDraftState();
 }
 
 function resetCustomizerDraft() {
@@ -2901,6 +4852,10 @@ function resetCustomizerDraft() {
     return;
   }
 
+  customizerState.sourceKey = null;
+  customizerState.isCustom = false;
+  customizerState.baseSignature = "";
+  customizerState.lastSavedSignature = "";
   customizerSource.textContent = "Select a catalog element to customize.";
   customizerKeyInput.value = "";
   customizerLabelInput.value = "";
@@ -2908,10 +4863,12 @@ function resetCustomizerDraft() {
   customizerTagsInput.value = "";
   customizerSchemaInput.value = "";
   customizerDeleteBtn.disabled = true;
+  setComponentsDraftUi("empty", "Select a catalog element to start editing.");
+  updateCustomizerUsageState("");
 }
 
 function readCustomizerDraft() {
-  const key = customizerKeyInput.value.trim().toLowerCase().replace(/[^a-z0-9-_]+/g, "-");
+  const key = parseCustomizerDraftKey();
   const label = customizerLabelInput.value.trim();
   const tags = customizerTagsInput.value
     .split(",")
@@ -2956,6 +4913,45 @@ function readCustomizerDraft() {
   };
 }
 
+function refreshCustomizerDraftState() {
+  const typedKey = parseCustomizerDraftKey();
+  const usageKey = typedKey || customizerState.sourceKey || "";
+  updateCustomizerUsageState(usageKey);
+
+  const hasAnyDraftContent =
+    typedKey.length > 0 ||
+    customizerLabelInput.value.trim().length > 0 ||
+    customizerSchemaInput.value.trim().length > 0;
+
+  if (!hasAnyDraftContent && !customizerState.sourceKey) {
+    customizerDeleteBtn.disabled = true;
+    setComponentsDraftUi("empty", "Select a catalog element to start editing.");
+    return;
+  }
+
+  try {
+    const draft = readCustomizerDraft();
+    const signature = draftSignatureFromEntry(draft);
+    const dirty = signature !== customizerState.baseSignature;
+    const isSaved = signature === customizerState.lastSavedSignature && signature.length > 0;
+    const existingCustom = customCatalogEntries.some((entry) => entry.key === draft.key);
+    customizerDeleteBtn.disabled = !existingCustom;
+
+    if (dirty) {
+      setComponentsDraftUi("dirty", `Unsaved changes in draft "${draft.key}".`);
+    } else if (isSaved) {
+      setComponentsDraftUi("saved", `Draft "${draft.key}" saved and in sync.`);
+    } else {
+      setComponentsDraftUi("clean", `Draft "${draft.key}" matches selected source.`);
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Draft is invalid.";
+    const existingCustom = customCatalogEntries.some((entry) => entry.key === typedKey);
+    customizerDeleteBtn.disabled = !existingCustom;
+    setComponentsDraftUi("invalid", message);
+  }
+}
+
 function saveCustomizerDraft() {
   const draft = sanitizeCatalogEntry(readCustomizerDraft(), makeId("custom"));
   if (!draft) {
@@ -2968,28 +4964,79 @@ function saveCustomizerDraft() {
     throw new Error(`"${draft.key}" already exists as a built-in element key.`);
   }
 
-  const existingIdx = customCatalogEntries.findIndex((entry) => entry.key === draft.key);
-  if (existingIdx >= 0) {
-    customCatalogEntries[existingIdx] = draft;
-  } else {
-    customCatalogEntries.push(draft);
+  const previousCustomKey =
+    customizerState.isCustom && typeof customizerState.sourceKey === "string"
+      ? customizerState.sourceKey
+      : null;
+  const keyChanged = Boolean(previousCustomKey && previousCustomKey !== draft.key);
+
+  if (keyChanged) {
+    removeCustomCatalogEntryByKey(previousCustomKey, { sync: false });
+  }
+  const saved = upsertCustomCatalogEntry(draft, { sync: false });
+  syncCustomCatalogRegistry();
+
+  if (keyChanged) {
+    for (let i = 0; i < editorState.cells.length; i++) {
+      if (editorState.cells[i] === previousCustomKey) {
+        editorState.cells[i] = saved.key;
+      }
+    }
+    for (const profile of profileStore.profiles) {
+      if (!profile.grid || !Array.isArray(profile.grid.cells)) continue;
+      profile.grid.cells = profile.grid.cells.map((cell) =>
+        cell === previousCustomKey ? saved.key : cell
+      );
+    }
+    commitEditorToActiveProfile();
+    persistProfileStore();
+    renderEditorGrid();
   }
 
-  persistCustomCatalogEntries();
-  rebuildCatalogRegistry();
-  customizerState.sourceKey = draft.key;
+  customizerState.sourceKey = saved.key;
   customizerState.isCustom = true;
+  setCustomizerFromEntry(saved, { markSaved: true });
   renderCatalog();
   syncEditorSchemaOutput();
   syncLiveBuilderUiFromEditor();
 }
 
+function makeDuplicateCustomizerKey(baseKey) {
+  const root = (baseKey || "custom-element").replace(/-copy(?:-\d+)?$/, "");
+  let suffix = 1;
+  while (suffix <= 9999) {
+    const candidate = suffix === 1 ? `${root}-copy` : `${root}-copy-${suffix}`;
+    if (!catalogEntryByKey.has(candidate)) {
+      return candidate;
+    }
+    suffix += 1;
+  }
+  return `${root}-${makeId("copy")}`;
+}
+
+function duplicateCustomizerDraft() {
+  const source = readCustomizerDraft();
+  const duplicate = {
+    ...source,
+    key: makeDuplicateCustomizerKey(source.key),
+    label: `${source.label} Copy`,
+    custom: true,
+  };
+  const saved = upsertCustomCatalogEntry(duplicate);
+  customizerState.sourceKey = saved.key;
+  customizerState.isCustom = true;
+  setCustomizerFromEntry(saved, { markSaved: true });
+  renderCatalog();
+  syncEditorSchemaOutput();
+  syncLiveBuilderUiFromEditor();
+  return saved;
+}
+
 function deleteCustomizerDraft() {
-  const key = customizerKeyInput.value.trim();
+  const key = parseCustomizerDraftKey();
   if (!key) return false;
-  const before = customCatalogEntries.length;
-  customCatalogEntries = customCatalogEntries.filter((entry) => entry.key !== key);
-  if (customCatalogEntries.length === before) {
+  const removed = removeCustomCatalogEntryByKey(key);
+  if (!removed) {
     return false;
   }
 
@@ -3005,13 +5052,15 @@ function deleteCustomizerDraft() {
   commitEditorToActiveProfile();
   persistProfileStore();
 
-  persistCustomCatalogEntries();
-  rebuildCatalogRegistry();
   customizerState.sourceKey = null;
   customizerState.isCustom = false;
+  customizerState.baseSignature = "";
+  customizerState.lastSavedSignature = "";
   renderEditorGrid();
   renderCatalog();
+  resetCustomizerDraft();
   syncEditorSchemaOutput();
+  syncLiveBuilderUiFromEditor();
   return true;
 }
 
@@ -3032,6 +5081,13 @@ function renderCatalog() {
   catalogList.innerHTML = "";
 
   const list = filteredCatalogEntries();
+  if (list.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "workspace-state is-empty";
+    empty.textContent = "No catalog elements match current filters.";
+    catalogList.appendChild(empty);
+  }
+
   for (const entry of list) {
     const card = document.createElement("article");
     card.className = "catalog-card";
@@ -3050,7 +5106,7 @@ function renderCatalog() {
     meta.innerHTML = `
       <div class="catalog-name">${entry.label}</div>
       <div class="catalog-kind">${entry.kind}</div>
-      <div class="catalog-tags">${entry.tags.join(" · ")}</div>
+      <div class="catalog-tags">${entry.tags.join(" | ")}</div>
     `;
     card.appendChild(meta);
 
@@ -3076,8 +5132,12 @@ function renderCatalog() {
   resizeCatalogPreviews();
   if (!customizerState.sourceKey && list.length > 0) {
     setCustomizerFromEntry(list[0]);
-  } else if (list.length === 0) {
-    customizerSource.textContent = "No catalog elements match current filters.";
+  } else if (list.length === 0 && !customizerState.sourceKey) {
+    customizerSource.textContent = "Select a catalog element to customize.";
+    setComponentsDraftUi("empty", "Select a catalog element to start editing.");
+    updateCustomizerUsageState("");
+  } else {
+    refreshCustomizerDraftState();
   }
 }
 
@@ -3114,19 +5174,18 @@ function importProfilePayload(payload) {
   }
 
   if (Array.isArray(payload.customElements)) {
+    let importedAny = false;
     for (const raw of payload.customElements) {
-      const entry = sanitizeCatalogEntry(raw);
-      if (!entry) continue;
-      entry.custom = true;
-      const idx = customCatalogEntries.findIndex((it) => it.key === entry.key);
-      if (idx >= 0) {
-        customCatalogEntries[idx] = entry;
-      } else {
-        customCatalogEntries.push(entry);
+      try {
+        upsertCustomCatalogEntry(raw, { sync: false });
+        importedAny = true;
+      } catch {
+        // Ignore invalid imported custom entries.
       }
     }
-    persistCustomCatalogEntries();
-    rebuildCatalogRegistry();
+    if (importedAny) {
+      syncCustomCatalogRegistry();
+    }
   }
 
   const incoming = payload.profile && typeof payload.profile === "object"
@@ -3135,9 +5194,14 @@ function importProfilePayload(payload) {
   if (!incoming.grid || !Array.isArray(incoming.grid.cells)) {
     throw new Error("Missing grid cells in profile");
   }
+  const incomingVersionRaw = Number(
+    incoming.version !== undefined ? incoming.version : payload.version
+  );
   const profile = {
     id: makeId("profile"),
-    version: PROFILE_VERSION,
+    version: Number.isFinite(incomingVersionRaw)
+      ? Math.floor(incomingVersionRaw)
+      : PROFILE_MIN_VERSION,
     name: typeof incoming.name === "string" ? incoming.name : "Imported Profile",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -3156,6 +5220,18 @@ function importProfilePayload(payload) {
     incoming.sceneSchema.type === "root"
   ) {
     profile.sceneSchema = cloneDeep(incoming.sceneSchema);
+  }
+
+  const compatibility = applyProfileCompatibilityGate(profile, {
+    context: "import",
+  });
+  if (compatibility.errors.length > 0) {
+    throw new Error(compatibility.errors[0]);
+  }
+  if (compatibility.warnings.length > 0) {
+    setProfileCompatibilityNotes(profile.id, compatibility.warnings);
+  } else {
+    setProfileCompatibilityNotes(profile.id, []);
   }
 
   const bindingValidation = validateTuneableDataBindingsForProfile(profile, {
@@ -3188,6 +5264,7 @@ function getRuntimeRoot(runtime = activeRuntime) {
 }
 
 function getRuntimeBindingRuntime(runtime = activeRuntime) {
+  if (!ROLLOUT_FLAGS.dataBindings) return null;
   if (!runtime || typeof runtime !== "object") return null;
   const hub = runtime.telemetryHub;
   if (!hub || typeof hub.subscribe !== "function") return null;
@@ -3401,6 +5478,318 @@ function initSidebarResizer() {
   sidebarResizer.addEventListener("lostpointercapture", handleSidebarResizerLostPointerCapture);
   sidebarResizer.addEventListener("pointerenter", (event) => {
     updateSidebarGrabberY(event.clientY);
+  });
+}
+
+function normalizeWorkflowBoundary(boundary) {
+  if (typeof boundary !== "string") return null;
+  const cleaned = boundary.trim().toLowerCase();
+  if (!WORKFLOW_BOUNDARY_ORDER.includes(cleaned)) return null;
+  return cleaned;
+}
+
+function workflowBoundaryIndex(boundary) {
+  return WORKFLOW_BOUNDARY_ORDER.indexOf(boundary);
+}
+
+function getWorkflowBoundaryLabel(boundary) {
+  return WORKFLOW_BOUNDARY_LABELS[boundary] ?? boundary;
+}
+
+function parseSectionBoundaries(section) {
+  if (!section || typeof section.getAttribute !== "function") {
+    return WORKFLOW_BOUNDARY_ORDER.slice();
+  }
+  const raw = section.getAttribute("data-boundaries");
+  if (!raw) return WORKFLOW_BOUNDARY_ORDER.slice();
+  const out = [];
+  for (const token of raw.split(/\s+/)) {
+    const normalized = normalizeWorkflowBoundary(token);
+    if (!normalized || out.includes(normalized)) continue;
+    out.push(normalized);
+  }
+  return out.length > 0 ? out : WORKFLOW_BOUNDARY_ORDER.slice();
+}
+
+function sectionVisibleForBoundary(section, boundary) {
+  if (!section) return false;
+  return parseSectionBoundaries(section).includes(boundary);
+}
+
+function validateWorkflowBoundary(boundary, opts = {}) {
+  const announce = opts.announce === true;
+  const fail = (message) => {
+    if (announce && status) {
+      status.textContent = message;
+    }
+    return { ok: false, message };
+  };
+  const pass = (message) => {
+    if (announce && status && message) {
+      status.textContent = message;
+    }
+    return { ok: true, message };
+  };
+
+  switch (boundary) {
+    case "components": {
+      if (!Array.isArray(activeCatalogRegistry) || activeCatalogRegistry.length === 0) {
+        return fail("Components boundary invalid: no catalog entries are available.");
+      }
+      return pass("Components boundary validated.");
+    }
+    case "assembly": {
+      const result = validateAssemblyStructure({ announce: false, updateUi: true });
+      if (!result.ok) {
+        return fail(result.message);
+      }
+      return pass(result.message);
+    }
+    case "hydration": {
+      const result = validateHydrationBoundary({
+        announce: false,
+        enforceFormatter: true,
+        requireApplied: true,
+        persistCheckpoint: announce,
+      });
+      if (!result.ok) {
+        return fail(result.message);
+      }
+      return pass(result.message);
+    }
+    case "scene": {
+      if (!activeRuntime) {
+        return fail("Scene boundary invalid: runtime is not active yet.");
+      }
+      return pass("Scene boundary validated.");
+    }
+    case "profiles": {
+      if (!Array.isArray(profileStore.profiles) || profileStore.profiles.length === 0) {
+        return fail("Profiles boundary invalid: no profiles available.");
+      }
+      return pass("Profiles boundary validated.");
+    }
+    default:
+      return pass("");
+  }
+}
+
+function canTransitionWorkflowBoundary(fromBoundary, toBoundary) {
+  if (!fromBoundary || !toBoundary || fromBoundary === toBoundary) {
+    return { ok: true, message: "" };
+  }
+
+  const fromIdx = workflowBoundaryIndex(fromBoundary);
+  const toIdx = workflowBoundaryIndex(toBoundary);
+  if (fromIdx < 0 || toIdx < 0 || toIdx <= fromIdx) {
+    return { ok: true, message: "" };
+  }
+
+  for (let i = fromIdx; i < toIdx; i++) {
+    const current = WORKFLOW_BOUNDARY_ORDER[i];
+    const next = WORKFLOW_BOUNDARY_ORDER[i + 1];
+    if (current === "components" && next === "assembly") {
+      const result = validateWorkflowBoundary("components", { announce: false });
+      if (!result.ok) return result;
+      continue;
+    }
+    if (current === "assembly" && next === "hydration") {
+      const result = validateWorkflowBoundary("assembly", { announce: false });
+      if (!result.ok) return result;
+      continue;
+    }
+    if (current === "hydration" && next === "scene") {
+      const result = validateWorkflowBoundary("hydration", { announce: false });
+      if (!result.ok) return result;
+    }
+  }
+  return { ok: true, message: "" };
+}
+
+function syncWorkflowBoundaryMeta() {
+  if (!workflowBoundaryMeta) return;
+  const boundary = workflowState.activeBoundary;
+  const idx = Math.max(0, workflowBoundaryIndex(boundary));
+  const label = getWorkflowBoundaryLabel(boundary);
+  const descriptions = {
+    components: "Author and tune reusable element definitions.",
+    assembly: "Compose element definitions into a structural grid layout.",
+    hydration: "Bind runtime data fields to assembled UI outputs.",
+    scene: "Inject and anchor built UI instances into scene space.",
+    profiles: "Save, recall, import, and export workflow states.",
+  };
+  workflowBoundaryMeta.textContent =
+    `Stage ${idx + 1} of ${WORKFLOW_BOUNDARY_ORDER.length}: ${label}. ` +
+    (descriptions[boundary] ?? "");
+}
+
+function syncWorkflowFooterControls() {
+  const idx = workflowBoundaryIndex(workflowState.activeBoundary);
+  const prev = idx > 0 ? WORKFLOW_BOUNDARY_ORDER[idx - 1] : null;
+  const next = idx >= 0 && idx < WORKFLOW_BOUNDARY_ORDER.length - 1
+    ? WORKFLOW_BOUNDARY_ORDER[idx + 1]
+    : null;
+  if (workflowBackBtn) {
+    workflowBackBtn.disabled = !prev;
+  }
+  if (workflowValidateBtn) {
+    workflowValidateBtn.textContent = `Validate ${getWorkflowBoundaryLabel(workflowState.activeBoundary)}`;
+  }
+  if (workflowNextBtn) {
+    workflowNextBtn.disabled = !next;
+    workflowNextBtn.textContent = next
+      ? `Continue: ${getWorkflowBoundaryLabel(next)}`
+      : "Complete";
+  }
+}
+
+function syncWorkflowBoundaryUi(opts = {}) {
+  const focusActiveTab = opts.focusActiveTab === true;
+  for (const tab of workflowTabs) {
+    const boundary = normalizeWorkflowBoundary(tab.dataset.boundary);
+    const active = boundary === workflowState.activeBoundary;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", active ? "true" : "false");
+    tab.tabIndex = active ? 0 : -1;
+    if (active && focusActiveTab) {
+      tab.focus();
+    }
+  }
+
+  for (const section of workflowSections) {
+    section.hidden = !sectionVisibleForBoundary(section, workflowState.activeBoundary);
+  }
+
+  syncWorkflowBoundaryMeta();
+  syncWorkflowFooterControls();
+}
+
+function setActiveWorkflowBoundary(boundary, opts = {}) {
+  const normalized = normalizeWorkflowBoundary(boundary);
+  if (!normalized) return false;
+  const previous = workflowState.activeBoundary;
+  if (normalized !== previous && opts.skipGuards !== true) {
+    const transition = canTransitionWorkflowBoundary(previous, normalized);
+    if (!transition.ok) {
+      if (status && transition.message) {
+        status.textContent = transition.message;
+      }
+      return false;
+    }
+  }
+
+  workflowState.activeBoundary = normalized;
+  syncWorkflowBoundaryUi({ focusActiveTab: opts.focusActiveTab === true });
+
+  if (opts.persist !== false) {
+    try {
+      localStorage.setItem(WORKFLOW_BOUNDARY_STORAGE_KEY, normalized);
+    } catch {
+      // Ignore local storage failures.
+    }
+  }
+  return true;
+}
+
+function resolveStoredWorkflowBoundary() {
+  try {
+    return normalizeWorkflowBoundary(localStorage.getItem(WORKFLOW_BOUNDARY_STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
+
+function focusAdjacentWorkflowTab(delta) {
+  if (workflowTabs.length === 0) return;
+  const idx = Math.max(0, workflowBoundaryIndex(workflowState.activeBoundary));
+  const nextIdx =
+    ((idx + delta) % WORKFLOW_BOUNDARY_ORDER.length + WORKFLOW_BOUNDARY_ORDER.length) %
+    WORKFLOW_BOUNDARY_ORDER.length;
+  const nextBoundary = WORKFLOW_BOUNDARY_ORDER[nextIdx];
+  const nextTab = workflowTabs.find((tab) => tab.dataset.boundary === nextBoundary);
+  if (nextTab) {
+    nextTab.focus();
+  }
+}
+
+function handleWorkflowTabKeydown(event) {
+  if (!(event.currentTarget instanceof HTMLElement)) return;
+  if (event.key === "ArrowRight") {
+    event.preventDefault();
+    focusAdjacentWorkflowTab(1);
+    return;
+  }
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    focusAdjacentWorkflowTab(-1);
+    return;
+  }
+  if (event.key === "Home") {
+    event.preventDefault();
+    const first = workflowTabs.find((tab) => tab.dataset.boundary === WORKFLOW_BOUNDARY_ORDER[0]);
+    if (first) first.focus();
+    return;
+  }
+  if (event.key === "End") {
+    event.preventDefault();
+    const lastBoundary = WORKFLOW_BOUNDARY_ORDER[WORKFLOW_BOUNDARY_ORDER.length - 1];
+    const last = workflowTabs.find((tab) => tab.dataset.boundary === lastBoundary);
+    if (last) last.focus();
+    return;
+  }
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    setActiveWorkflowBoundary(event.currentTarget.dataset.boundary, {
+      persist: true,
+      focusActiveTab: true,
+    });
+  }
+}
+
+function initWorkflowShell() {
+  for (const tab of workflowTabs) {
+    tab.addEventListener("click", () => {
+      setActiveWorkflowBoundary(tab.dataset.boundary, {
+        persist: true,
+        focusActiveTab: true,
+      });
+    });
+    tab.addEventListener("keydown", handleWorkflowTabKeydown);
+  }
+
+  if (workflowBackBtn) {
+    workflowBackBtn.addEventListener("click", () => {
+      const idx = workflowBoundaryIndex(workflowState.activeBoundary);
+      if (idx <= 0) return;
+      setActiveWorkflowBoundary(WORKFLOW_BOUNDARY_ORDER[idx - 1], {
+        persist: true,
+        focusActiveTab: true,
+      });
+    });
+  }
+
+  if (workflowValidateBtn) {
+    workflowValidateBtn.addEventListener("click", () => {
+      validateWorkflowBoundary(workflowState.activeBoundary, { announce: true });
+    });
+  }
+
+  if (workflowNextBtn) {
+    workflowNextBtn.addEventListener("click", () => {
+      const idx = workflowBoundaryIndex(workflowState.activeBoundary);
+      if (idx < 0 || idx >= WORKFLOW_BOUNDARY_ORDER.length - 1) return;
+      setActiveWorkflowBoundary(WORKFLOW_BOUNDARY_ORDER[idx + 1], {
+        persist: true,
+        focusActiveTab: true,
+      });
+    });
+  }
+
+  const stored = resolveStoredWorkflowBoundary();
+  setActiveWorkflowBoundary(stored ?? workflowState.activeBoundary, {
+    skipGuards: true,
+    persist: false,
+    focusActiveTab: false,
   });
 }
 
@@ -4292,6 +6681,10 @@ async function loadExample(exampleId) {
     syncTuneablesBindingFieldOptions();
     syncTuneablesBindingFormatterOptions();
     renderTuneablesDataBindingList();
+    renderHydrationInventory();
+    renderHydrationFormatterPreview();
+    renderHydrationDiagnosticsState();
+    renderHydrationCheckpointState();
     status.textContent = def.info;
   } catch (err) {
     console.error("[examples] failed to load example", err);
@@ -4301,10 +6694,82 @@ async function loadExample(exampleId) {
 }
 
 function renderDebugPanel() {
+  if (workflowState.activeBoundary === "hydration") {
+    renderHydrationInventory();
+    renderHydrationDiagnosticsState();
+    renderHydrationFormatterPreview();
+    renderHydrationCheckpointState();
+  }
+
   const uiManager = getRuntimeUIManager();
   const backdrop = getRuntimeBackdrop();
+  const runtimeRoot = getRuntimeRoot();
+  const runtimeProfile = activeProfile();
+  const compatibilityNotes = runtimeProfile
+    ? getProfileCompatibilityNotes(runtimeProfile.id)
+    : [];
+  const telemetryDiagnostics =
+    ROLLOUT_FLAGS.telemetryDiagnostics &&
+    activeRuntime &&
+    activeRuntime.telemetryHub &&
+    typeof activeRuntime.telemetryHub.getDiagnostics === "function"
+      ? activeRuntime.telemetryHub.getDiagnostics()
+      : null;
+  const bindingDiagnostics =
+    ROLLOUT_FLAGS.telemetryDiagnostics &&
+    runtimeRoot &&
+    typeof UIHydrate.getBindingDiagnostics === "function"
+      ? UIHydrate.getBindingDiagnostics(runtimeRoot)
+      : null;
+
+  const diagnosticsLines = [];
+  diagnosticsLines.push(
+    `flags: bindings=${ROLLOUT_FLAGS.dataBindings ? "on" : "off"}, diagnostics=${ROLLOUT_FLAGS.telemetryDiagnostics ? "on" : "off"}`
+  );
+  if (runtimeProfile) {
+    diagnosticsLines.push(`profile: ${runtimeProfile.name} (v${runtimeProfile.version ?? "?"})`);
+  }
+  if (compatibilityNotes.length > 0) {
+    diagnosticsLines.push(`profile compatibility: ${compatibilityNotes[0]}`);
+  }
+  if (telemetryDiagnostics) {
+    diagnosticsLines.push(
+      `telemetry fields: total=${telemetryDiagnostics.fields.total}, live=${telemetryDiagnostics.fields.liveCount}, stale=${telemetryDiagnostics.fields.staleCount}, error=${telemetryDiagnostics.fields.errorCount}, loading=${telemetryDiagnostics.fields.loadingCount}, unavailable=${telemetryDiagnostics.fields.unavailableCount}`
+    );
+    diagnosticsLines.push(`telemetry providers: ${telemetryDiagnostics.providerCount}`);
+    for (const provider of telemetryDiagnostics.providers) {
+      const last = Number.isFinite(provider.lastUpdateAt)
+        ? `${Math.max(0, Date.now() - provider.lastUpdateAt)}ms ago`
+        : "n/a";
+      const err = provider.lastError ? `, err=${provider.lastError}` : "";
+      diagnosticsLines.push(
+        `  - ${provider.providerId}: ${provider.state}, updates=${provider.updates}, last=${last}${err}`
+      );
+    }
+  } else {
+    diagnosticsLines.push("telemetry diagnostics: unavailable");
+  }
+  if (bindingDiagnostics) {
+    diagnosticsLines.push(
+      `binding diagnostics: bindings=${bindingDiagnostics.totalBindings}, fields=${bindingDiagnostics.boundFieldCount}, warnings=${bindingDiagnostics.warningCount}, errors=${bindingDiagnostics.errorCount}`
+    );
+    if (bindingDiagnostics.recentEvents.length > 0) {
+      const lastEvent = bindingDiagnostics.recentEvents[bindingDiagnostics.recentEvents.length - 1];
+      diagnosticsLines.push(
+        `binding last event: ${lastEvent.code} (${lastEvent.severity}) field=${lastEvent.fieldId} element=${lastEvent.elementId ?? "n/a"}`
+      );
+    }
+  } else {
+    diagnosticsLines.push("binding diagnostics: unavailable");
+  }
+
   if (!uiManager || typeof uiManager.getDebugSnapshot !== "function") {
-    debugOutput.textContent = "No active example.";
+    debugOutput.textContent = [
+      "No active example.",
+      "",
+      "Diagnostics",
+      ...diagnosticsLines,
+    ].join("\n");
     requestAnimationFrame(renderDebugPanel);
     return;
   }
@@ -4328,7 +6793,13 @@ function renderDebugPanel() {
         ? `Grid selected: ${selectedGridSnapshot.label}\nSelected world: ${formatVec3(selectedGridSnapshot.world)}`
         : "Grid selected: none",
     ].join("\n");
-    debugOutput.textContent = `Hover an interactive UI element.\n${gridInfo}`;
+    debugOutput.textContent = [
+      "Hover an interactive UI element.",
+      gridInfo,
+      "",
+      "Diagnostics",
+      ...diagnosticsLines,
+    ].join("\n");
     requestAnimationFrame(renderDebugPanel);
     return;
   }
@@ -4358,6 +6829,9 @@ function renderDebugPanel() {
     `grid selected: ${selectedGridLine}`,
     `selected world: ${selectedGridWorld}`,
     `camera mode: ${navMode}`,
+    "",
+    "Diagnostics",
+    ...diagnosticsLines,
   ].join("\n");
 
   requestAnimationFrame(renderDebugPanel);
@@ -4461,12 +6935,23 @@ customizerSaveBtn.addEventListener("click", () => {
     status.textContent = `Saved custom element "${customizerLabelInput.value.trim()}".`;
   } catch (err) {
     status.textContent = err instanceof Error ? err.message : "Failed to save custom element.";
+    refreshCustomizerDraftState();
+  }
+});
+
+customizerDuplicateBtn.addEventListener("click", () => {
+  try {
+    const duplicated = duplicateCustomizerDraft();
+    status.textContent = `Duplicated element as "${duplicated.key}".`;
+  } catch (err) {
+    status.textContent = err instanceof Error ? err.message : "Failed to duplicate custom element.";
+    refreshCustomizerDraftState();
   }
 });
 
 customizerResetBtn.addEventListener("click", () => {
   resetCustomizerDraft();
-  status.textContent = "Customizer reset.";
+  status.textContent = "Customizer draft reverted.";
 });
 
 customizerDeleteBtn.addEventListener("click", () => {
@@ -4482,6 +6967,21 @@ customizerDeleteBtn.addEventListener("click", () => {
   }
 });
 
+for (const input of [
+  customizerKeyInput,
+  customizerLabelInput,
+  customizerKindSelect,
+  customizerTagsInput,
+  customizerSchemaInput,
+]) {
+  input.addEventListener("input", () => {
+    refreshCustomizerDraftState();
+  });
+  input.addEventListener("change", () => {
+    refreshCustomizerDraftState();
+  });
+}
+
 tuneablesAutoResizeGrid.addEventListener("change", () => {
   const profile = activeProfile();
   if (!profile) return;
@@ -4495,7 +6995,9 @@ tuneablesAutoResizeGrid.addEventListener("change", () => {
     tuneables,
     autoResize: tuneables.autoResizeGrid !== false,
   });
+  pushAssemblyAction("set-auto-resize", { enabled: tuneables.autoResizeGrid !== false });
   persistProfileStore();
+  renderEditorGrid();
   syncEditorSchemaOutput();
   syncLiveBuilderUiFromEditor();
   status.textContent = `Auto resize ${tuneables.autoResizeGrid ? "enabled" : "disabled"}.`;
@@ -4513,6 +7015,7 @@ tuneablesTriggerElementInput.addEventListener("keydown", (event) => {
 
 tuneablesBindingElementSelect.addEventListener("change", () => {
   syncTuneablesBindingTargetOptions(activeProfile());
+  renderHydrationFormatterPreview();
 });
 
 tuneablesAddBindingBtn.addEventListener("click", () => {
@@ -4524,6 +7027,94 @@ tuneablesBindingFallbackInput.addEventListener("keydown", (event) => {
   event.preventDefault();
   addTuneablesDataBinding();
 });
+
+tuneablesBindingTemplateInput?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  addTuneablesDataBinding();
+});
+
+for (const input of [
+  tuneablesBindingFieldSelect,
+  tuneablesBindingFormatterSelect,
+  tuneablesBindingFallbackInput,
+  tuneablesBindingTemplateInput,
+  tuneablesBindingTargetSelect,
+]) {
+  if (!input) continue;
+  input.addEventListener("change", () => {
+    renderHydrationFormatterPreview();
+  });
+  input.addEventListener("input", () => {
+    renderHydrationFormatterPreview();
+  });
+}
+
+if (hydrationValidateBtn) {
+  hydrationValidateBtn.addEventListener("click", () => {
+    validateHydrationBoundary({
+      announce: true,
+      enforceFormatter: true,
+      requireApplied: false,
+      persistCheckpoint: true,
+    });
+    syncEditorSchemaOutput();
+  });
+}
+
+if (hydrationApplyBtn) {
+  hydrationApplyBtn.addEventListener("click", () => {
+    const validation = validateHydrationBoundary({
+      announce: false,
+      enforceFormatter: true,
+      requireApplied: false,
+      persistCheckpoint: true,
+    });
+    if (!validation.ok && validation.errors.length > 0) {
+      status.textContent = validation.message;
+      return;
+    }
+    const result = applyHydrationDraftToActiveProfile({
+      message: "Hydration draft applied to active profile.",
+    });
+    if (result.ok) {
+      renderTuneablesTriggerList();
+      renderTuneablesDataBindingList();
+      renderHydrationCheckpointState();
+      renderHydrationDiagnosticsState();
+      status.textContent = result.message;
+    } else {
+      status.textContent = result.message;
+    }
+  });
+}
+
+if (hydrationRevertBtn) {
+  hydrationRevertBtn.addEventListener("click", () => {
+    const result = revertHydrationDraftForActiveProfile();
+    if (!result.ok) {
+      status.textContent = result.message;
+      return;
+    }
+    syncTuneablesUIFromActiveProfile();
+    status.textContent = result.message;
+  });
+}
+
+if (editorOpenElementBtn) {
+  editorOpenElementBtn.addEventListener("click", () => {
+    const selection = getSelectedEditorCellSnapshot();
+    if (!selection || !selection.entry) return;
+    setCustomizerFromEntry(selection.entry);
+    renderCatalog();
+    refreshCustomizerDraftState();
+    setActiveWorkflowBoundary("components", {
+      persist: true,
+      focusActiveTab: true,
+    });
+    status.textContent = `Opened element "${selection.entry.label}" in Components.`;
+  });
+}
 
 profileSelect.addEventListener("change", () => {
   applyProfileToEditor(profileSelect.value);
@@ -4542,18 +7133,23 @@ profileNewBtn.addEventListener("click", () => {
 });
 
 profileSaveBtn.addEventListener("click", () => {
-  const schema = buildGridSchema();
-  const errors = UIHydrate.validate(schema);
-  if (errors.length > 0) {
-    status.textContent = `Validation failed: ${errors[0]}`;
+  const structureValidation = validateAssemblyStructure({
+    announce: false,
+    updateUi: true,
+  });
+  if (!structureValidation.ok) {
+    status.textContent = structureValidation.message;
     syncEditorSchemaOutput();
     return;
   }
-  const bindingErrors = validateTuneableDataBindingsForProfile(activeProfile(), {
+  const hydrationValidation = validateHydrationBoundary({
+    announce: false,
     enforceFormatter: true,
-  }).errors;
-  if (bindingErrors.length > 0) {
-    status.textContent = `Binding validation failed: ${bindingErrors[0]}`;
+    requireApplied: true,
+    persistCheckpoint: true,
+  });
+  if (!hydrationValidation.ok) {
+    status.textContent = hydrationValidation.message;
     syncEditorSchemaOutput();
     return;
   }
@@ -4576,7 +7172,10 @@ profileDeleteBtn.addEventListener("click", () => {
 
   profileStore.profiles = profileStore.profiles.filter((p) => p.id !== profile.id);
   profileStore.activeProfileId = profileStore.profiles[0]?.id ?? null;
+  delete hydrationState.draftsByProfileId[profile.id];
+  delete hydrationState.checkpointsByProfileId[profile.id];
   persistProfileStore();
+  persistHydrationState();
   applyProfileToEditor(profileStore.activeProfileId);
   status.textContent = `Deleted profile "${profile.name}".`;
 });
@@ -4633,47 +7232,35 @@ editorClearBtn.addEventListener("drop", (event) => {
     return;
   }
 
-  editorState.cells[draggedIndex] = null;
-  commitEditorToActiveProfile();
-  persistProfileStore();
-  renderEditorGrid();
-  syncEditorSchemaOutput();
+  dispatchAssemblyAction({ type: "delete-cell", index: draggedIndex });
   setEditorTrashMode(false);
   status.textContent = "Grid item deleted.";
 });
 
 editorClearBtn.addEventListener("click", () => {
   if (editorTrashMode) return;
-  editorState.cells = blankCells(editorState.cols, editorState.rows);
-  commitEditorToActiveProfile();
-  persistProfileStore();
-  renderEditorGrid();
-  syncEditorSchemaOutput();
-  status.textContent = "Grid cleared.";
+  const cleared = dispatchAssemblyAction({ type: "clear-grid" });
+  status.textContent = cleared ? "Grid cleared." : "Grid is already empty.";
 });
 
 editorValidateBtn.addEventListener("click", () => {
-  const errors = UIHydrate.validate(buildGridSchema());
-  const bindingErrors = validateTuneableDataBindingsForProfile(activeProfile(), {
-    enforceFormatter: true,
-  }).errors;
-  if (errors.length > 0) {
-    status.textContent = `Validation failed: ${errors[0]}`;
-  } else if (bindingErrors.length > 0) {
-    status.textContent = `Binding validation failed: ${bindingErrors[0]}`;
-  } else {
-    status.textContent = "Grid schema is valid.";
-  }
+  const result = validateAssemblyStructure({
+    announce: false,
+    updateUi: true,
+  });
+  status.textContent = result.message;
   syncEditorSchemaOutput();
 });
 
 initSidebarResizer();
+loadHydrationState();
 ensureProfileStore();
 syncProfileSelect();
 applyProfileToEditor(profileStore.activeProfileId ?? profileStore.profiles[0]?.id ?? null);
 renderCatalog();
 startCatalogPreviewLoop();
 syncEditorSchemaOutput();
+initWorkflowShell();
 
 syncDebugControls();
 syncPointerLockButton();

@@ -1,0 +1,119 @@
+# UI Kit Review Index
+
+## Scope
+This review targeted the failures described in the request:
+- Menu item and text overlap
+- Menu/camera-relative positioning quality
+- Example selection sidebar requirements
+- Hover debug inspection and helper visualization
+- Axis helpers at element origins
+
+## Included Files and Line Evidence
+- `index.html`
+  - `17-24`: Full-screen overlay startup shell.
+  - `47-54`: One-time example buttons.
+  - `79-80`: `overlay` and `info` DOM handles.
+  - `112-142`: `loadExample()` imports and starts example runtime.
+  - `148-150`: Static button binding.
+- `src/core/UIManager.ts`
+  - `72-76`: Debug flags exist but are not connected to helper rendering.
+  - `120-144`: Main update loop.
+  - `150-205`: Pointer event dispatch.
+  - `207-263`: Hit-test pipeline and region projection.
+  - `352-358`: `dispose()` currently only detaches roots.
+- `src/core/UIRoot.ts`
+  - `82-100`: Root update and relayout gate (`layoutDirty` only).
+  - `117-133`: Hit-region collection across tree.
+- `src/core/UIElement.ts`
+  - `154-164`: `add()` marks only local layout dirty.
+  - `230-237`: Hit-region sync updates width/height only.
+  - `272-278`: `markDirty()` propagates to ancestors.
+- `src/core/UILayoutEngine.ts`
+  - `14-45`: Compute order and child recursion behavior.
+  - `126-133`: Absolute layout maps `position` back into layout space.
+  - `140-207`: Stack layout placement.
+  - `269-273`: Position writeback with Y-flip.
+- `src/core/UIAnchor.ts`
+  - `117-123`: Anchor position from camera/object + offset.
+  - `125-129`: Orientation calculation and offset rotation.
+  - `150-201`: Facing mode switch.
+- `src/core/UIConstraints.ts`
+  - `52-86`: FOV-fit scaling by root height.
+- `src/utils/math.ts`
+  - `84-102`: `billboardYawQuat`.
+  - `107-120`: `cameraYawQuat`.
+  - `125-136`: `lockUpQuat`.
+- `src/primitives/TextBlock.ts`
+  - `54-63`: Troika setup.
+  - `91-94`: Sync callback updates measurements.
+  - `103-112`: `setText()` marks layout dirty after sync.
+  - `126-137`: Intrinsic measurement update path.
+- `src/primitives/Panel.ts`
+  - `29`: Default child layout is `STACK_Y`.
+  - `83-108`: Panel mesh synchronization to computed size.
+- `src/components/Menu.ts`
+  - `70-75`: Row sizing and row layout.
+  - `77-98`: Background panel and label composition.
+  - `100-109`: Arrow indicator as second child on same panel.
+  - `111`: Hit region registration on row.
+  - `116-130`: Hover/select behavior.
+- `src/components/Submenu.ts`
+  - `51-61`: Open logic and fixed position relative to passed parent.
+- `src/components/Button.ts`
+  - `39-57`: Panel + label composition.
+- `src/components/Toggle.ts`
+  - `34-42`: Component sizing/layout declaration.
+  - `60-70`: Mesh and label composition.
+  - `122-132`: Track/knob positioning.
+- `src/components/SliderLinear.ts`
+  - `39-43`: Sizing and stack layout declaration.
+  - `52-65`: Label/readout composition.
+  - `142-159`: Track/fill/thumb absolute mesh placement.
+- `src/components/RadialGauge.ts`
+  - `36`: Computed component size.
+  - `51-67`: Readout/label text children.
+  - `178-188`: Hardcoded text offsets in update.
+- `src/examples/example1-loadout-panel.ts`
+  - `103-115`: Object-anchor setup.
+  - `153-170`: Menu selection + submenu toggle trigger.
+  - `176-187`: Submenu configuration and attachment to frame.
+- `src/examples/example2-camera-hud.ts`
+  - `82-101`: Camera-anchor HUD root.
+  - `184-200`: Readout row assembly.
+  - `208-222`: Slider and readout updates.
+- `src/examples/example3-vr-wrist-menu.ts`
+  - `79-98`: Custom wrist-facing function.
+  - `104-118`: Wrist root anchor config.
+  - `160-175`: Menu assembly.
+  - `182-201`: Toggle/status assembly.
+- `src/examples/example4-phone-touch.ts`
+  - `71-90`: Camera-anchor overlay root.
+  - `131-152`: Slider controls.
+  - `159-188`: Toggle/button controls.
+  - `206-212`: UIManager setup.
+
+## High-Level Failure Clusters
+- Layout invalidation and async text measurement are not synchronized.
+- Menu/submenu composition mixes flow and absolute expectations.
+- Several controls mix layout-managed text with manually positioned meshes.
+- Camera-relative placement uses top-left root origin with no pivot model.
+- Demo shell does not support persistent selection or runtime teardown.
+- Debug/helper features are declared but not implemented.
+
+## Builder Expansion Workorders
+- `WO-007-visual-element-taxonomy-and-new-primitives.md`
+- `WO-008-element-catalog-previews-search-and-filter.md`
+- `WO-009-grid-panel-editor-drag-drop-authoring.md`
+- `WO-010-profile-persistence-and-schema-runtime.md`
+
+## Telemetry Hydration and Sidebar Refactor Workorders
+- `WO-011-telemetry-feed-reverse-engineering-and-baseline.md`
+- `WO-012-telemetry-hydration-contracts-and-provider-registry.md`
+- `WO-013-schema-binding-runtime-and-uihydrate-extension.md`
+- `WO-014-default-camera-hud-migration-to-binding-schema.md`
+- `WO-015-grid-editor-binding-authoring-and-profile-schema.md`
+- `WO-016-resizable-sidebar-and-wrapping-layout.md`
+- `WO-017-validation-observability-and-rollout-safety.md`
+
+## Implementation Status
+- Completed: `WO-011`, `WO-012`, `WO-013`, `WO-014`, `WO-015`, `WO-016`, `WO-017`

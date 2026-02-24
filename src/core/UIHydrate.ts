@@ -150,6 +150,37 @@ export interface HydrateOptions {
   rootOptions?: Partial<UIRootOptions>;
 }
 
+export type UIBindingDiagnosticSeverity = "warning" | "error";
+
+export type UIBindingDiagnosticCode =
+  | "unsupported-target"
+  | "missing-formatter"
+  | "formatter-throw"
+  | "apply-throw";
+
+export interface UIBindingDiagnosticEvent {
+  at: number;
+  severity: UIBindingDiagnosticSeverity;
+  code: UIBindingDiagnosticCode;
+  fieldId: string;
+  elementId?: string;
+  nodeType?: UISchemaNode["type"];
+  detail: string;
+}
+
+export interface UIBindingDiagnosticsSnapshot {
+  totalBindings: number;
+  boundFieldCount: number;
+  warningCount: number;
+  errorCount: number;
+  missingFormatterCount: number;
+  unsupportedTargetCount: number;
+  formatterErrorCount: number;
+  applyErrorCount: number;
+  lastEventAt: number | null;
+  recentEvents: ReadonlyArray<UIBindingDiagnosticEvent>;
+}
+
 interface BuiltBindingRef {
   element: UIElement;
   nodeType: UISchemaNode["type"];
@@ -159,10 +190,25 @@ interface BuiltBindingRef {
 
 interface BindingRuntimeHandle {
   unsubscribe: () => void;
+  diagnostics: BindingDiagnosticsAccumulator;
+}
+
+interface BindingDiagnosticsAccumulator {
+  totalBindings: number;
+  boundFieldCount: number;
+  warningCount: number;
+  errorCount: number;
+  missingFormatterCount: number;
+  unsupportedTargetCount: number;
+  formatterErrorCount: number;
+  applyErrorCount: number;
+  lastEventAt: number | null;
+  recentEvents: UIBindingDiagnosticEvent[];
 }
 
 const SLOT_TEMPLATE_CACHE: WeakMap<TextBlock, string> = new WeakMap();
 const ROOT_BINDING_HANDLE = Symbol("UIHydrate.rootBindingHandle");
+const BINDING_DIAGNOSTIC_LIMIT = 24;
 
 /* ------------------------------------------------------------------ */
 /*  UIHydrate                                                          */
@@ -237,6 +283,15 @@ export class UIHydrate {
     } finally {
       delete r[ROOT_BINDING_HANDLE];
     }
+  }
+
+  static getBindingDiagnostics(root: UIRoot): UIBindingDiagnosticsSnapshot | null {
+    const r = root as UIRoot & {
+      [ROOT_BINDING_HANDLE]?: BindingRuntimeHandle;
+    };
+    const handle = r[ROOT_BINDING_HANDLE];
+    if (!handle) return null;
+    return UIHydrate._snapshotBindingDiagnostics(handle.diagnostics);
   }
 
   /* ---------------------------------------------------------------- */
@@ -744,21 +799,86 @@ export class UIHydrate {
       }
       fieldMap.get(ref.binding.field)!.push(ref);
     }
+    const diagnostics: BindingDiagnosticsAccumulator = {
+      totalBindings: builtBindings.length,
+      boundFieldCount: fieldMap.size,
+      warningCount: 0,
+      errorCount: 0,
+      missingFormatterCount: 0,
+      unsupportedTargetCount: 0,
+      formatterErrorCount: 0,
+      applyErrorCount: 0,
+      lastEventAt: null,
+      recentEvents: [],
+    };
+
+    const warnedMissingFormatter = new Set<string>();
+    const warnedUnsupportedTarget = new Set<string>();
+
+    const recordWarning = (
+      code: Extract<UIBindingDiagnosticCode, "unsupported-target" | "missing-formatter">,
+      ref: BuiltBindingRef,
+      detail: string
+    ) => {
+      const key = `${code}|${ref.binding.field}|${ref.element.elementId ?? ""}`;
+      const dedupe =
+        code === "missing-formatter" ? warnedMissingFormatter : warnedUnsupportedTarget;
+      if (dedupe.has(key)) return;
+      dedupe.add(key);
+      UIHydrate._recordBindingDiagnostic(diagnostics, {
+        at: Date.now(),
+        severity: "warning",
+        code,
+        fieldId: ref.binding.field,
+        elementId: ref.element.elementId ?? undefined,
+        nodeType: ref.nodeType,
+        detail,
+      });
+    };
 
     const applyRef = (ref: BuiltBindingRef, field?: UIBindingField) => {
       const target = UIHydrate._resolveBindingTarget(ref.nodeType, ref.binding);
-      if (!target) return;
+      if (!target) {
+        recordWarning(
+          "unsupported-target",
+          ref,
+          `Node type "${ref.nodeType}" does not support binding target "${ref.binding.target ?? "(default)"}".`
+        );
+        return;
+      }
 
       let nextValue: unknown = field?.value;
       if (ref.binding.formatter) {
         const formatter = runtime.formatters?.[ref.binding.formatter];
-        if (formatter) {
-          nextValue = formatter(nextValue, {
-            fieldId: ref.binding.field,
-            field,
-            binding: ref.binding,
-            element: ref.element,
-          });
+        if (!formatter) {
+          recordWarning(
+            "missing-formatter",
+            ref,
+            `Formatter "${ref.binding.formatter}" was not found in binding runtime.`
+          );
+        } else {
+          try {
+            nextValue = formatter(nextValue, {
+              fieldId: ref.binding.field,
+              field,
+              binding: ref.binding,
+              element: ref.element,
+            });
+          } catch (err) {
+            UIHydrate._recordBindingDiagnostic(diagnostics, {
+              at: Date.now(),
+              severity: "error",
+              code: "formatter-throw",
+              fieldId: ref.binding.field,
+              elementId: ref.element.elementId ?? undefined,
+              nodeType: ref.nodeType,
+              detail:
+                err instanceof Error
+                  ? err.message
+                  : `Formatter threw: ${String(err)}`,
+            });
+            return;
+          }
         }
       }
 
@@ -771,10 +891,25 @@ export class UIHydrate {
         nextValue = ref.binding.fallback;
       }
 
-      if (target === "text") {
-        UIHydrate._applyTextBinding(ref, nextValue);
-      } else if (target === "value") {
-        UIHydrate._applyValueBinding(ref, nextValue);
+      try {
+        if (target === "text") {
+          UIHydrate._applyTextBinding(ref, nextValue);
+        } else if (target === "value") {
+          UIHydrate._applyValueBinding(ref, nextValue);
+        }
+      } catch (err) {
+        UIHydrate._recordBindingDiagnostic(diagnostics, {
+          at: Date.now(),
+          severity: "error",
+          code: "apply-throw",
+          fieldId: ref.binding.field,
+          elementId: ref.element.elementId ?? undefined,
+          nodeType: ref.nodeType,
+          detail:
+            err instanceof Error
+              ? err.message
+              : `Binding apply error: ${String(err)}`,
+        });
       }
     };
 
@@ -807,6 +942,56 @@ export class UIHydrate {
     };
     r[ROOT_BINDING_HANDLE] = {
       unsubscribe,
+      diagnostics,
+    };
+  }
+
+  private static _recordBindingDiagnostic(
+    diagnostics: BindingDiagnosticsAccumulator,
+    event: UIBindingDiagnosticEvent
+  ): void {
+    if (event.severity === "warning") {
+      diagnostics.warningCount += 1;
+      if (event.code === "missing-formatter") {
+        diagnostics.missingFormatterCount += 1;
+      }
+      if (event.code === "unsupported-target") {
+        diagnostics.unsupportedTargetCount += 1;
+      }
+    } else {
+      diagnostics.errorCount += 1;
+      if (event.code === "formatter-throw") {
+        diagnostics.formatterErrorCount += 1;
+      }
+      if (event.code === "apply-throw") {
+        diagnostics.applyErrorCount += 1;
+      }
+    }
+
+    diagnostics.lastEventAt = event.at;
+    diagnostics.recentEvents.push(event);
+    if (diagnostics.recentEvents.length > BINDING_DIAGNOSTIC_LIMIT) {
+      diagnostics.recentEvents.splice(
+        0,
+        diagnostics.recentEvents.length - BINDING_DIAGNOSTIC_LIMIT
+      );
+    }
+  }
+
+  private static _snapshotBindingDiagnostics(
+    diagnostics: BindingDiagnosticsAccumulator
+  ): UIBindingDiagnosticsSnapshot {
+    return {
+      totalBindings: diagnostics.totalBindings,
+      boundFieldCount: diagnostics.boundFieldCount,
+      warningCount: diagnostics.warningCount,
+      errorCount: diagnostics.errorCount,
+      missingFormatterCount: diagnostics.missingFormatterCount,
+      unsupportedTargetCount: diagnostics.unsupportedTargetCount,
+      formatterErrorCount: diagnostics.formatterErrorCount,
+      applyErrorCount: diagnostics.applyErrorCount,
+      lastEventAt: diagnostics.lastEventAt,
+      recentEvents: diagnostics.recentEvents.slice(),
     };
   }
 

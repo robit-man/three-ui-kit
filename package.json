@@ -15,6 +15,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "check": "tsc --noEmit",
+    "smoke:wo017": "npm run build && node scripts/smoke-wo017.mjs",
     "gen-cert": "node scripts/gen-cert.mjs",
     "secure": "tsc && node scripts/gen-cert.mjs && node scripts/serve-https.mjs",
     "serve": "tsc && node scripts/serve-https.mjs"

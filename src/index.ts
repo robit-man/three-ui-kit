@@ -64,6 +64,10 @@ export {
   type UIBindingFormatterContext,
   type UIBindingFormatter,
   type UIBindingRuntime,
+  type UIBindingDiagnosticSeverity,
+  type UIBindingDiagnosticCode,
+  type UIBindingDiagnosticEvent,
+  type UIBindingDiagnosticsSnapshot,
   type HydrateOptions,
 } from "./core/UIHydrate.js";
 export {
@@ -141,6 +145,10 @@ export {
   type TelemetryStatus,
   type TelemetryFieldSnapshot,
   type TelemetrySnapshot,
+  type TelemetryProviderState,
+  type TelemetryProviderDiagnostics,
+  type TelemetryDiagnosticsFieldSummary,
+  type TelemetryDiagnosticsSnapshot,
   type TelemetryEmit,
   type TelemetryProvider,
   type TelemetryRegistry,

@@ -22,6 +22,46 @@ export interface TelemetrySnapshot {
   fields: Record<string, TelemetryFieldSnapshot>;
 }
 
+export type TelemetryProviderState =
+  | "registered"
+  | "idle"
+  | "starting"
+  | "live"
+  | "error"
+  | "stopped";
+
+export interface TelemetryProviderDiagnostics {
+  providerId: string;
+  fieldIds: ReadonlyArray<TelemetryFieldId>;
+  state: TelemetryProviderState;
+  started: boolean;
+  hasCleanup: boolean;
+  updates: number;
+  lastStartAt: number | null;
+  lastStopAt: number | null;
+  lastUpdateAt: number | null;
+  lastErrorAt: number | null;
+  lastError?: string;
+}
+
+export interface TelemetryDiagnosticsFieldSummary {
+  total: number;
+  liveCount: number;
+  loadingCount: number;
+  staleCount: number;
+  errorCount: number;
+  unavailableCount: number;
+  byStatus: Record<TelemetryStatus, number>;
+  lastUpdateAt: number | null;
+}
+
+export interface TelemetryDiagnosticsSnapshot {
+  updatedAt: number;
+  providerCount: number;
+  providers: ReadonlyArray<TelemetryProviderDiagnostics>;
+  fields: TelemetryDiagnosticsFieldSummary;
+}
+
 export type TelemetryEmit = (
   update: TelemetryFieldSnapshot | ReadonlyArray<TelemetryFieldSnapshot>
 ) => void;
@@ -54,4 +94,3 @@ export type TelemetryListener = (
   snapshot: TelemetrySnapshot,
   changed: ReadonlyArray<TelemetryFieldSnapshot>
 ) => void;
-

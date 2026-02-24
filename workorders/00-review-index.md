@@ -1,120 +1,134 @@
-# UI Kit Review Index
+# Sidebar Workflow Redesign Index
 
-## Scope
-This review targeted the failures described in the request:
-- Menu item and text overlap
-- Menu/camera-relative positioning quality
-- Example selection sidebar requirements
-- Hover debug inspection and helper visualization
-- Axis helpers at element origins
+## Objective
+Redesign the sidebar around explicit workflow boundaries so users can clearly move from:
+1. editing individual components
+2. assembling components into a grid
+3. hydrating grid elements with data bindings
+4. instantiating the built UI into scene space
 
-## Included Files and Line Evidence
-- `index.html`
-  - `17-24`: Full-screen overlay startup shell.
-  - `47-54`: One-time example buttons.
-  - `79-80`: `overlay` and `info` DOM handles.
-  - `112-142`: `loadExample()` imports and starts example runtime.
-  - `148-150`: Static button binding.
-- `src/core/UIManager.ts`
-  - `72-76`: Debug flags exist but are not connected to helper rendering.
-  - `120-144`: Main update loop.
-  - `150-205`: Pointer event dispatch.
-  - `207-263`: Hit-test pipeline and region projection.
-  - `352-358`: `dispose()` currently only detaches roots.
-- `src/core/UIRoot.ts`
-  - `82-100`: Root update and relayout gate (`layoutDirty` only).
-  - `117-133`: Hit-region collection across tree.
-- `src/core/UIElement.ts`
-  - `154-164`: `add()` marks only local layout dirty.
-  - `230-237`: Hit-region sync updates width/height only.
-  - `272-278`: `markDirty()` propagates to ancestors.
-- `src/core/UILayoutEngine.ts`
-  - `14-45`: Compute order and child recursion behavior.
-  - `126-133`: Absolute layout maps `position` back into layout space.
-  - `140-207`: Stack layout placement.
-  - `269-273`: Position writeback with Y-flip.
-- `src/core/UIAnchor.ts`
-  - `117-123`: Anchor position from camera/object + offset.
-  - `125-129`: Orientation calculation and offset rotation.
-  - `150-201`: Facing mode switch.
-- `src/core/UIConstraints.ts`
-  - `52-86`: FOV-fit scaling by root height.
-- `src/utils/math.ts`
-  - `84-102`: `billboardYawQuat`.
-  - `107-120`: `cameraYawQuat`.
-  - `125-136`: `lockUpQuat`.
-- `src/primitives/TextBlock.ts`
-  - `54-63`: Troika setup.
-  - `91-94`: Sync callback updates measurements.
-  - `103-112`: `setText()` marks layout dirty after sync.
-  - `126-137`: Intrinsic measurement update path.
-- `src/primitives/Panel.ts`
-  - `29`: Default child layout is `STACK_Y`.
-  - `83-108`: Panel mesh synchronization to computed size.
-- `src/components/Menu.ts`
-  - `70-75`: Row sizing and row layout.
-  - `77-98`: Background panel and label composition.
-  - `100-109`: Arrow indicator as second child on same panel.
-  - `111`: Hit region registration on row.
-  - `116-130`: Hover/select behavior.
-- `src/components/Submenu.ts`
-  - `51-61`: Open logic and fixed position relative to passed parent.
-- `src/components/Button.ts`
-  - `39-57`: Panel + label composition.
-- `src/components/Toggle.ts`
-  - `34-42`: Component sizing/layout declaration.
-  - `60-70`: Mesh and label composition.
-  - `122-132`: Track/knob positioning.
-- `src/components/SliderLinear.ts`
-  - `39-43`: Sizing and stack layout declaration.
-  - `52-65`: Label/readout composition.
-  - `142-159`: Track/fill/thumb absolute mesh placement.
-- `src/components/RadialGauge.ts`
-  - `36`: Computed component size.
-  - `51-67`: Readout/label text children.
-  - `178-188`: Hardcoded text offsets in update.
-- `src/examples/example1-loadout-panel.ts`
-  - `103-115`: Object-anchor setup.
-  - `153-170`: Menu selection + submenu toggle trigger.
-  - `176-187`: Submenu configuration and attachment to frame.
-- `src/examples/example2-camera-hud.ts`
-  - `82-101`: Camera-anchor HUD root.
-  - `184-200`: Readout row assembly.
-  - `208-222`: Slider and readout updates.
-- `src/examples/example3-vr-wrist-menu.ts`
-  - `79-98`: Custom wrist-facing function.
-  - `104-118`: Wrist root anchor config.
-  - `160-175`: Menu assembly.
-  - `182-201`: Toggle/status assembly.
-- `src/examples/example4-phone-touch.ts`
-  - `71-90`: Camera-anchor overlay root.
-  - `131-152`: Slider controls.
-  - `159-188`: Toggle/button controls.
-  - `206-212`: UIManager setup.
+The redesign should present these as first-class tabbed workspaces (Markov blankets), with consistent controls, predictable state transitions, and robust local persistence.
 
-## High-Level Failure Clusters
-- Layout invalidation and async text measurement are not synchronized.
-- Menu/submenu composition mixes flow and absolute expectations.
-- Several controls mix layout-managed text with manually positioned meshes.
-- Camera-relative placement uses top-left root origin with no pivot model.
-- Demo shell does not support persistent selection or runtime teardown.
-- Debug/helper features are declared but not implemented.
+## Current State Review
 
-## Builder Expansion Workorders
-- `WO-007-visual-element-taxonomy-and-new-primitives.md`
-- `WO-008-element-catalog-previews-search-and-filter.md`
-- `WO-009-grid-panel-editor-drag-drop-authoring.md`
-- `WO-010-profile-persistence-and-schema-runtime.md`
+### Boundary Map (Current)
+- `Component authoring`: catalog + customizer
+  - Markup: `catalog-panel` and `customizer-panel` in [index.html](../index.html:788), [index.html](../index.html:802)
+  - Logic: [index.html](../index.html:3121), [index.html](../index.html:3202), [index.html](../index.html:3272)
+- `Grid assembly`: editor + tuneables + schema preview
+  - Markup: `editor-panel`, `editor-tuneables` in [index.html](../index.html:821), [index.html](../index.html:833)
+  - Logic: [index.html](../index.html:2783), [index.html](../index.html:2946), [index.html](../index.html:2892)
+- `Data hydration`: binding controls live inside tuneables (same panel as assembly)
+  - Markup: binding controls in [index.html](../index.html:856)
+  - Logic: [index.html](../index.html:2399), [index.html](../index.html:2576)
+- `Scene deployment`: add/drag/attach built UI and runtime rehydrate
+  - Logic: [index.html](../index.html:3937), [index.html](../index.html:4059), [index.html](../index.html:4098), [index.html](../index.html:4256)
+- `Diagnostics and rollout safety`: debug panel + compatibility gating
+  - Logic: [index.html](../index.html:1789), [index.html](../index.html:3354), [index.html](../index.html:4564)
 
-## Telemetry Hydration and Sidebar Refactor Workorders
-- `WO-011-telemetry-feed-reverse-engineering-and-baseline.md`
-- `WO-012-telemetry-hydration-contracts-and-provider-registry.md`
-- `WO-013-schema-binding-runtime-and-uihydrate-extension.md`
-- `WO-014-default-camera-hud-migration-to-binding-schema.md`
-- `WO-015-grid-editor-binding-authoring-and-profile-schema.md`
-- `WO-016-resizable-sidebar-and-wrapping-layout.md`
-- `WO-017-validation-observability-and-rollout-safety.md`
+### State and Persistence (Current)
+- Global mutable state lives in one large script scope:
+  - `profileStore` and editor/runtime globals in [index.html](../index.html:1387)
+- Multiple localStorage contracts are spread across feature areas:
+  - Keys in [index.html](../index.html:1080), [index.html](../index.html:1103), [index.html](../index.html:1112)
+  - Profile load/save in [index.html](../index.html:2020), [index.html](../index.html:2048)
+  - Profile import/export in [index.html](../index.html:3327), [index.html](../index.html:3354)
+- Cross-boundary updates are manual function chains:
+  - `persist -> sync output -> sync live scene` patterns repeated across handlers (for example [index.html](../index.html:2497), [index.html](../index.html:2568), [index.html](../index.html:4833))
 
-## Implementation Status
-- Completed: `WO-011`, `WO-012`, `WO-013`, `WO-014`, `WO-015`, `WO-016`
-- Next: `WO-017`
+### UX Gaps
+- Boundaries are present in code but not clearly expressed in UI hierarchy.
+- Assembly and hydration are co-located in one panel, so users do not see a staged flow.
+- No persistent workflow context (active boundary, selected element focus, in-progress operation stack).
+- State mutation and persistence are coupled in event handlers, making behavior hard to reason about and evolve.
+- Diagnostic signal exists, but is mixed with hover debug output and not framed as lifecycle health for the four-stage flow.
+
+## Proposed Redesign (Exhaustive)
+
+### 1) Top-Level Workflow Tabs (Markov Blankets)
+Create a fixed tab bar at sidebar top with explicit boundaries:
+- `Components`
+- `Assembly`
+- `Hydration`
+- `Scene`
+- `Profiles` (cross-cutting persistence/version governance)
+
+Each tab is a sealed workspace with:
+- its own primary surface
+- its own inspector/tuneables rail
+- explicit ingress/egress actions to next/previous boundary
+- deterministic save/restore hooks
+
+### 2) Consistent Workspace Anatomy Across Tabs
+Every tab follows the same visual and behavioral template:
+- `Tab Header`: title + short purpose + primary action
+- `Main Surface`: task canvas/list for that boundary
+- `Inspector Surface`: tuneables for selected item/context
+- `Boundary Footer`: transition actions (`Back`, `Validate`, `Continue to <next>`)
+
+This removes one-off layouts and creates a professional, repeatable interaction model.
+
+### 3) Boundary Transition Contract
+Define explicit transition guards:
+- `Components -> Assembly`: requires at least one valid element definition
+- `Assembly -> Hydration`: requires valid grid schema
+- `Hydration -> Scene`: requires binding validation pass
+- `Scene -> Profiles`: optional save/export checkpoint
+
+Transitions write boundary snapshots and validation status to a central workflow state.
+
+### 4) State Management Refactor Across Layers
+Refactor to a layered store model with pure reducers/selectors:
+- `uiShellState`: active tab, sidebar width, expanded panes
+- `catalogState`: registry, filters, selected entry, custom drafts
+- `assemblyState`: grid cells, selection, drag state, generated schema
+- `hydrationState`: binding rows, field catalog, formatter selection, validation
+- `sceneState`: placement mode, hover target, instantiated roots, anchor info
+- `profileState`: profiles, active profile id, migration notes, import/export status
+- `runtimeDiagnosticsState`: telemetry + binding diagnostics snapshots
+
+Introduce action/event pipeline:
+- UI dispatches action
+- reducer updates state
+- effects layer handles persistence/runtime sync
+- derived selectors feed render/update functions
+
+### 5) LocalStorage Persistence as a Versioned Envelope
+Replace scattered writes with one persisted envelope:
+- `workflowEnvelope.v1` containing:
+  - shell workspace state
+  - current draft state per tab
+  - profile store snapshot ref/version
+  - migration metadata
+
+Keep domain stores separately exportable, but orchestrate reads/writes through one persistence gateway.
+
+### 6) Professional Visual Consistency
+- Unified spacing/typography scale for tab header, cards, tuneables rows, and action zones.
+- Consistent button semantics:
+  - primary = progress workflow
+  - secondary = mutate local boundary
+  - destructive = delete/clear
+- Consistent empty states and validation states in every tab.
+- Cross-tab progress indicator (for example stepper: `1 Components`, `2 Assembly`, `3 Hydration`, `4 Scene`).
+
+### 7) Diagnostics as First-Class Workflow Health
+Move diagnostics framing from generic hover debug to workflow health:
+- tab-level banner for migration or validation issues
+- hydration health panel (field/provider/binding status)
+- scene deployment health (instances, anchor target, placement status)
+- profile compatibility health (version gates, applied migrations)
+
+## New Workorders
+- `WO-018-tabbed-markov-blanket-shell.md`
+- `WO-019-consistent-workspace-surface-system.md`
+- `WO-020-components-boundary-redesign.md`
+- `WO-021-assembly-boundary-redesign.md`
+- `WO-022-hydration-boundary-redesign.md`
+- `WO-023-scene-boundary-redesign.md`
+- `WO-024-state-layer-and-persistence-refactor.md`
+- `WO-025-diagnostics-tests-and-rollout-governance.md`
+
+## Archive Note
+Previously completed workorders have been retired to:
+- `workorders/.old/`
