@@ -231,7 +231,7 @@ export function createVRWristMenuExample(
     bgBox.rotation.y += dt * 0.15;
     bgBox.rotation.x += dt * 0.08;
 
-    backdrop.update(dt, t);
+    backdrop.update(dt, t, camera);
     uiManager.update(dt);
     renderer.render(scene, camera);
     rafId = requestAnimationFrame(tick);

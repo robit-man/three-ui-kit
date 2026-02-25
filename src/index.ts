@@ -192,3 +192,41 @@ export {
   easeInOutQuad,
   springDamp,
 } from "./utils/easing.js";
+
+/* ------------------------------------------------------------------ */
+/*  Workflow State                                                     */
+/* ------------------------------------------------------------------ */
+
+export {
+  WORKFLOW_BOUNDARY_ORDER,
+  normalizeWorkflowBoundaryValue,
+  createInitialWorkflowState,
+  coerceWorkflowState,
+  reduceWorkflowState,
+  createWorkflowStore,
+  type WorkflowBoundary,
+  type UiShellState,
+  type ComponentsState,
+  type AssemblyState,
+  type HydrationSummaryState,
+  type SceneState,
+  type ProfilesState,
+  type DiagnosticsState,
+  type WorkflowDomainSnapshots,
+  type WorkflowState,
+  type WorkflowSnapshotPatch,
+  type WorkflowAction,
+  type WorkflowListener,
+  type WorkflowStore,
+} from "./state/workflowStore.js";
+export {
+  WORKFLOW_ENVELOPE_STORAGE_KEY,
+  WORKFLOW_ENVELOPE_VERSION,
+  LEGACY_STORAGE_KEYS,
+  createWorkflowEnvelope,
+  loadWorkflowEnvelopeFromStorage,
+  persistWorkflowEnvelopeToStorage,
+  migrateLegacyStorageToWorkflowState,
+  type StorageLike,
+  type WorkflowEnvelopeV1,
+} from "./state/workflowEnvelope.js";

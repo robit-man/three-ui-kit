@@ -228,10 +228,11 @@ export function createLoadoutPanelExample(
   function tick() {
     if (!running) return;
     const dt = clock.getDelta();
+    const t = clock.elapsedTime;
     weaponObject.rotation.y += dt * 0.2;
     prop2.rotation.y -= dt * 0.15;
     prop2.rotation.x += dt * 0.08;
-    backdrop.update(dt, clock.elapsedTime);
+    backdrop.update(dt, t, camera);
     uiManager.update(dt);
     renderer.render(scene, camera);
     rafId = requestAnimationFrame(tick);

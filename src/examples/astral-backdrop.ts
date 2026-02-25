@@ -30,6 +30,7 @@ const GRID_FLICKER_DURATION = 0.25;
 const GRID_FADE_DURATION = 0.45;
 const GRID_DELAY_SCALE = 0.08;
 const GRID_JITTER = 0.12;
+const DEFAULT_GRID_DISTANCE = 20;
 
 const GRID_RAY_THRESHOLD = 0.18;
 const LABEL_OFFSET = new Vector3(0.075, 0.075, 0.075);
@@ -75,6 +76,7 @@ export class AstralBackdrop {
   private readonly _alphas: Float32Array;
   private readonly _delays: Float32Array;
   private readonly _jitters: Float32Array;
+  private readonly _distanceFadeBySegment: Float32Array;
   private readonly _segmentCount: number;
   private readonly _atmosphereMaterial: ShaderMaterial;
   private readonly _atmosphereMesh: Mesh<SphereGeometry, ShaderMaterial>;
@@ -102,11 +104,15 @@ export class AstralBackdrop {
   private _hoverCoord = new Vector3();
   private _hasSelectedCoord = false;
   private _selectedCoord = new Vector3();
+  private readonly _gridCenterCoord = new Vector3();
 
   constructor(opts: AstralBackdropOptions) {
     this._scene = opts.scene;
     this._active = opts.active ?? true;
-    this._gridDistance = Math.max(1, Math.floor(opts.gridDistance ?? 5));
+    this._gridDistance = Math.max(
+      1,
+      Math.floor(opts.gridDistance ?? DEFAULT_GRID_DISTANCE)
+    );
     this._lineLength = opts.lineLength ?? 0.05;
     this._fogNear = Math.max(0.1, opts.fogNear ?? 8);
     this._fogFar = Math.max(this._fogNear + 0.1, opts.fogFar ?? 26);
@@ -122,6 +128,7 @@ export class AstralBackdrop {
       alphas,
       delays,
       jitters,
+      distanceFadeBySegment,
       segmentCount,
     } = this._createSectorGrid(
       this._lineLength,
@@ -136,6 +143,7 @@ export class AstralBackdrop {
     this._alphas = alphas;
     this._delays = delays;
     this._jitters = jitters;
+    this._distanceFadeBySegment = distanceFadeBySegment;
     this._segmentCount = segmentCount;
 
     this._atmosphereMaterial = this._createAtmosphereMaterial();
@@ -230,7 +238,11 @@ export class AstralBackdrop {
       return;
     }
 
-    this._hoverCoord.set(gx, gy, gz);
+    this._hoverCoord.set(
+      gx + this._gridCenterCoord.x,
+      gy + this._gridCenterCoord.y,
+      gz + this._gridCenterCoord.z
+    );
     this._hasHoverCoord = true;
     this._refreshHoverLabel();
   }
@@ -244,7 +256,7 @@ export class AstralBackdrop {
     if (!this._hasHoverCoord) return null;
     _v3.copy(this._hoverCoord);
     if (grounded) _v3.y = 0;
-    return this._gridLines.localToWorld(_v3.clone());
+    return _v3.clone();
   }
 
   getHoveredGridSnapshot(grounded = false): GridHoverSnapshot | null {
@@ -304,7 +316,7 @@ export class AstralBackdrop {
     if (!this._hasSelectedCoord) return null;
     _v3.copy(this._selectedCoord);
     if (grounded) _v3.y = 0;
-    return this._gridLines.localToWorld(_v3.clone());
+    return _v3.clone();
   }
 
   getSelectedGridSnapshot(grounded = false): GridHoverSnapshot | null {
@@ -332,7 +344,8 @@ export class AstralBackdrop {
     return true;
   }
 
-  update(dt: number, elapsedTime: number): void {
+  update(dt: number, elapsedTime: number, camera?: Camera): void {
+    this._updateGridCenter(camera);
     this._updateGrid(elapsedTime);
     this._updateAtmosphere(dt, elapsedTime);
     this._updateFog(dt);
@@ -371,6 +384,7 @@ export class AstralBackdrop {
     alphas: Float32Array;
     delays: Float32Array;
     jitters: Float32Array;
+    distanceFadeBySegment: Float32Array;
     segmentCount: number;
   } {
     const gridSize = 2 * gridDistance + 1;
@@ -383,6 +397,8 @@ export class AstralBackdrop {
     const alphas = new Float32Array(totalVertices);
     const delays = new Float32Array(totalSegments);
     const jitters = new Float32Array(totalSegments);
+    const distanceFadeBySegment = new Float32Array(totalSegments);
+    const maxDistance = Math.max(1e-4, Math.sqrt(3) * gridDistance);
 
     const halfLength = lineLength * 0.5;
     let vertexIndex = 0;
@@ -392,6 +408,8 @@ export class AstralBackdrop {
       for (let y = -gridDistance; y <= gridDistance; y++) {
         for (let z = -gridDistance; z <= gridDistance; z++) {
           const dist = Math.sqrt(x * x + y * y + z * z);
+          const distN = dist / maxDistance;
+          const distanceFade = Math.max(0, 1 - Math.pow(distN, 1.35));
           const delay = Math.max(
             0,
             dist * GRID_DELAY_SCALE + (Math.random() - 0.5) * GRID_JITTER
@@ -406,6 +424,7 @@ export class AstralBackdrop {
           positions[vertexIndex++] = z;
           delays[segmentIndex] = delay;
           jitters[segmentIndex] = jitter;
+          distanceFadeBySegment[segmentIndex] = distanceFade;
           segmentIndex++;
 
           positions[vertexIndex++] = x;
@@ -416,6 +435,7 @@ export class AstralBackdrop {
           positions[vertexIndex++] = z;
           delays[segmentIndex] = delay;
           jitters[segmentIndex] = jitter;
+          distanceFadeBySegment[segmentIndex] = distanceFade;
           segmentIndex++;
 
           positions[vertexIndex++] = x;
@@ -426,6 +446,7 @@ export class AstralBackdrop {
           positions[vertexIndex++] = z + halfLength;
           delays[segmentIndex] = delay;
           jitters[segmentIndex] = jitter;
+          distanceFadeBySegment[segmentIndex] = distanceFade;
           segmentIndex++;
         }
       }
@@ -473,6 +494,7 @@ export class AstralBackdrop {
       alphas,
       delays,
       jitters,
+      distanceFadeBySegment,
       segmentCount: totalSegments,
     };
   }
@@ -592,6 +614,7 @@ export class AstralBackdrop {
         );
         alpha = Math.min(1, flicker * 0.6 + rampT);
       }
+      alpha *= this._distanceFadeBySegment[i] ?? 1;
       const v = i * 2;
       this._alphas[v] = alpha;
       this._alphas[v + 1] = alpha;
@@ -606,9 +629,17 @@ export class AstralBackdrop {
     }
 
     const half = this._lineLength * 0.5;
-    const x = this._selectedCoord.x;
-    const y = this._selectedCoord.y;
-    const z = this._selectedCoord.z;
+    const x = this._selectedCoord.x - this._gridCenterCoord.x;
+    const y = this._selectedCoord.y - this._gridCenterCoord.y;
+    const z = this._selectedCoord.z - this._gridCenterCoord.z;
+    if (
+      Math.abs(x) > this._gridDistance ||
+      Math.abs(y) > this._gridDistance ||
+      Math.abs(z) > this._gridDistance
+    ) {
+      this._selectedLines.visible = false;
+      return;
+    }
 
     const pos = this._selectedGeometry.getAttribute("position") as BufferAttribute;
     const arr = pos.array as Float32Array;
@@ -708,12 +739,42 @@ export class AstralBackdrop {
       this._hoverLabelText = label;
     }
 
+    const x = this._hoverCoord.x - this._gridCenterCoord.x;
+    const y = this._hoverCoord.y - this._gridCenterCoord.y;
+    const z = this._hoverCoord.z - this._gridCenterCoord.z;
+    if (
+      Math.abs(x) > this._gridDistance ||
+      Math.abs(y) > this._gridDistance ||
+      Math.abs(z) > this._gridDistance
+    ) {
+      this._hoverLabel.sprite.visible = false;
+      return;
+    }
+
     this._hoverLabel.sprite.position.set(
-      this._hoverCoord.x + LABEL_OFFSET.x,
-      this._hoverCoord.y + LABEL_OFFSET.y,
-      this._hoverCoord.z + LABEL_OFFSET.z
+      x + LABEL_OFFSET.x,
+      y + LABEL_OFFSET.y,
+      z + LABEL_OFFSET.z
     );
     this._hoverLabel.sprite.visible = true;
+  }
+
+  private _updateGridCenter(camera?: Camera): void {
+    if (!camera) return;
+    const nx = Math.round(camera.position.x);
+    const ny = Math.round(camera.position.y);
+    const nz = Math.round(camera.position.z);
+    if (
+      this._gridCenterCoord.x === nx &&
+      this._gridCenterCoord.y === ny &&
+      this._gridCenterCoord.z === nz
+    ) {
+      return;
+    }
+    this._gridCenterCoord.set(nx, ny, nz);
+    this._gridLines.position.set(nx, ny, nz);
+    this._updateSelectedMarker();
+    this._refreshHoverLabel();
   }
 
   private _createLabelSprite(

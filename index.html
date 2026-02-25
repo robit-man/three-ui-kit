@@ -1576,6 +1576,12 @@ import {
   UIHydrate,
   CAMERA_HUD_TELEMETRY_FIELDS,
   buildDefaultCameraHudProfileSchema as buildDefaultCameraHudProfileSchemaLib,
+  createInitialWorkflowState,
+  createWorkflowStore,
+  createWorkflowEnvelope,
+  loadWorkflowEnvelopeFromStorage,
+  migrateLegacyStorageToWorkflowState,
+  persistWorkflowEnvelopeToStorage,
 } from "./dist/index.js";
 
 const viewport = document.getElementById("viewport");
@@ -1792,6 +1798,10 @@ const ROLLOUT_FLAGS = {
   strictFutureBindingImport: true,
 };
 const CUSTOM_ELEMENTS_STORAGE_KEY = "three-ui-kit-custom-elements-v1";
+const WORKFLOW_ENVELOPE_MIGRATION_STATUS = {
+  source: "none",
+  shouldPersist: false,
+};
 const PREVIEW_PIXEL_RATIO_MAX = 1.5;
 const PREVIEW_FRAME_PADDING_METERS = 0.08;
 const PREVIEW_MIN_EXTENT_METERS = 0.001;
@@ -2122,6 +2132,134 @@ function cloneDeep(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+const workflowBootstrap = (() => {
+  const fallback = createInitialWorkflowState();
+  const fromEnvelope = loadWorkflowEnvelopeFromStorage(localStorage);
+  if (fromEnvelope?.state) {
+    WORKFLOW_ENVELOPE_MIGRATION_STATUS.source = "envelope";
+    return fromEnvelope.state;
+  }
+  WORKFLOW_ENVELOPE_MIGRATION_STATUS.source = "legacy";
+  WORKFLOW_ENVELOPE_MIGRATION_STATUS.shouldPersist = true;
+  return migrateLegacyStorageToWorkflowState(localStorage, fallback);
+})();
+
+const workflowStore = createWorkflowStore(workflowBootstrap);
+
+const workflowBootstrapBoundary = normalizeWorkflowBoundary(workflowBootstrap?.uiShell?.activeBoundary);
+if (workflowBootstrapBoundary) {
+  workflowState.activeBoundary = workflowBootstrapBoundary;
+}
+const workflowBootstrapSidebarWidth = Number(workflowBootstrap?.uiShell?.sidebarWidth);
+if (Number.isFinite(workflowBootstrapSidebarWidth)) {
+  sidebarResizeState.currentWidth = Math.round(workflowBootstrapSidebarWidth);
+}
+
+function workflowBootstrapDomainSnapshot(key) {
+  const domain = workflowBootstrap?.domain;
+  if (!domain || typeof domain !== "object") return null;
+  return domain[key] ?? null;
+}
+
+function syncWorkflowStoreSnapshot(reason = "") {
+  const filledCellCount = Array.isArray(editorState?.cells)
+    ? editorState.cells.reduce((count, cell) => (typeof cell === "string" ? count + 1 : count), 0)
+    : 0;
+  const draftCount =
+    hydrationState && hydrationState.draftsByProfileId && typeof hydrationState.draftsByProfileId === "object"
+      ? Object.keys(hydrationState.draftsByProfileId).length
+      : 0;
+  const checkpointCount =
+    hydrationState &&
+    hydrationState.checkpointsByProfileId &&
+    typeof hydrationState.checkpointsByProfileId === "object"
+      ? Object.keys(hydrationState.checkpointsByProfileId).length
+      : 0;
+  const isWide = sidebar?.classList?.contains("is-wide") === true;
+  const isCompact = sidebar?.classList?.contains("is-compact") === true;
+  const warnings = status?.textContent?.toLowerCase().includes("warn") ? 1 : 0;
+  const errors = status?.textContent?.toLowerCase().includes("invalid") ? 1 : 0;
+  const placementMode = componentSceneDragState.active ? "dragging" : "idle";
+  const activeInstanceCount = placedBuilderUiInstance ? 1 : 0;
+  const catalogCount = Array.isArray(activeCatalogRegistry) ? activeCatalogRegistry.length : 0;
+  const customCount = Array.isArray(customCatalogEntries) ? customCatalogEntries.length : 0;
+  const lastActionType = assemblyActionHistory.length > 0
+    ? assemblyActionHistory[assemblyActionHistory.length - 1]?.type ?? null
+    : null;
+
+  workflowStore.dispatch({
+    type: "snapshot/merge",
+    payload: {
+      uiShell: {
+        activeBoundary: workflowState.activeBoundary,
+        sidebarWidth: sidebarResizeState.currentWidth,
+        compact: isCompact,
+        wide: isWide,
+      },
+      components: {
+        selectedKey: customizerState.sourceKey ?? null,
+        draftStatus: customizerState.status ?? "empty",
+        catalogCount,
+        customCount,
+      },
+      assembly: {
+        cols: editorState.cols,
+        rows: editorState.rows,
+        selectedCellIndex:
+          Number.isInteger(editorState.selectedCellIndex) ? editorState.selectedCellIndex : null,
+        filledCellCount,
+        activeProfileId: editorState.activeProfileId ?? null,
+        lastActionType,
+      },
+      hydration: {
+        version: Number.isFinite(Number(hydrationState?.version))
+          ? Number(hydrationState.version)
+          : HYDRATION_STATE_VERSION,
+        draftCount,
+        checkpointCount,
+      },
+      scene: {
+        navMode,
+        snapOrbitToGrid,
+        placementMode,
+        activeInstanceCount,
+      },
+      profiles: {
+        version: Number.isFinite(Number(profileStore?.version))
+          ? Number(profileStore.version)
+          : PROFILE_VERSION,
+        activeProfileId: profileStore?.activeProfileId ?? null,
+        profileCount: Array.isArray(profileStore?.profiles) ? profileStore.profiles.length : 0,
+      },
+      diagnostics: {
+        runtimeActive: Boolean(activeRuntime),
+        warningCount: warnings,
+        errorCount: errors,
+        lastValidationMessage:
+          typeof status?.textContent === "string" ? status.textContent.trim() : "",
+      },
+      domain: {
+        profileStore: cloneDeep(profileStore),
+        hydrationState: cloneDeep(hydrationState),
+        customCatalogEntries: cloneDeep(customCatalogEntries),
+      },
+    },
+  });
+}
+
+function persistWorkflowEnvelope(reason = "") {
+  syncWorkflowStoreSnapshot(reason);
+  const migrationSource = WORKFLOW_ENVELOPE_MIGRATION_STATUS.source === "legacy"
+    ? "legacy"
+    : "envelope";
+  const envelope = createWorkflowEnvelope(workflowStore.getState(), migrationSource);
+  const ok = persistWorkflowEnvelopeToStorage(localStorage, envelope);
+  if (ok) {
+    WORKFLOW_ENVELOPE_MIGRATION_STATUS.shouldPersist = false;
+  }
+  return ok;
+}
+
 function makeId(prefix) {
   if (window.crypto && typeof window.crypto.randomUUID === "function") {
     return `${prefix}-${window.crypto.randomUUID()}`;
@@ -2169,6 +2307,18 @@ function sanitizeCatalogEntry(input, fallbackKey = "custom-element") {
 }
 
 function loadCustomCatalogEntries() {
+  const bootCustomEntries = workflowBootstrapDomainSnapshot("customCatalogEntries");
+  if (Array.isArray(bootCustomEntries) && customCatalogEntries.length === 0) {
+    const clean = [];
+    for (const item of bootCustomEntries) {
+      const entry = sanitizeCatalogEntry(item);
+      if (!entry) continue;
+      entry.custom = true;
+      clean.push(entry);
+    }
+    customCatalogEntries = clean;
+    return true;
+  }
   try {
     const raw = localStorage.getItem(CUSTOM_ELEMENTS_STORAGE_KEY);
     if (!raw) return false;
@@ -2189,7 +2339,7 @@ function loadCustomCatalogEntries() {
 }
 
 function persistCustomCatalogEntries() {
-  localStorage.setItem(CUSTOM_ELEMENTS_STORAGE_KEY, JSON.stringify(customCatalogEntries));
+  persistWorkflowEnvelope("persist-custom-catalog");
 }
 
 function syncCustomCatalogRegistry() {
@@ -3108,6 +3258,26 @@ function normalizeHydrationDraft(raw, profile) {
 }
 
 function loadHydrationState() {
+  const bootHydration = workflowBootstrapDomainSnapshot("hydrationState");
+  if (bootHydration && typeof bootHydration === "object") {
+    const drafts =
+      bootHydration.draftsByProfileId && typeof bootHydration.draftsByProfileId === "object"
+        ? bootHydration.draftsByProfileId
+        : {};
+    const checkpoints =
+      bootHydration.checkpointsByProfileId && typeof bootHydration.checkpointsByProfileId === "object"
+        ? bootHydration.checkpointsByProfileId
+        : {};
+    hydrationState = {
+      version:
+        Number.isFinite(Number(bootHydration.version))
+          ? Number(bootHydration.version)
+          : HYDRATION_STATE_VERSION,
+      draftsByProfileId: drafts,
+      checkpointsByProfileId: checkpoints,
+    };
+    return true;
+  }
   try {
     const raw = localStorage.getItem(HYDRATION_STATE_STORAGE_KEY);
     if (!raw) return false;
@@ -3138,11 +3308,7 @@ function loadHydrationState() {
 }
 
 function persistHydrationState() {
-  try {
-    localStorage.setItem(HYDRATION_STATE_STORAGE_KEY, JSON.stringify(hydrationState));
-  } catch {
-    // Ignore local storage failures.
-  }
+  persistWorkflowEnvelope("persist-hydration-state");
 }
 
 function pruneHydrationStateForProfiles() {
@@ -3298,6 +3464,31 @@ function createProfile(name = "Profile", opts = {}) {
 }
 
 function loadProfileStore() {
+  const bootProfileStore = workflowBootstrapDomainSnapshot("profileStore");
+  if (
+    bootProfileStore &&
+    typeof bootProfileStore === "object" &&
+    Array.isArray(bootProfileStore.profiles)
+  ) {
+    const parsedVersion = Number(bootProfileStore.version);
+    profileStore = {
+      version: Number.isFinite(parsedVersion) ? parsedVersion : 1,
+      activeProfileId:
+        typeof bootProfileStore.activeProfileId === "string"
+          ? bootProfileStore.activeProfileId
+          : null,
+      profiles: bootProfileStore.profiles.filter((profile) => {
+        return (
+          profile &&
+          typeof profile === "object" &&
+          typeof profile.id === "string" &&
+          profile.grid &&
+          Array.isArray(profile.grid.cells)
+        );
+      }),
+    };
+    return true;
+  }
   try {
     const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
     if (!raw) return false;
@@ -3326,7 +3517,7 @@ function loadProfileStore() {
 }
 
 function persistProfileStore() {
-  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileStore));
+  persistWorkflowEnvelope("persist-profile-store");
 }
 
 function ensureProfileStore() {
@@ -5964,12 +6155,14 @@ function setSidebarWidth(width, opts = {}) {
   sidebarResizeState.currentWidth = clamped;
   appRoot.style.setProperty("--sidebar-width", `${clamped}px`);
   updateSidebarWidthClasses(clamped);
+  workflowStore.dispatch({
+    type: "uiShell/setSidebarWidth",
+    sidebarWidth: clamped,
+    compact: clamped <= SIDEBAR_COMPACT_BREAKPOINT,
+    wide: clamped >= SIDEBAR_WIDE_BREAKPOINT,
+  });
   if (opts.persist === true) {
-    try {
-      localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(clamped));
-    } catch {
-      // Ignore local storage failures.
-    }
+    persistWorkflowEnvelope("persist-sidebar-width");
   }
   if (opts.triggerResize !== false) {
     handleResize();
@@ -6059,16 +6252,21 @@ function handleWindowResize() {
 function initSidebarResizer() {
   if (!appRoot || !sidebar || !sidebarResizer) return;
   let width = SIDEBAR_DEFAULT_WIDTH;
-  try {
-    const stored = localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
-    if (stored !== null) {
-      const parsed = Number(stored);
-      if (Number.isFinite(parsed)) {
-        width = parsed;
+  const bootWidth = Number(workflowBootstrap?.uiShell?.sidebarWidth);
+  if (Number.isFinite(bootWidth)) {
+    width = bootWidth;
+  } else {
+    try {
+      const stored = localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+      if (stored !== null) {
+        const parsed = Number(stored);
+        if (Number.isFinite(parsed)) {
+          width = parsed;
+        }
       }
+    } catch {
+      // Ignore local storage failures.
     }
-  } catch {
-    // Ignore local storage failures.
   }
 
   setSidebarWidth(width, { persist: false, triggerResize: false });
@@ -6284,19 +6482,23 @@ function setActiveWorkflowBoundary(boundary, opts = {}) {
   }
 
   workflowState.activeBoundary = normalized;
+  workflowStore.dispatch({
+    type: "uiShell/setBoundary",
+    boundary: normalized,
+  });
   syncWorkflowBoundaryUi({ focusActiveTab: opts.focusActiveTab === true });
 
   if (opts.persist !== false) {
-    try {
-      localStorage.setItem(WORKFLOW_BOUNDARY_STORAGE_KEY, normalized);
-    } catch {
-      // Ignore local storage failures.
-    }
+    persistWorkflowEnvelope("persist-workflow-boundary");
   }
   return true;
 }
 
 function resolveStoredWorkflowBoundary() {
+  const bootBoundary = normalizeWorkflowBoundary(workflowBootstrap?.uiShell?.activeBoundary);
+  if (bootBoundary) {
+    return bootBoundary;
+  }
   try {
     return normalizeWorkflowBoundary(localStorage.getItem(WORKFLOW_BOUNDARY_STORAGE_KEY));
   } catch {
@@ -8539,6 +8741,11 @@ syncPointerLockButton();
 startNavigationLoop();
 renderDebugPanel();
 loadExample(UNIFIED_EXAMPLE_ID);
+if (WORKFLOW_ENVELOPE_MIGRATION_STATUS.shouldPersist) {
+  persistWorkflowEnvelope("bootstrap-migrate-legacy");
+} else {
+  persistWorkflowEnvelope("bootstrap-sync");
+}
 </script>
 </body>
 </html>

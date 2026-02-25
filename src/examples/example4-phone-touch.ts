@@ -226,7 +226,7 @@ export function createPhoneTouchExample(
     torusKnot.rotation.y += dt * rotationSpeed;
     torusKnot.rotation.x += dt * rotationSpeed * 0.3;
 
-    backdrop.update(dt, t);
+    backdrop.update(dt, t, camera);
     uiManager.update(dt);
 
     if (grainPass.enabled) {

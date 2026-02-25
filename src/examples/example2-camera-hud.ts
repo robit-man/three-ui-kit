@@ -176,7 +176,7 @@ export function createCameraHudExample(
 
     telemetryHub.update(dt, t);
 
-    backdrop.update(dt, t);
+    backdrop.update(dt, t, camera);
     uiManager.update(dt);
 
     if (useBloom) {
